@@ -1,0 +1,14 @@
+# ---- core ----
+pydantic>=1.10,<3.0
+python-dotenv>=1.0
+
+# ---- http ----
+requests>=2.31
+
+# ---- web (future, but safe now) ----
+fastapi>=0.110
+uvicorn>=0.29
+
+# ---- database (future use) ----
+sqlalchemy>=2.0
+
