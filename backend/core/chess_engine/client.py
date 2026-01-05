@@ -1,8 +1,8 @@
-# core/engine/client.py
+# core/chess_engine/client.py
 import requests
 from core.config import settings
-from core.engine.schemas import EngineResult
-from core.engine.exceptions import EngineError
+from core.chess_engine.schemas import EngineResult
+from core.chess_engine.exceptions import EngineError
 
 
 class EngineClient:
@@ -34,7 +34,7 @@ class EngineClient:
             resp.raise_for_status()
 
             # Collect streaming response (SSE format)
-            from core.engine.schemas import EngineLine
+            from core.chess_engine.schemas import EngineLine
 
             # Parse UCI info lines to extract multipv data
             multipv_data = {}  # {multipv_num: {score, pv, depth}}

@@ -4,7 +4,7 @@ from pathlib import Path
 # Add backend directory to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-from core.engine.client import EngineClient
+from core.chess_engine.client import EngineClient
 
 engine = EngineClient()  # ← 不传 URL，自动用 config
 

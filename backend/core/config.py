@@ -1,7 +1,7 @@
 # core/config.py
 from pydantic_settings import BaseSettings
 from pathlib import Path
-
+import os
 
 class Settings(BaseSettings):
     # ===== basic =====
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ENGINE_TIMEOUT: int = 60
 
     # ===== database =====
-    DATABASE_URL: str = "sqlite:///./dev.db"
+    DATABASE_URL: str = "postgresql://postgres:yRuedDjiwzhbrBKDbIDCtCxTMzzRDQTL@yamabiko.proxy.rlwy.net:20407/railway"
 
     # ===== storage =====
     DATA_ROOT: Path = Path("data")

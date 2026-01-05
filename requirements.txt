@@ -1,5 +1,6 @@
 # ---- core ----
 pydantic>=1.10,<3.0
+pydantic-settings>=2.0
 python-dotenv>=1.0
 
 # ---- http ----
@@ -9,6 +10,11 @@ requests>=2.31
 fastapi>=0.110
 uvicorn>=0.29
 
-# ---- database (future use) ----
+# ---- database ----
 sqlalchemy>=2.0
+alembic>=1.13
+psycopg2-binary>=2.9
+
+# ---- security ----
+bcrypt>=4.0
 

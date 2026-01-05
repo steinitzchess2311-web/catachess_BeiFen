@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from core.engine.client import EngineClient
-from core.engine.exceptions import EngineError
+from core.chess_engine.client import EngineClient
+from core.chess_engine.exceptions import EngineError
 import json
 
 app = FastAPI(title="CataChess API")
