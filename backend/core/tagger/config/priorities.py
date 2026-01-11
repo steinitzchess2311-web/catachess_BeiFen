@@ -30,8 +30,13 @@ TAG_PRIORITY = {
     "prophylactic_direct": 10,
     "prophylactic_latent": 11,
     "prophylactic_meaningless": 12,
-    "structural_blockage": 13,
+    # "structural_blockage": 13,  # TODO: Planned feature - not yet implemented
     "control_over_dynamics": 14,
+    # CoD v2 subtype boolean tags (same priority as main control_over_dynamics)
+    "cod_prophylaxis": 14,
+    "piece_control_over_dynamics": 14,
+    "pawn_control_over_dynamics": 14,
+    "control_simplification": 14,
     "cod_simplify": 14,
     "cod_plan_kill": 14,
     "cod_freeze_bind": 14,
