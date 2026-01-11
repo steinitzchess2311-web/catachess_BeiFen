@@ -28,7 +28,8 @@ Example usage:
     print(f"Delta eval: {result.delta_eval}")
 """
 from .facade import tag_position
-from .models import TagContext, TagEvidence, TagResult
+from .models import TagContext, TagEvidence
+from .tag_result import TagResult
 
 __all__ = [
     "tag_position",

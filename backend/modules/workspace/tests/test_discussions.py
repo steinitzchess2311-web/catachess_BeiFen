@@ -10,6 +10,7 @@ from workspace.domain.models.discussion_reply import AddReplyCommand
 from workspace.domain.models.discussion_thread import CreateThreadCommand
 from workspace.domain.policies.limits import DiscussionLimits
 from workspace.domain.services.discussion.reply_service import ReplyService
+from workspace.domain.services.discussion.nesting import NestingDepthExceededError
 from workspace.domain.services.discussion.thread_service import ThreadService
 
 
@@ -43,7 +44,7 @@ async def test_reply_nesting_limit(session, event_bus):
         )
         parent_id = reply.id
 
-    with pytest.raises(ValueError):
+    with pytest.raises(NestingDepthExceededError):
         await reply_service.add_reply(
             AddReplyCommand(
                 thread_id=thread.id,

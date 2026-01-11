@@ -76,12 +76,12 @@ Need to implement:
 
 ## R2 Configuration
 
-Received from user:
+Received from user (Updated 2026-01-11):
 ```
 Endpoint: https://5f5a0298fe2da24a34b1fd0d3f795807.r2.cloudflarestorage.com
 Access Key: 2e32a213937e6b75316c0d4ea8f4a6e1
 Secret: 81b411967073f620788ad66c5118165b3f48f3363d88a558f0822cf0bc551f05
-Bucket: catachess-games
+Bucket: workspace
 ```
 
 Note: R2 integration not needed for Phase 1 (nodes only).

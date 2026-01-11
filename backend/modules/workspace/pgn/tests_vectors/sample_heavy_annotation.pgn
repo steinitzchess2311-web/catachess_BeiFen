@@ -1,0 +1,18 @@
+; Sample PGN with heavy annotations (50+ comments, NAGs).
+; Expected: comment stripping preserves moves and NAGs where applicable.
+
+[Event "Heavy Annotation"]
+[Site "Test"]
+[Date "2024.03.02"]
+[Round "1"]
+[White "Annotator"]
+[Black "Responder"]
+[Result "*"]
+
+1. e4 {c1} {c2} !! e5 {c3} {c4} ?! 2. Nf3 {c5} {c6} Nc6 {c7} {c8}
+3. Bb5 {c9} {c10} a6 {c11} {c12} 4. Ba4 {c13} {c14} Nf6 {c15} {c16}
+5. O-O {c17} {c18} Be7 {c19} {c20} 6. Re1 {c21} {c22} b5 {c23} {c24}
+7. Bb3 {c25} {c26} d6 {c27} {c28} 8. c3 {c29} {c30} O-O {c31} {c32}
+9. h3 {c33} {c34} Nb8 {c35} {c36} 10. d4 {c37} {c38} Nbd7 {c39} {c40}
+11. c4 {c41} {c42} c6 {c43} {c44} 12. Nc3 {c45} {c46} Qc7 {c47} {c48}
+13. Be3 {c49} {c50} Bb7 {c51} {c52} *

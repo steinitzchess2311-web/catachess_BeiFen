@@ -12,7 +12,7 @@ Tests the following endpoints:
 import pytest
 from fastapi import FastAPI
 from httpx import AsyncClient
-from ulid import new as ulid_new
+from ulid import ULID
 
 from workspace.api.router import api_router
 from workspace.db.tables.variations import VariationPriority, VariationVisibility
@@ -34,8 +34,8 @@ def app() -> FastAPI:
 @pytest.mark.asyncio
 async def test_add_move_success(app: FastAPI, variation_repo, session):
     """Test adding a move successfully returns 201 and ETag header."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.post(
@@ -65,9 +65,9 @@ async def test_add_move_success(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_add_move_parent_not_found(app: FastAPI, session):
     """Test adding move with non-existent parent returns 404."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
-    parent_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
+    parent_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.post(
@@ -90,8 +90,8 @@ async def test_add_move_parent_not_found(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_add_move_with_parent(app: FastAPI, variation_repo, session):
     """Test adding move as child of existing move."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create parent move first
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -137,8 +137,8 @@ async def test_add_move_with_parent(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_delete_move_success(app: FastAPI, variation_repo, session):
     """Test deleting a move returns 204."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create move first
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -168,9 +168,9 @@ async def test_delete_move_success(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_delete_move_not_found(app: FastAPI, session):
     """Test deleting non-existent move returns 404."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
-    move_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
+    move_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.delete(
@@ -189,8 +189,8 @@ async def test_delete_move_not_found(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_add_variation_success(app: FastAPI, variation_repo, session):
     """Test adding a variation successfully returns 201 and ETag."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create main line move first
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -234,8 +234,8 @@ async def test_add_variation_success(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_add_variation_rank_zero_validation(app: FastAPI, session):
     """Test adding variation with rank=0 returns 400."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.post(
@@ -263,8 +263,8 @@ async def test_add_variation_rank_zero_validation(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_add_annotation_success(app: FastAPI, variation_repo, session):
     """Test adding annotation successfully returns 201 and ETag."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create move first
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -305,9 +305,9 @@ async def test_add_annotation_success(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_add_annotation_move_not_found(app: FastAPI, session):
     """Test adding annotation to non-existent move returns 404."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
-    move_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
+    move_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.post(
@@ -325,8 +325,8 @@ async def test_add_annotation_move_not_found(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_add_annotation_already_exists(app: FastAPI, variation_repo, session):
     """Test adding annotation when one already exists returns 409."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create move and annotation
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -364,8 +364,8 @@ async def test_add_annotation_already_exists(app: FastAPI, variation_repo, sessi
 @pytest.mark.asyncio
 async def test_add_annotation_nag_only(app: FastAPI, variation_repo, session):
     """Test adding annotation with only NAG symbol."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create move first
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -404,8 +404,8 @@ async def test_add_annotation_nag_only(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_promote_variation_success(app: FastAPI, variation_repo, session):
     """Test promoting a variation to main line returns 204."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create main line and variation
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -451,9 +451,9 @@ async def test_promote_variation_success(app: FastAPI, variation_repo, session):
 @pytest.mark.asyncio
 async def test_promote_variation_not_found(app: FastAPI, session):
     """Test promoting non-existent variation returns 404."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
-    variation_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
+    variation_id = str(ULID())
 
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.put(
@@ -468,8 +468,8 @@ async def test_promote_variation_not_found(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_promote_variation_optimistic_lock(app: FastAPI, variation_repo, session):
     """Test promoting variation with stale version returns 409."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create variation
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -515,8 +515,8 @@ async def test_promote_variation_optimistic_lock(app: FastAPI, variation_repo, s
 @pytest.mark.asyncio
 async def test_promote_variation_if_match_header(app: FastAPI, variation_repo, session):
     """Test promoting variation using If-Match header."""
-    study_id = str(ulid_new())
-    chapter_id = str(ulid_new())
+    study_id = str(ULID())
+    chapter_id = str(ULID())
 
     # Create variation
     async with AsyncClient(app=app, base_url="http://test") as client:

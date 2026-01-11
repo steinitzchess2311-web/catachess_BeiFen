@@ -472,16 +472,56 @@ START
 
 ## 9. Input Parameter Dependencies
 
-### For compute_preventive_score() (NOT IN FILE - needs research)
-The prophylaxis.py file does NOT contain preventive_score computation. Need to search:
-- `rule_tagger2/legacy/analysis.py`
-- `rule_tagger2/legacy/core.py`
-- Related analysis modules
+### For compute_preventive_score() ✅ FOUND
+**Location**: `rule_tagger2/legacy/core.py:1020-1026`
 
-**Expected inputs from TagContext**:
-- `opp_mobility_drop`
-- `structure_gain`
-- `self_mobility_change`
+**Formula** (exact match):
+```python
+preventive_score = round(
+    max(0.0, threat_delta) * 0.5
+    + max(0.0, -opp_mobility_change) * 0.3
+    + max(0.0, -opp_tactics_change) * 0.2
+    + max(0.0, -opp_trend) * 0.15,
+    3,
+)
+```
+
+**Component weights**:
+- `threat_delta`: 0.5 (highest weight - most important component)
+- `opp_mobility_change`: 0.3 (opponent mobility restriction)
+- `opp_tactics_change`: 0.2 (opponent tactical options restriction)
+- `opp_trend`: 0.15 (combined opponent trend: mobility + tactics)
+
+**Required inputs from TagContext**:
+- `threat_delta`: Threat reduction (threat_before - threat_after)
+- `opp_mobility_delta`: Opponent mobility change
+- `opp_tactics_delta`: Opponent tactics change
+
+### For compute_soft_weight() ✅ FOUND
+**Location**: `rule_tagger2/legacy/core.py:1029-1037`
+
+**Formula** (exact match):
+```python
+safety_raw = (
+    max(0.0, self_structure_gain) * 0.4
+    + max(0.0, self_ks_gain) * 0.4
+    + max(0.0, -self_mobility_change) * 0.2
+)
+self_safety_bonus = round(
+    clamp_preventive_score(safety_raw, config=PROPHYLAXIS_CONFIG),
+    3,
+)
+```
+
+**Component weights**:
+- `structure_delta`: 0.4 (self consolidation)
+- `king_safety_delta`: 0.4 (king safety improvement)
+- `mobility_delta`: 0.2 (defensive mobility sacrifice)
+
+**Required inputs from TagContext**:
+- `structure_delta`: Structure improvement
+- `king_safety_delta`: King safety improvement
+- `mobility_delta`: Self mobility change (negative = defensive)
 
 ---
 

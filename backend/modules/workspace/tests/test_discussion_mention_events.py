@@ -6,6 +6,7 @@ import pytest
 
 from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
 from workspace.db.repos.event_repo import EventRepository
+from workspace.db.tables.users import User
 from workspace.domain.models.discussion_thread import CreateThreadCommand
 from workspace.domain.models.event import EventQuery
 from workspace.domain.services.discussion.thread_service import ThreadService
@@ -14,6 +15,13 @@ from workspace.events.types import EventType
 
 @pytest.mark.asyncio
 async def test_mentions_emit_events(session, event_bus):
+    session.add_all(
+        [
+            User(id="user-2", username="user-2"),
+            User(id="user-3", username="user-3"),
+        ]
+    )
+    await session.flush()
     thread_repo = DiscussionThreadRepository(session)
     thread_service = ThreadService(session, thread_repo, event_bus)
 

@@ -8,8 +8,17 @@ This service provides business logic for:
 - Generating clipboard-ready PGN
 """
 
+import asyncio
+import time
 from dataclasses import dataclass
 from datetime import datetime
+
+from botocore.exceptions import (
+    BotoCoreError,
+    ClientError,
+    ConnectionClosedError,
+    EndpointConnectionError,
+)
 
 from workspace.db.repos.study_repo import StudyRepository
 from workspace.db.repos.variation_repo import VariationRepository
@@ -31,7 +40,8 @@ from workspace.pgn.cleaner.raw_pgn import (
     export_raw_pgn_to_clipboard,
     export_clean_mainline,
 )
-from workspace.pgn.serializer.to_tree import VariationNode
+from workspace.pgn.serializer.to_tree import VariationNode, pgn_to_tree
+from workspace.storage.r2_client import R2Client
 
 
 @dataclass
@@ -87,6 +97,10 @@ class PgnClipService:
         variation_repo: VariationRepository,
         event_repo: EventRepository,
         event_bus: EventBus,
+        r2_client: R2Client,
+        cache_ttl_seconds: int = 600,
+        max_retries: int = 3,
+        backoff_base_seconds: float = 0.2,
     ):
         """
         Initialize PGN clip service.
@@ -101,6 +115,11 @@ class PgnClipService:
         self.variation_repo = variation_repo
         self.event_bus = event_bus
         self.event_repo = event_repo
+        self.r2_client = r2_client
+        self._cache_ttl_seconds = cache_ttl_seconds
+        self._max_retries = max_retries
+        self._backoff_base_seconds = backoff_base_seconds
+        self._tree_cache: dict[str, tuple[float, VariationNode]] = {}
 
     async def clip_from_move(
         self,
@@ -316,7 +335,7 @@ class PgnClipService:
 
     async def _load_variation_tree(self, chapter_id: str) -> VariationNode | None:
         """
-        Load variation tree from database.
+        Load variation tree from R2 storage.
 
         Args:
             chapter_id: Chapter ID
@@ -325,72 +344,62 @@ class PgnClipService:
             Root VariationNode, or None if no moves
 
         Note:
-            This is a placeholder. Actual implementation would:
-            1. Load chapter PGN from R2 or DB
-            2. Parse PGN to tree using pgn_to_tree
-            3. Return the tree
+            Uses in-memory caching to avoid repeated R2 downloads.
         """
-        variations = await self.variation_repo.get_variations_for_chapter(
-            chapter_id
-        )
-        if not variations:
+        cached = self._tree_cache.get(chapter_id)
+        if cached:
+            expires_at, cached_tree = cached
+            if time.monotonic() < expires_at:
+                return cached_tree
+            self._tree_cache.pop(chapter_id, None)
+
+        chapter = await self.study_repo.get_chapter_by_id(chapter_id)
+        if not chapter or not chapter.r2_key:
             return None
 
-        annotations = await self.variation_repo.get_annotations_for_chapter(
-            chapter_id
-        )
-        annotation_by_move_id = {
-            annotation.move_id: annotation for annotation in annotations
-        }
+        pgn_text = None
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                pgn_text = self.r2_client.download_pgn(chapter.r2_key)
+                break
+            except ClientError as exc:
+                error_code = exc.response.get("Error", {}).get("Code")
+                if error_code in {"404", "NoSuchKey"}:
+                    raise ValueError(
+                        f"PGN not found for chapter {chapter_id}"
+                    ) from exc
+                if attempt >= self._max_retries:
+                    raise ValueError(
+                        "Failed to load PGN from storage"
+                    ) from exc
+            except (
+                EndpointConnectionError,
+                ConnectionClosedError,
+                BotoCoreError,
+            ) as exc:
+                if attempt >= self._max_retries:
+                    raise ValueError(
+                        "Failed to load PGN from storage"
+                    ) from exc
+            if attempt < self._max_retries and self._backoff_base_seconds > 0:
+                await asyncio.sleep(
+                    self._backoff_base_seconds * (2 ** (attempt - 1))
+                )
 
-        children_by_parent: dict[str | None, list] = {}
-        for variation in variations:
-            children_by_parent.setdefault(variation.parent_id, []).append(
-                variation
+        if pgn_text is None:
+            raise ValueError("Failed to load PGN from storage")
+
+        tree = pgn_to_tree(pgn_text)
+        if tree is None:
+            raise ValueError("Invalid PGN content")
+
+        if self._cache_ttl_seconds > 0:
+            self._tree_cache[chapter_id] = (
+                time.monotonic() + self._cache_ttl_seconds,
+                tree,
             )
 
-        for children in children_by_parent.values():
-            children.sort(key=lambda child: child.rank)
-
-        root_candidates = children_by_parent.get(None, [])
-        if not root_candidates:
-            return None
-
-        root_candidates.sort(key=lambda child: child.rank)
-        root_variation = next(
-            (child for child in root_candidates if child.rank == 0),
-            root_candidates[0],
-        )
-
-        def build_node(variation) -> VariationNode:
-            annotation = annotation_by_move_id.get(variation.id)
-            node = VariationNode(
-                move_number=variation.move_number,
-                color=variation.color,
-                san=variation.san,
-                uci=variation.uci,
-                fen=variation.fen,
-                nag=annotation.nag if annotation else None,
-                comment=annotation.text if annotation else None,
-                rank=variation.rank,
-            )
-            node.children = [
-                build_node(child)
-                for child in children_by_parent.get(variation.id, [])
-            ]
-            return node
-
-        root_node = build_node(root_variation)
-        root_node.rank = 0
-
-        for alternative in root_candidates:
-            if alternative.id == root_variation.id:
-                continue
-            root_node.children.append(build_node(alternative))
-
-        root_node.children.sort(key=lambda child: child.rank)
-
-        return root_node
+        return tree
 
     def _build_headers(self, chapter: any) -> dict[str, str]:
         """

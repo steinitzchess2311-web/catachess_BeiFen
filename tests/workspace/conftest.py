@@ -16,8 +16,9 @@ from workspace.db.repos.acl_repo import ACLRepository
 from workspace.db.repos.event_repo import EventRepository
 from workspace.db.repos.node_repo import NodeRepository
 from workspace.db.repos.study_repo import StudyRepository
+from workspace.db.repos.variation_repo import VariationRepository
 # Import all tables so they're registered with Base.metadata
-from workspace.db.tables import acl, events, nodes, studies
+from workspace.db.tables import acl, events, nodes, studies, variations
 from workspace.domain.services.chapter_import_service import ChapterImportService
 from workspace.domain.services.node_service import NodeService
 from workspace.domain.services.share_service import ShareService
@@ -112,6 +113,12 @@ async def share_service(
 async def study_repo(session: AsyncSession) -> StudyRepository:
     """Create study repository."""
     return StudyRepository(session)
+
+
+@pytest_asyncio.fixture
+async def variation_repo(session: AsyncSession) -> VariationRepository:
+    """Create variation repository."""
+    return VariationRepository(session)
 
 
 @pytest_asyncio.fixture

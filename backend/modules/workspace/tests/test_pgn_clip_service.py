@@ -9,14 +9,19 @@ from workspace.db.repos.study_repo import StudyRepository
 from workspace.db.repos.variation_repo import VariationRepository
 from workspace.db.tables.nodes import Node
 from workspace.db.tables.studies import Chapter, Study
-from workspace.db.tables.variations import (
-    Variation,
-    VariationPriority,
-    VariationVisibility,
-)
 from workspace.domain.models.types import NodeType, Visibility
 from workspace.domain.services.pgn_clip_service import PgnClipService
 from workspace.events.types import EventType
+
+
+class StubR2Client:
+    def __init__(self, pgn_text: str) -> None:
+        self.pgn_text = pgn_text
+        self.calls: list[str] = []
+
+    def download_pgn(self, key: str) -> str:
+        self.calls.append(key)
+        return self.pgn_text
 
 
 @pytest.mark.asyncio
@@ -64,49 +69,20 @@ async def test_clip_service_emits_event(session, event_bus):
     session.add_all([node, study, chapter])
     await session.flush()
 
-    move1 = Variation(
-        id="v1",
-        chapter_id=chapter_id,
-        parent_id=None,
-        next_id=None,
-        move_number=1,
-        color="white",
-        san="e4",
-        uci="e2e4",
-        fen="fen1",
-        rank=0,
-        priority=VariationPriority.MAIN,
-        visibility=VariationVisibility.PUBLIC,
-        pinned=False,
-        created_by="user-1",
-        version=1,
-    )
-    move2 = Variation(
-        id="v2",
-        chapter_id=chapter_id,
-        parent_id="v1",
-        next_id=None,
-        move_number=1,
-        color="black",
-        san="e5",
-        uci="e7e5",
-        fen="fen2",
-        rank=0,
-        priority=VariationPriority.MAIN,
-        visibility=VariationVisibility.PUBLIC,
-        pinned=False,
-        created_by="user-1",
-        version=1,
-    )
+    r2_client = StubR2Client(
+        """
+[Event "Test Game"]
 
-    session.add_all([move1, move2])
-    await session.flush()
+1. e4 e5 2. Nf3 Nc6 *
+"""
+    )
 
     clip_service = PgnClipService(
         study_repo=StudyRepository(session),
         variation_repo=VariationRepository(session),
         event_repo=EventRepository(session),
         event_bus=event_bus,
+        r2_client=r2_client,
     )
 
     result = await clip_service.clip_from_move(
@@ -116,6 +92,7 @@ async def test_clip_service_emits_event(session, event_bus):
     )
 
     assert "e4" in result.pgn_text
+    assert r2_client.calls == ["r2://chapter-1"]
 
     event_repo = EventRepository(session)
     events = await event_repo.get_events_for_target(chapter_id)

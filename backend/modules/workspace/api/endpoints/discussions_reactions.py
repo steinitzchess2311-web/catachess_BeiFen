@@ -1,28 +1,36 @@
-"""
-Discussion reaction endpoints.
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.deps import get_current_user_id
+from workspace.api.audit_helpers import log_permission_denial
+from workspace.api.deps import (
+    get_acl_repo,
+    get_audit_repo,
+    get_current_user_id,
+    get_node_repo,
+    get_rate_limiter,
+    get_reaction_service,
+    get_reply_repo,
+    get_thread_repo,
+)
+from workspace.api.rate_limit import RateLimiter
 from workspace.api.schemas.discussion_reaction import (
     ReactionCreate,
     ReactionResponse,
 )
+from workspace.db.repos.acl_repo import ACLRepository
+from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from workspace.db.repos.node_repo import NodeRepository
 from workspace.domain.models.discussion_reaction import (
     AddReactionCommand,
     RemoveReactionCommand,
 )
-from workspace.domain.services.discussion.reaction_service import (
-    ReactionNotFoundError,
-    ReactionService,
+from workspace.domain.policies.discussion_permissions import (
+    DiscussionPermissionError, require_commenter_access
 )
+from workspace.domain.policies.limits import DiscussionLimits
+from workspace.domain.services.discussion.reaction_service import ReactionNotFoundError, ReactionService
 
 router = APIRouter(prefix="/reactions", tags=["discussions"])
-
-
-async def get_reaction_service() -> ReactionService:
-    raise NotImplementedError("DI not configured")
 
 
 @router.post("", response_model=ReactionResponse, status_code=status.HTTP_201_CREATED)
@@ -30,8 +38,43 @@ async def add_reaction(
     data: ReactionCreate,
     user_id: str = Depends(get_current_user_id),
     service: ReactionService = Depends(get_reaction_service),
+    thread_repo: DiscussionThreadRepository = Depends(get_thread_repo),
+    reply_repo: DiscussionReplyRepository = Depends(get_reply_repo),
+    node_repo: NodeRepository = Depends(get_node_repo),
+    acl_repo: ACLRepository = Depends(get_acl_repo),
+    audit_repo = Depends(get_audit_repo),
+    rate_limiter: RateLimiter = Depends(get_rate_limiter),
 ) -> ReactionResponse:
     try:
+        if data.target_type == "thread":
+            thread = await thread_repo.get_by_id(data.target_id)
+            if not thread:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found"
+                )
+            target_id = thread.target_id
+        else:
+            reply = await reply_repo.get_by_id(data.target_id)
+            if not reply:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Reply not found"
+                )
+            thread = await thread_repo.get_by_id(reply.thread_id)
+            if not thread:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found"
+                )
+            target_id = thread.target_id
+        await require_commenter_access(node_repo, acl_repo, target_id, user_id)
+        if not rate_limiter.allow(
+            f"discussion:reaction:{user_id}",
+            DiscussionLimits.MAX_REACTIONS_PER_MINUTE,
+            60,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded",
+            )
         command = AddReactionCommand(
             target_id=data.target_id,
             target_type=data.target_type,
@@ -40,6 +83,16 @@ async def add_reaction(
         )
         reaction = await service.add_reaction(command)
         return ReactionResponse.model_validate(reaction)
+    except DiscussionPermissionError as exc:
+        await log_permission_denial(
+            audit_repo,
+            user_id,
+            target_id,
+            thread.target_type,
+            "commenter",
+            str(exc),
+        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 

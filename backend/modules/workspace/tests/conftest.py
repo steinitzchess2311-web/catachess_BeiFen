@@ -15,6 +15,7 @@ from workspace.db.session import get_db_config, init_db
 from workspace.domain.services.node_service import NodeService
 from workspace.domain.services.share_service import ShareService
 from workspace.events.bus import EventBus
+from workspace.events.subscribers.registry import register_all_subscribers
 
 
 @pytest.fixture(scope="session")
@@ -61,7 +62,9 @@ async def event_repo(session: AsyncSession) -> EventRepository:
 
 @pytest_asyncio.fixture
 async def event_bus(session: AsyncSession) -> EventBus:
-    return EventBus(session)
+    bus = EventBus(session)
+    register_all_subscribers(bus, session)
+    return bus
 
 
 @pytest_asyncio.fixture

@@ -144,9 +144,9 @@ Create `.env` file:
 DATABASE_URL=postgresql+asyncpg://user:pass@localhost/catachess
 REDIS_URL=redis://localhost:6379/0
 R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
-R2_ACCESS_KEY_ID=xxx
-R2_SECRET_ACCESS_KEY=xxx
-R2_BUCKET_NAME=catachess-workspace
+R2_ACCESS_KEY=xxx
+R2_SECRET_KEY=xxx
+R2_BUCKET=workspace
 ```
 
 ### Running Tests

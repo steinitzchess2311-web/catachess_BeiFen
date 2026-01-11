@@ -69,6 +69,36 @@ def game_with_nested_variations_pgn():
 
 
 @pytest.fixture
+def game_with_multiple_variations_pgn():
+    """Game with multiple ranked variations at same move."""
+    return """
+[Event "Test Game"]
+
+1. e4 e5 2. Nf3 (2. Bc4) (2. Nc3) Nc6 3. Bb5 a6 *
+"""
+
+
+@pytest.fixture
+def game_with_deep_nested_variations_pgn():
+    """Game with deeper nested variations."""
+    return """
+[Event "Test Game"]
+
+1. e4 (1. d4 (1. c4 (1. Nf3))) e5 2. Nf3 Nc6 *
+"""
+
+
+@pytest.fixture
+def game_with_rank2_nested_variations_pgn():
+    """Game with rank=2 variation nested three levels deep."""
+    return """
+[Event "Test Game"]
+
+1. e4 (1. d4 (1. c4 (1. Nf3) (1. Nc3))) e5 2. Nf3 Nc6 *
+"""
+
+
+@pytest.fixture
 def game_with_comments_pgn():
     """Game with comments and NAGs."""
     return """
@@ -94,6 +124,24 @@ def variations_tree(game_with_variations_pgn):
 def nested_tree(game_with_nested_variations_pgn):
     """Variation tree with nested variations."""
     return pgn_to_tree(game_with_nested_variations_pgn)
+
+
+@pytest.fixture
+def multi_rank_tree(game_with_multiple_variations_pgn):
+    """Variation tree with multiple variations at same move."""
+    return pgn_to_tree(game_with_multiple_variations_pgn)
+
+
+@pytest.fixture
+def deep_nested_tree(game_with_deep_nested_variations_pgn):
+    """Variation tree with deep nested variations."""
+    return pgn_to_tree(game_with_deep_nested_variations_pgn)
+
+
+@pytest.fixture
+def rank2_nested_tree(game_with_rank2_nested_variations_pgn):
+    """Variation tree with rank=2 nested variations."""
+    return pgn_to_tree(game_with_rank2_nested_variations_pgn)
 
 
 @pytest.fixture
@@ -184,12 +232,54 @@ class TestFindNodeByPath:
         assert node is not None
         assert node.san == "d4"
 
+    def test_find_variation_replacing_first_move(self, variations_tree):
+        """Test finding variation that replaces first move."""
+        node = find_node_by_path(variations_tree, "main.1.var1.1")
+        assert node is not None
+        assert node.san == "d4"
+
     def test_find_nested_variation(self, nested_tree):
         """Test finding move in nested variation."""
         # Variation from move 2: 2. Bc4 Nf6, then variation 2...Bc5
         node = find_node_by_path(nested_tree, "main.2.var1.2.var1.1")
         assert node is not None
         assert node.san == "Bc5"
+
+    def test_find_deep_nested_variation(self, deep_nested_tree):
+        """Test finding move in deep nested variation."""
+        node = find_node_by_path(deep_nested_tree, "main.1.var1.1.var1.1.var1.1")
+        assert node is not None
+        assert node.san == "Nf3"
+
+    def test_find_black_move_in_variation(self, variations_tree):
+        """Test finding black move with SAN notation."""
+        node = find_node_by_path(variations_tree, "main.1...c5")
+        assert node is not None
+        assert node.san == "c5"
+
+    def test_find_path_with_multiple_ranks(self, multi_rank_tree):
+        """Test path through multiple ranked variations."""
+        node = find_node_by_path(multi_rank_tree, "main.2.var2.1")
+        assert node is not None
+        assert node.san == "Nc3"
+
+    def test_find_move_in_simple_variation(self, variations_tree):
+        """Rank=1 variation from move 1."""
+        node = find_node_by_path(variations_tree, "main.1.var1.1")
+        assert node is not None
+        assert node.san == "d4"
+
+    def test_find_move_in_nested_variation(self, rank2_nested_tree):
+        """Rank=2 variation nested 3 levels deep."""
+        node = find_node_by_path(rank2_nested_tree, "main.1.var1.1.var1.1.var2.1")
+        assert node is not None
+        assert node.san == "Nc3"
+
+    def test_path_with_multiple_ranks(self, multi_rank_tree):
+        """Path through rank=0,1,2 variations."""
+        node = find_node_by_path(multi_rank_tree, "main.2.var2.1")
+        assert node is not None
+        assert node.san == "Nc3"
 
     def test_find_nonexistent_path(self, simple_tree):
         """Test that nonexistent path returns None."""
@@ -407,6 +497,23 @@ class TestPruneBeforeNode:
         first_move_variations = [c for c in pruned.children if c.rank > 0]
         assert len(first_move_variations) == 0  # No variations from first move
 
+    def test_prune_before_mainline_move(self, variations_tree):
+        """Prune before move 2 on main line."""
+        target = find_node_by_path(variations_tree, "main.2")
+        pruned = prune_before_node(variations_tree, target)
+        pgn = tree_to_movetext(pruned)
+        assert "e4" in pgn
+        assert "e5" in pgn
+        assert "Nf3" in pgn
+
+    def test_prune_before_variation_move(self, variations_tree):
+        """Prune before move in rank=1 variation."""
+        target = find_node_by_path(variations_tree, "main.1.var1.1")
+        pruned = prune_before_node(variations_tree, target)
+        assert pruned.san == "e4"
+        assert pruned.children
+        assert pruned.children[0].san == "d4"
+
     def test_prune_keeps_variations_after(self, variations_tree):
         """Test that variations after target are kept."""
         target = find_node_by_path(variations_tree, "main.2")
@@ -420,6 +527,25 @@ class TestPruneBeforeNode:
         assert current is not None
         # Should have variations after Nf3 (Bc4)
         # Note: This depends on the exact structure of the test PGN
+
+    def test_prune_preserves_subtree(self, variations_tree):
+        """All moves after target are intact."""
+        target = find_node_by_path(variations_tree, "main.2")
+        pruned = prune_before_node(variations_tree, target)
+        pgn = tree_to_movetext(pruned)
+        assert "Nc6" in pgn
+        assert "Bb5" in pgn
+
+    def test_prune_updates_ranks(self, variations_tree):
+        """Ranks should be recalculated sequentially."""
+        target = find_node_by_path(variations_tree, "main.2")
+        pruned = prune_before_node(variations_tree, target)
+        current = pruned
+        while current and current.san != "Nf3":
+            current = next((c for c in current.children if c.rank == 0), None)
+        assert current is not None
+        ranks = sorted(child.rank for child in current.children)
+        assert ranks == list(range(len(ranks)))
 
 
 class TestRemoveComments:

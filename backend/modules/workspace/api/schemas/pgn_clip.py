@@ -28,3 +28,21 @@ class PgnClipResponse(BaseModel):
     move_path: str | None = None
     moves_removed: int | None = None
     variations_removed: int | None = None
+
+
+class PgnExportRequest(BaseModel):
+    """Schema for exporting PGN without clipping."""
+
+    chapter_id: str = Field(..., min_length=1)
+    for_clipboard: bool = True
+
+
+class PgnClipPreviewResponse(BaseModel):
+    """Schema for PGN clip preview response."""
+
+    target_move: str
+    moves_before: int
+    moves_after: int
+    variations_removed: int
+    variations_kept: int
+    preview_text: str

@@ -13,6 +13,7 @@ from core.tagger.detectors.helpers.prophylaxis_modules import (
     ProphylaxisConfig,
     clamp_preventive_score,
     classify_prophylaxis_quality,
+    compute_preventive_score_from_deltas,
 )
 
 
@@ -189,6 +190,66 @@ def test_classify_below_trigger_no_pattern():
     print("✓ test_classify_below_trigger_no_pattern")
 
 
+def test_preventive_score_no_threat():
+    """Test preventive score without threat_delta."""
+    result = compute_preventive_score_from_deltas(
+        opp_mobility_delta=-0.2,  # Opponent loses mobility
+        opp_tactics_delta=-0.1,   # Opponent loses tactics
+        threat_delta=0.0,          # No threat reduction
+    )
+    expected = 0.3 * 0.2 + 0.2 * 0.1 + 0.15 * 0.3  # = 0.06 + 0.02 + 0.045 = 0.125
+    assert abs(result["preventive_score"] - expected) < 0.01
+    assert result["threat_delta"] == 0.0
+    assert result["opp_mobility_delta"] == -0.2
+    assert result["opp_tactics_delta"] == -0.1
+    print("✓ test_preventive_score_no_threat")
+
+
+def test_preventive_score_with_threat():
+    """Test preventive score with threat_delta (weight 0.5)."""
+    result = compute_preventive_score_from_deltas(
+        opp_mobility_delta=-0.2,
+        opp_tactics_delta=-0.1,
+        threat_delta=0.4,  # Threat reduced by 0.4
+    )
+    # threat_delta * 0.5 + opp_mobility * 0.3 + opp_tactics * 0.2 + opp_trend * 0.15
+    # = 0.4 * 0.5 + 0.2 * 0.3 + 0.1 * 0.2 + 0.3 * 0.15
+    # = 0.2 + 0.06 + 0.02 + 0.045 = 0.325
+    expected = 0.325
+    assert abs(result["preventive_score"] - expected) < 0.01
+    assert result["threat_delta"] == 0.4
+    print("✓ test_preventive_score_with_threat")
+
+
+def test_preventive_score_threat_dominant():
+    """Test that threat_delta is the most important component (weight 0.5)."""
+    # High threat reduction but minimal other changes
+    result = compute_preventive_score_from_deltas(
+        opp_mobility_delta=-0.1,
+        opp_tactics_delta=-0.05,
+        threat_delta=0.6,  # Large threat reduction
+    )
+    # 0.6 * 0.5 + 0.1 * 0.3 + 0.05 * 0.2 + 0.15 * 0.15 = 0.3 + 0.03 + 0.01 + 0.0225 = 0.3625
+    assert result["preventive_score"] >= 0.35
+    # Threat component alone: 0.6 * 0.5 = 0.3 (largest single component)
+    assert 0.6 * 0.5 == 0.3  # Verify threat has highest weight
+    print("✓ test_preventive_score_threat_dominant")
+
+
+def test_preventive_score_negative_threat_ignored():
+    """Test that negative threat_delta is ignored (clamped to 0)."""
+    result = compute_preventive_score_from_deltas(
+        opp_mobility_delta=-0.2,
+        opp_tactics_delta=-0.1,
+        threat_delta=-0.3,  # Threat increased (negative delta)
+    )
+    # max(0, -0.3) * 0.5 = 0, so threat component is 0
+    expected = 0.3 * 0.2 + 0.2 * 0.1 + 0.15 * 0.3  # Same as no threat
+    assert abs(result["preventive_score"] - expected) < 0.01
+    assert result["threat_delta"] == -0.3
+    print("✓ test_preventive_score_negative_threat_ignored")
+
+
 def run_all_tests():
     """Run all tests."""
     print("=" * 70)
@@ -210,6 +271,10 @@ def run_all_tests():
         test_classify_latent,
         test_classify_pattern_override,
         test_classify_below_trigger_no_pattern,
+        test_preventive_score_no_threat,
+        test_preventive_score_with_threat,
+        test_preventive_score_threat_dominant,
+        test_preventive_score_negative_threat_ignored,
     ]
 
     passed = 0

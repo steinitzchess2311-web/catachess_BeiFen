@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from workspace.db.tables.events import Event as EventTable
 from workspace.domain.models.event import CreateEventCommand
 from workspace.domain.models.types import NodeType
+from workspace.events.payloads import build_event_envelope
 from workspace.events.types import EventType
 
 
@@ -49,14 +50,28 @@ class EventBus:
             Created event
         """
         # Create event record
+        event_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow()
+        payload = build_event_envelope(
+            event_id=event_id,
+            event_type=str(command.type),
+            actor_id=command.actor_id,
+            target_id=command.target_id,
+            target_type=(
+                str(command.target_type) if command.target_type is not None else None
+            ),
+            timestamp=timestamp,
+            version=command.version,
+            payload=command.payload,
+        )
         event = EventTable(
-            id=str(uuid.uuid4()),
+            id=event_id,
             type=command.type,
             actor_id=command.actor_id,
             target_id=command.target_id,
             target_type=command.target_type,
             version=command.version,
-            payload=command.payload,
+            payload=payload,
             workspace_id=command.workspace_id,
         )
 

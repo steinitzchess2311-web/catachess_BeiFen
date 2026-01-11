@@ -4,7 +4,7 @@ Study service.
 Handles study editing operations including move annotations.
 """
 
-from ulid import new as ulid_new
+from ulid import ULID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from workspace.db.repos.variation_repo import VariationRepository
@@ -109,7 +109,7 @@ class StudyService:
 
         # Create annotation
         annotation = MoveAnnotation(
-            id=str(ulid_new()),
+            id=str(ULID()),
             move_id=command.move_id,
             nag=command.nag,
             text=command.text,
@@ -222,7 +222,7 @@ class StudyService:
         else:
             # Create new annotation with just NAG
             annotation = MoveAnnotation(
-                id=str(ulid_new()),
+                id=str(ULID()),
                 move_id=command.move_id,
                 nag=command.nag,
                 text=None,
@@ -258,7 +258,7 @@ class StudyService:
 
         # Create variation
         variation = Variation(
-            id=str(ulid_new()),
+            id=str(ULID()),
             chapter_id=command.chapter_id,
             parent_id=command.parent_id,
             next_id=None,

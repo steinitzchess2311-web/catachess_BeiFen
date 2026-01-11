@@ -1,0 +1,168 @@
+[
+  {
+    "id": "prophy_direct_01",
+    "category": "prophylactic_direct",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+    "played_move": "d2d3",
+    "expected_tags": ["prophylactic_move", "prophylactic_direct"],
+    "expected_confidence_min": 0.75,
+    "description": "Quiet pawn push d3 preventing Ng4/Nd4, restricting black's knight mobility",
+    "notes": "Classic prophylactic structure move, prevents tactical jumps"
+  },
+  {
+    "id": "prophy_direct_02",
+    "category": "prophylactic_direct",
+    "fen": "r1bqr1k1/pp3pbp/2np1np1/2p5/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w - - 0 10",
+    "played_move": "h2h3",
+    "expected_tags": ["prophylactic_move", "prophylactic_direct"],
+    "expected_confidence_min": 0.80,
+    "description": "h3 preventing Ng4/Bg4, classic king safety prophylaxis",
+    "notes": "Prevents back rank weaknesses and piece infiltration"
+  },
+  {
+    "id": "prophy_latent_01",
+    "category": "prophylactic_latent",
+    "fen": "rnbqkb1r/pp2pppp/3p1n2/2p5/2P1P3/2N2N2/PP1P1PPP/R1BQKB1R w KQkq - 0 5",
+    "played_move": "a2a3",
+    "expected_tags": ["prophylactic_move", "prophylactic_latent"],
+    "expected_confidence_min": 0.45,
+    "expected_confidence_max": 0.70,
+    "description": "a3 preparing b4 and preventing Qa5 pin",
+    "notes": "Subtle preparation, not immediately restricting but improving position"
+  },
+  {
+    "id": "prophy_latent_02",
+    "category": "prophylactic_latent",
+    "fen": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 6",
+    "played_move": "c1e3",
+    "expected_tags": ["prophylactic_move", "prophylactic_latent"],
+    "expected_confidence_min": 0.50,
+    "expected_confidence_max": 0.75,
+    "description": "Be3 developing while preventing d4 pawn breaks",
+    "notes": "Pattern: anticipatory bishop positioning"
+  },
+  {
+    "id": "prophy_meaningless_01",
+    "category": "prophylactic_meaningless",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+    "played_move": "a2a4",
+    "expected_tags": ["prophylactic_meaningless"],
+    "expected_confidence_min": 0.60,
+    "description": "a4 trying to prevent b5 but weakening queenside significantly",
+    "notes": "Eval drop >50cp in neutral position, classified as meaningless",
+    "expected_eval_drop": -70,
+    "expected_eval_before_range": [30, 80]
+  },
+  {
+    "id": "prophy_meaningless_02",
+    "category": "prophylactic_meaningless",
+    "fen": "r2qkb1r/ppp2ppp/2np1n2/4p1B1/2B1P1b1/3P1N2/PPP2PPP/RN1QK2R w KQkq - 0 8",
+    "played_move": "h2h3",
+    "expected_tags": ["prophylactic_meaningless"],
+    "expected_confidence_min": 0.65,
+    "description": "h3 attacking Bg4 but allowing Nf3+ fork",
+    "notes": "Tactical oversight: should recapture on f3 instead",
+    "expected_eval_drop": -150,
+    "expected_eval_before_range": [20, 60]
+  },
+  {
+    "id": "non_prophy_01",
+    "category": "non_prophylactic",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+    "played_move": "e1g1",
+    "expected_tags": [],
+    "expected_no_tags": ["prophylactic_move", "prophylactic_direct", "prophylactic_latent"],
+    "description": "Castling - standard development, not prophylactic",
+    "notes": "Control: Normal move that should not trigger prophylaxis"
+  },
+  {
+    "id": "non_prophy_02",
+    "category": "non_prophylactic",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+    "played_move": "d2d4",
+    "expected_tags": [],
+    "expected_no_tags": ["prophylactic_move", "prophylactic_direct", "prophylactic_latent"],
+    "description": "d4 central pawn break - tactical not prophylactic",
+    "notes": "Aggressive move increasing tension, not restricting"
+  },
+  {
+    "id": "filtered_capture_01",
+    "category": "filtered_candidate",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+    "played_move": "f3e5",
+    "expected_tags": [],
+    "expected_gates_failed": ["candidate"],
+    "description": "Nxe5 capture - should be filtered by is_prophylaxis_candidate()",
+    "notes": "Captures are not prophylactic by definition"
+  },
+  {
+    "id": "filtered_check_01",
+    "category": "filtered_candidate",
+    "fen": "r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 5",
+    "played_move": "c4f7",
+    "expected_tags": [],
+    "expected_gates_failed": ["candidate"],
+    "description": "Bxf7+ check - should be filtered",
+    "notes": "Check-giving moves are not prophylactic"
+  },
+  {
+    "id": "filtered_opening_01",
+    "category": "filtered_candidate",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "played_move": "h2h3",
+    "expected_tags": [],
+    "expected_gates_failed": ["candidate"],
+    "description": "h3 on move 1 - too early for prophylaxis (before move 8)",
+    "notes": "Opening moves filtered by OPENING_MOVE_CUTOFF"
+  },
+  {
+    "id": "pattern_bishop_retreat",
+    "category": "pattern_detection",
+    "fen": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQkq - 0 6",
+    "played_move": "c4b3",
+    "expected_tags": ["prophylactic_move"],
+    "expected_pattern": "anticipatory bishop retreat",
+    "description": "Bb3 retreating bishop to prevent d4 and maintain diagonal control",
+    "notes": "Pattern: bishop retreat with opponent mobility restriction"
+  },
+  {
+    "id": "pattern_knight_reposition",
+    "category": "pattern_detection",
+    "fen": "r1bqkb1r/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 5",
+    "played_move": "f3h4",
+    "expected_tags": ["prophylactic_move"],
+    "expected_pattern": "anticipatory knight reposition",
+    "description": "Nh4 repositioning knight away from e5 weakness",
+    "notes": "Pattern: knight reposition preventing pins/attacks"
+  },
+  {
+    "id": "pattern_king_shuffle",
+    "category": "pattern_detection",
+    "fen": "r2qkb1r/ppp2ppp/2np1n2/4p1B1/2B1P1b1/3P1N2/PPP2PPP/RN1QK2R w KQkq - 0 8",
+    "played_move": "e1f1",
+    "expected_tags": ["prophylactic_move"],
+    "expected_pattern": "king safety shuffle",
+    "description": "Kf1 improving king safety after losing castling rights",
+    "notes": "Pattern: king shuffle for safety"
+  },
+  {
+    "id": "edge_case_full_material",
+    "category": "edge_case",
+    "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 1 2",
+    "played_move": "h2h3",
+    "expected_tags": [],
+    "expected_gates_failed": ["candidate"],
+    "description": "Full material position - should be filtered",
+    "notes": "is_full_material() check should filter this"
+  },
+  {
+    "id": "edge_case_no_piece",
+    "category": "edge_case",
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+    "played_move": "e2e3",
+    "expected_tags": [],
+    "expected_gates_failed": ["candidate"],
+    "description": "Pawn advance from square with no piece - should handle gracefully",
+    "notes": "Edge case: board_before.piece_at(from_square) is None"
+  }
+]

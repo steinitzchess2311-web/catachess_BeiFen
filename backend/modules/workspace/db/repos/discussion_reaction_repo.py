@@ -42,6 +42,17 @@ class DiscussionReactionRepository:
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def get_by_target_and_user(
+        self, target_id: str, target_type: str, user_id: str
+    ) -> DiscussionReaction | None:
+        stmt = select(DiscussionReaction).where(
+            DiscussionReaction.target_id == target_id,
+            DiscussionReaction.target_type == target_type,
+            DiscussionReaction.user_id == user_id,
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def delete(self, reaction: DiscussionReaction) -> None:
         await self.session.delete(reaction)
         await self.session.flush()

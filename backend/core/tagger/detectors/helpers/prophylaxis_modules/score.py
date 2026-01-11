@@ -13,29 +13,42 @@ from .config import ProphylaxisConfig, OPENING_MOVE_CUTOFF
 def compute_preventive_score_from_deltas(
     opp_mobility_delta: float,
     opp_tactics_delta: float,
+    threat_delta: float = 0.0,
 ) -> Dict[str, Any]:
     """
     Compute preventive score based on opponent restriction.
 
+    Matches rule_tagger2/legacy/core.py:1020-1026 exactly.
+
+    Formula:
+        preventive_score = max(0, threat_delta) * 0.5
+                         + max(0, -opp_mobility_delta) * 0.3
+                         + max(0, -opp_tactics_delta) * 0.2
+                         + max(0, -opp_trend) * 0.15
+
     Args:
         opp_mobility_delta: Opponent mobility change
         opp_tactics_delta: Opponent tactics change
+        threat_delta: Threat reduction (opponent threat before - after)
 
     Returns:
         Dict with preventive_score and component breakdowns
     """
-    # Compute opponent trend (simplified: just mobility + tactics)
+    # Compute opponent trend (mobility + tactics)
     opp_trend = opp_mobility_delta + opp_tactics_delta
 
-    # Preventive score: reward opponent restriction
+    # Preventive score: reward threat reduction + opponent restriction
+    # This is the exact formula from rule_tagger2/legacy/core.py:1020-1026
     preventive_score = (
-        max(0.0, -opp_mobility_delta) * 0.3
+        max(0.0, threat_delta) * 0.5
+        + max(0.0, -opp_mobility_delta) * 0.3
         + max(0.0, -opp_tactics_delta) * 0.2
         + max(0.0, -opp_trend) * 0.15
     )
 
     return {
         "preventive_score": round(preventive_score, 3),
+        "threat_delta": round(threat_delta, 3),
         "opp_mobility_delta": round(opp_mobility_delta, 3),
         "opp_tactics_delta": round(opp_tactics_delta, 3),
         "opp_trend": round(opp_trend, 3),

@@ -34,6 +34,14 @@ class ReplyUpdate(BaseModel):
         return validate_markdown(value)
 
 
+class ReplyEditHistoryEntry(BaseModel):
+    """Reply edit history entry."""
+
+    content: str
+    edited_at: str
+    edited_by: str
+
+
 class ReplyResponse(BaseModel):
     """Reply response model."""
 

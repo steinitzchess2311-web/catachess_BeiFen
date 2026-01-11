@@ -2,7 +2,7 @@
 Search index subscriber for discussion content.
 """
 
-from ulid import new as ulid_new
+from ulid import ULID
 
 from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
 from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
@@ -45,10 +45,11 @@ class SearchIndexer:
             return
         content = f"{thread.title}\n{thread.content}"
         await self.search_repo.upsert(
-            entry_id=str(ulid_new()),
+            entry_id=str(ULID()),
             target_id=thread.id,
             target_type="discussion_thread",
             content=content,
+            author_id=thread.author_id,
         )
 
     async def _index_reply(self, reply_id: str) -> None:
@@ -56,10 +57,11 @@ class SearchIndexer:
         if not reply:
             return
         await self.search_repo.upsert(
-            entry_id=str(ulid_new()),
+            entry_id=str(ULID()),
             target_id=reply.id,
             target_type="discussion_reply",
             content=reply.content,
+            author_id=reply.author_id,
         )
 
     async def _delete_entry(self, target_id: str, target_type: str) -> None:

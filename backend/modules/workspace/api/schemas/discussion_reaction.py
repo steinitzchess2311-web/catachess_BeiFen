@@ -4,6 +4,8 @@ Discussion reaction schemas.
 
 from datetime import datetime
 
+import emoji
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from workspace.domain.policies.limits import DiscussionLimits
@@ -19,6 +21,8 @@ class ReactionCreate(BaseModel):
     @field_validator("emoji")
     @classmethod
     def _validate_emoji(cls, value: str) -> str:
+        if not emoji.is_emoji(value):
+            raise ValueError("Emoji must be a single valid emoji")
         if value not in DiscussionLimits.ALLOWED_REACTION_EMOJIS:
             raise ValueError("Emoji is not allowed")
         return value

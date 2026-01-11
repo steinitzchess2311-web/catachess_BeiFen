@@ -18,7 +18,12 @@ from workspace.api.schemas.annotation import (
     AnnotationUpdate,
     SetNAGRequest,
 )
-from workspace.api.schemas.pgn_clip import PgnClipRequest, PgnClipResponse
+from workspace.api.schemas.pgn_clip import (
+    PgnClipPreviewResponse,
+    PgnClipRequest,
+    PgnClipResponse,
+    PgnExportRequest,
+)
 from workspace.api.schemas.study import (
     ChapterResponse,
     ImportResultResponse,
@@ -120,7 +125,10 @@ async def get_pgn_clip_service(
     event_repo: EventRepository = Depends(get_event_repo),
     event_bus: EventBus = Depends(get_event_bus),
 ) -> PgnClipService:
-    return PgnClipService(study_repo, variation_repo, event_repo, event_bus)
+    r2_client = create_r2_client_from_env()
+    return PgnClipService(
+        study_repo, variation_repo, event_repo, event_bus, r2_client
+    )
 
 
 @router.post("", response_model=StudyResponse, status_code=status.HTTP_201_CREATED)
@@ -357,6 +365,126 @@ async def clip_pgn(
             detail=f"Unsupported mode '{data.mode}'",
         )
 
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get(
+    "/{study_id}/pgn/clip/preview",
+    response_model=PgnClipPreviewResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def preview_clip_pgn(
+    study_id: str,
+    chapter_id: str,
+    move_path: str,
+    user_id: str = Depends(get_current_user_id),
+    clip_service: PgnClipService = Depends(get_pgn_clip_service),
+) -> PgnClipPreviewResponse:
+    """
+    Preview PGN clip results.
+
+    Example:
+        GET /studies/{study_id}/pgn/clip/preview?chapter_id=ch1&move_path=main.12
+    """
+    try:
+        preview = await clip_service.get_clip_preview(chapter_id, move_path)
+        return PgnClipPreviewResponse(**preview)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post(
+    "/{study_id}/pgn/export/no-comment",
+    response_model=PgnClipResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def export_no_comment_pgn_endpoint(
+    study_id: str,
+    data: PgnExportRequest,
+    user_id: str = Depends(get_current_user_id),
+    clip_service: PgnClipService = Depends(get_pgn_clip_service),
+) -> PgnClipResponse:
+    """
+    Export PGN with variations, without comments.
+
+    Example:
+        POST /studies/{study_id}/pgn/export/no-comment
+    """
+    try:
+        result = await clip_service.export_no_comments(
+            chapter_id=data.chapter_id,
+            actor_id=user_id,
+            for_clipboard=data.for_clipboard,
+        )
+        return PgnClipResponse(
+            pgn_text=result.pgn_text,
+            export_mode=result.export_mode,
+            timestamp=result.timestamp,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post(
+    "/{study_id}/pgn/export/raw",
+    response_model=PgnClipResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def export_raw_pgn_endpoint(
+    study_id: str,
+    data: PgnExportRequest,
+    user_id: str = Depends(get_current_user_id),
+    clip_service: PgnClipService = Depends(get_pgn_clip_service),
+) -> PgnClipResponse:
+    """
+    Export raw PGN (mainline only).
+
+    Example:
+        POST /studies/{study_id}/pgn/export/raw
+    """
+    try:
+        result = await clip_service.export_raw(
+            chapter_id=data.chapter_id,
+            actor_id=user_id,
+            for_clipboard=data.for_clipboard,
+        )
+        return PgnClipResponse(
+            pgn_text=result.pgn_text,
+            export_mode=result.export_mode,
+            timestamp=result.timestamp,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post(
+    "/{study_id}/pgn/export/clean",
+    response_model=PgnClipResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def export_clean_pgn_endpoint(
+    study_id: str,
+    data: PgnExportRequest,
+    user_id: str = Depends(get_current_user_id),
+    clip_service: PgnClipService = Depends(get_pgn_clip_service),
+) -> PgnClipResponse:
+    """
+    Export clean mainline (no variations, no comments).
+
+    Example:
+        POST /studies/{study_id}/pgn/export/clean
+    """
+    try:
+        result = await clip_service.export_clean(
+            chapter_id=data.chapter_id,
+            actor_id=user_id,
+        )
+        return PgnClipResponse(
+            pgn_text=result.pgn_text,
+            export_mode=result.export_mode,
+            timestamp=result.timestamp,
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

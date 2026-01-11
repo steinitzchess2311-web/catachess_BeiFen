@@ -1,0 +1,702 @@
+; Sample PGN with 70 chapters (games) to test >64 split handling.
+; Expected: split into multiple chapters once limit is exceeded.
+
+[Event "Chapter 1"]
+[Site "Test"]
+[Date "2024.02.01"]
+[Round "1"]
+[White "W1"]
+[Black "B1"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 2"]
+[Site "Test"]
+[Date "2024.02.02"]
+[Round "1"]
+[White "W2"]
+[Black "B2"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 3"]
+[Site "Test"]
+[Date "2024.02.03"]
+[Round "1"]
+[White "W3"]
+[Black "B3"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 4"]
+[Site "Test"]
+[Date "2024.02.04"]
+[Round "1"]
+[White "W4"]
+[Black "B4"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 5"]
+[Site "Test"]
+[Date "2024.02.05"]
+[Round "1"]
+[White "W5"]
+[Black "B5"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 6"]
+[Site "Test"]
+[Date "2024.02.06"]
+[Round "1"]
+[White "W6"]
+[Black "B6"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 7"]
+[Site "Test"]
+[Date "2024.02.07"]
+[Round "1"]
+[White "W7"]
+[Black "B7"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 8"]
+[Site "Test"]
+[Date "2024.02.08"]
+[Round "1"]
+[White "W8"]
+[Black "B8"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 9"]
+[Site "Test"]
+[Date "2024.02.09"]
+[Round "1"]
+[White "W9"]
+[Black "B9"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 10"]
+[Site "Test"]
+[Date "2024.02.10"]
+[Round "1"]
+[White "W10"]
+[Black "B10"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 11"]
+[Site "Test"]
+[Date "2024.02.11"]
+[Round "1"]
+[White "W11"]
+[Black "B11"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 12"]
+[Site "Test"]
+[Date "2024.02.12"]
+[Round "1"]
+[White "W12"]
+[Black "B12"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 13"]
+[Site "Test"]
+[Date "2024.02.13"]
+[Round "1"]
+[White "W13"]
+[Black "B13"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 14"]
+[Site "Test"]
+[Date "2024.02.14"]
+[Round "1"]
+[White "W14"]
+[Black "B14"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 15"]
+[Site "Test"]
+[Date "2024.02.15"]
+[Round "1"]
+[White "W15"]
+[Black "B15"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 16"]
+[Site "Test"]
+[Date "2024.02.16"]
+[Round "1"]
+[White "W16"]
+[Black "B16"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 17"]
+[Site "Test"]
+[Date "2024.02.17"]
+[Round "1"]
+[White "W17"]
+[Black "B17"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 18"]
+[Site "Test"]
+[Date "2024.02.18"]
+[Round "1"]
+[White "W18"]
+[Black "B18"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 19"]
+[Site "Test"]
+[Date "2024.02.19"]
+[Round "1"]
+[White "W19"]
+[Black "B19"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 20"]
+[Site "Test"]
+[Date "2024.02.20"]
+[Round "1"]
+[White "W20"]
+[Black "B20"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 21"]
+[Site "Test"]
+[Date "2024.02.21"]
+[Round "1"]
+[White "W21"]
+[Black "B21"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 22"]
+[Site "Test"]
+[Date "2024.02.22"]
+[Round "1"]
+[White "W22"]
+[Black "B22"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 23"]
+[Site "Test"]
+[Date "2024.02.23"]
+[Round "1"]
+[White "W23"]
+[Black "B23"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 24"]
+[Site "Test"]
+[Date "2024.02.24"]
+[Round "1"]
+[White "W24"]
+[Black "B24"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 25"]
+[Site "Test"]
+[Date "2024.02.25"]
+[Round "1"]
+[White "W25"]
+[Black "B25"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 26"]
+[Site "Test"]
+[Date "2024.02.26"]
+[Round "1"]
+[White "W26"]
+[Black "B26"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 27"]
+[Site "Test"]
+[Date "2024.02.27"]
+[Round "1"]
+[White "W27"]
+[Black "B27"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 28"]
+[Site "Test"]
+[Date "2024.02.28"]
+[Round "1"]
+[White "W28"]
+[Black "B28"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 29"]
+[Site "Test"]
+[Date "2024.02.01"]
+[Round "1"]
+[White "W29"]
+[Black "B29"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 30"]
+[Site "Test"]
+[Date "2024.02.02"]
+[Round "1"]
+[White "W30"]
+[Black "B30"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 31"]
+[Site "Test"]
+[Date "2024.02.03"]
+[Round "1"]
+[White "W31"]
+[Black "B31"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 32"]
+[Site "Test"]
+[Date "2024.02.04"]
+[Round "1"]
+[White "W32"]
+[Black "B32"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 33"]
+[Site "Test"]
+[Date "2024.02.05"]
+[Round "1"]
+[White "W33"]
+[Black "B33"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 34"]
+[Site "Test"]
+[Date "2024.02.06"]
+[Round "1"]
+[White "W34"]
+[Black "B34"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 35"]
+[Site "Test"]
+[Date "2024.02.07"]
+[Round "1"]
+[White "W35"]
+[Black "B35"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 36"]
+[Site "Test"]
+[Date "2024.02.08"]
+[Round "1"]
+[White "W36"]
+[Black "B36"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 37"]
+[Site "Test"]
+[Date "2024.02.09"]
+[Round "1"]
+[White "W37"]
+[Black "B37"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 38"]
+[Site "Test"]
+[Date "2024.02.10"]
+[Round "1"]
+[White "W38"]
+[Black "B38"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 39"]
+[Site "Test"]
+[Date "2024.02.11"]
+[Round "1"]
+[White "W39"]
+[Black "B39"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 40"]
+[Site "Test"]
+[Date "2024.02.12"]
+[Round "1"]
+[White "W40"]
+[Black "B40"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 41"]
+[Site "Test"]
+[Date "2024.02.13"]
+[Round "1"]
+[White "W41"]
+[Black "B41"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 42"]
+[Site "Test"]
+[Date "2024.02.14"]
+[Round "1"]
+[White "W42"]
+[Black "B42"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 43"]
+[Site "Test"]
+[Date "2024.02.15"]
+[Round "1"]
+[White "W43"]
+[Black "B43"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 44"]
+[Site "Test"]
+[Date "2024.02.16"]
+[Round "1"]
+[White "W44"]
+[Black "B44"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 45"]
+[Site "Test"]
+[Date "2024.02.17"]
+[Round "1"]
+[White "W45"]
+[Black "B45"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 46"]
+[Site "Test"]
+[Date "2024.02.18"]
+[Round "1"]
+[White "W46"]
+[Black "B46"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 47"]
+[Site "Test"]
+[Date "2024.02.19"]
+[Round "1"]
+[White "W47"]
+[Black "B47"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 48"]
+[Site "Test"]
+[Date "2024.02.20"]
+[Round "1"]
+[White "W48"]
+[Black "B48"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 49"]
+[Site "Test"]
+[Date "2024.02.21"]
+[Round "1"]
+[White "W49"]
+[Black "B49"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 50"]
+[Site "Test"]
+[Date "2024.02.22"]
+[Round "1"]
+[White "W50"]
+[Black "B50"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 51"]
+[Site "Test"]
+[Date "2024.02.23"]
+[Round "1"]
+[White "W51"]
+[Black "B51"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 52"]
+[Site "Test"]
+[Date "2024.02.24"]
+[Round "1"]
+[White "W52"]
+[Black "B52"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 53"]
+[Site "Test"]
+[Date "2024.02.25"]
+[Round "1"]
+[White "W53"]
+[Black "B53"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 54"]
+[Site "Test"]
+[Date "2024.02.26"]
+[Round "1"]
+[White "W54"]
+[Black "B54"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 55"]
+[Site "Test"]
+[Date "2024.02.27"]
+[Round "1"]
+[White "W55"]
+[Black "B55"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 56"]
+[Site "Test"]
+[Date "2024.02.28"]
+[Round "1"]
+[White "W56"]
+[Black "B56"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 57"]
+[Site "Test"]
+[Date "2024.02.01"]
+[Round "1"]
+[White "W57"]
+[Black "B57"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 58"]
+[Site "Test"]
+[Date "2024.02.02"]
+[Round "1"]
+[White "W58"]
+[Black "B58"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 59"]
+[Site "Test"]
+[Date "2024.02.03"]
+[Round "1"]
+[White "W59"]
+[Black "B59"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 60"]
+[Site "Test"]
+[Date "2024.02.04"]
+[Round "1"]
+[White "W60"]
+[Black "B60"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 61"]
+[Site "Test"]
+[Date "2024.02.05"]
+[Round "1"]
+[White "W61"]
+[Black "B61"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 62"]
+[Site "Test"]
+[Date "2024.02.06"]
+[Round "1"]
+[White "W62"]
+[Black "B62"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 63"]
+[Site "Test"]
+[Date "2024.02.07"]
+[Round "1"]
+[White "W63"]
+[Black "B63"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 64"]
+[Site "Test"]
+[Date "2024.02.08"]
+[Round "1"]
+[White "W64"]
+[Black "B64"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 65"]
+[Site "Test"]
+[Date "2024.02.09"]
+[Round "1"]
+[White "W65"]
+[Black "B65"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 66"]
+[Site "Test"]
+[Date "2024.02.10"]
+[Round "1"]
+[White "W66"]
+[Black "B66"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 67"]
+[Site "Test"]
+[Date "2024.02.11"]
+[Round "1"]
+[White "W67"]
+[Black "B67"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 68"]
+[Site "Test"]
+[Date "2024.02.12"]
+[Round "1"]
+[White "W68"]
+[Black "B68"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 69"]
+[Site "Test"]
+[Date "2024.02.13"]
+[Round "1"]
+[White "W69"]
+[Black "B69"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *
+
+[Event "Chapter 70"]
+[Site "Test"]
+[Date "2024.02.14"]
+[Round "1"]
+[White "W70"]
+[Black "B70"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 *

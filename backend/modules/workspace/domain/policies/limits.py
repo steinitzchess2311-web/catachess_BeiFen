@@ -49,7 +49,12 @@ class DiscussionLimits:
     MAX_REACTIONS_PER_COMMENT = 100
 
     # Allowed reaction emojis
-    ALLOWED_REACTION_EMOJIS = {"👍", "❤️", "🎯"}
+    ALLOWED_REACTION_EMOJIS = {"👍", "❤️", "🎯", "🚀", "👏", "🔥", "💯"}
+
+    # Rate limits (per user, per minute)
+    MAX_THREADS_PER_MINUTE = 10
+    MAX_REPLIES_PER_MINUTE = 30
+    MAX_REACTIONS_PER_MINUTE = 60
 
 
 class NodeLimits:

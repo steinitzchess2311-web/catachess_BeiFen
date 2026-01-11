@@ -1,0 +1,12 @@
+; Edge cases: single-move variations, nested single lines, minimal game.
+; Expected: parser tolerates minimal/short variations.
+
+[Event "Edge Cases"]
+[Site "Test"]
+[Date "2024.03.05"]
+[Round "1"]
+[White "White"]
+[Black "Black"]
+[Result "*"]
+
+1. e4 (1. d4) e5 (1... c5) 2. Nf3 (2. Bc4 (2... Nc6)) Nc6 *

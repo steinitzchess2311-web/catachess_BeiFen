@@ -1,28 +1,17 @@
-"""
-Discussion reaction service.
-"""
-
-from ulid import new as ulid_new
+from ulid import ULID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
 from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
 from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
 from workspace.db.tables.discussion_reactions import DiscussionReaction
-from workspace.domain.models.discussion_reaction import (
-    AddReactionCommand,
-    RemoveReactionCommand,
-)
+from workspace.domain.models.discussion_reaction import AddReactionCommand, RemoveReactionCommand
 from workspace.domain.models.event import CreateEventCommand
 from workspace.domain.policies.limits import DiscussionLimits
 from workspace.events.bus import EventBus
 from workspace.events.types import EventType
-
-
 class ReactionNotFoundError(Exception):
     pass
-
-
 class ReactionService:
     """Service for discussion reactions."""
 
@@ -42,13 +31,18 @@ class ReactionService:
 
     async def add_reaction(self, command: AddReactionCommand) -> DiscussionReaction:
         await self._ensure_target(command.target_id, command.target_type)
+        existing = await self.reaction_repo.get_by_target_and_user(
+            command.target_id, command.target_type, command.user_id
+        )
+        if existing:
+            raise ValueError("User already reacted to this target")
         reactions = await self.reaction_repo.list_by_target(
             command.target_id, command.target_type
         )
         if len(reactions) >= DiscussionLimits.MAX_REACTIONS_PER_COMMENT:
             raise ValueError("Reaction limit reached")
         reaction = DiscussionReaction(
-            id=str(ulid_new()),
+            id=str(ULID()),
             target_id=command.target_id,
             target_type=command.target_type,
             user_id=command.user_id,

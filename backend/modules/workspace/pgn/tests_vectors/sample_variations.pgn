@@ -1,0 +1,14 @@
+; Sample PGN with nested variations (5+ levels).
+; Expected: nested variation parsing works, deep branches preserved.
+
+[Event "Nested Variations"]
+[Site "Test"]
+[Date "2024.03.01"]
+[Round "1"]
+[White "White"]
+[Black "Black"]
+[Result "*"]
+
+1. e4 (1. d4 d5 (1... Nf6 2. c4 (2. Nf3 e6 (2... g6 3. c4))) 2. c4) e5
+2. Nf3 (2. Bc4 Nf6 (2... Bc5 (2... Nc6 3. Nf3))) Nc6
+3. Bb5 a6 *

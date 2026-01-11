@@ -39,15 +39,48 @@ from typing import Dict, Any
 try:
     from backend.core.tagger.models import TagContext
 
-    def compute_preventive_score(ctx: TagContext) -> Dict[str, Any]:
+    def compute_preventive_score(
+        ctx: TagContext,
+        config: ProphylaxisConfig = None
+    ) -> float:
         """
-        Compute preventive score from TagContext (backward compatible).
+        Compute preventive score from TagContext.
 
-        This wraps the new compute_preventive_score_from_deltas function.
+        This wraps compute_preventive_score_from_deltas to match
+        the Stage 3 interface requirement.
+
+        Args:
+            ctx: TagContext with component deltas and threat_delta
+            config: Optional config (uses default if None)
+
+        Returns:
+            preventive_score as float (0.0 to ~1.15 before clamping)
+        """
+        if config is None:
+            config = ProphylaxisConfig()
+
+        result = compute_preventive_score_from_deltas(
+            opp_mobility_delta=ctx.opp_component_deltas.get("mobility", 0.0),
+            opp_tactics_delta=ctx.opp_component_deltas.get("tactics", 0.0),
+            threat_delta=getattr(ctx, "threat_delta", 0.0),
+        )
+        return result["preventive_score"]
+
+    def compute_preventive_score_full(ctx: TagContext) -> Dict[str, Any]:
+        """
+        Compute preventive score from TagContext (full details).
+
+        Returns complete breakdown with all components.
+        Use this when you need detailed diagnostics.
+
+        Returns:
+            Dict with preventive_score, threat_delta, opp_mobility_delta,
+            opp_tactics_delta, opp_trend, opp_restrained
         """
         return compute_preventive_score_from_deltas(
             opp_mobility_delta=ctx.opp_component_deltas.get("mobility", 0.0),
             opp_tactics_delta=ctx.opp_component_deltas.get("tactics", 0.0),
+            threat_delta=getattr(ctx, "threat_delta", 0.0),
         )
 
     def compute_soft_weight(ctx: TagContext) -> float:
@@ -89,8 +122,9 @@ __all__ = [
     "compute_soft_weight_from_deltas",
     "clamp_preventive_score",
     "classify_prophylaxis_quality",
-    "compute_preventive_score",  # Backward compatible wrapper
-    "compute_soft_weight",        # Backward compatible wrapper
+    "compute_preventive_score",       # Stage 3 interface (ctx -> float)
+    "compute_preventive_score_full",  # Full details version (ctx -> dict)
+    "compute_soft_weight",            # Soft weight computation
     "STRUCTURE_MIN",
     "OPP_MOBILITY_DROP",
     "SELF_MOBILITY_TOL",

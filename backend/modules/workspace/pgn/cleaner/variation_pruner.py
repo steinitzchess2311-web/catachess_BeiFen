@@ -9,9 +9,13 @@ This module provides utilities for:
 """
 
 from dataclasses import dataclass
+import logging
+import re
 from typing import Literal
 
 from workspace.pgn.serializer.to_tree import VariationNode
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -216,13 +220,28 @@ def find_node_by_path(
 
     # Convert string to MovePath if needed
     if isinstance(path, str):
+        black_match = _parse_black_move_notation(path)
+        if black_match:
+            move_number, san = black_match
+            return _find_black_move_by_san(root, move_number, san)
         path = parse_move_path(path)
 
     current = root
     in_variation = False
+    parent: VariationNode | None = None
     parents: list[VariationNode] = []
+    failed = False
 
     for seg_type, index in path.segments:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Traversing path segment: %s.%s (current=%s, move=%s%s)",
+                seg_type,
+                index,
+                current.san,
+                current.move_number,
+                "..." if current.color == "black" else ".",
+            )
         if seg_type == "main":
             if in_variation:
                 if index < 1:
@@ -235,12 +254,16 @@ def find_node_by_path(
                         (child for child in current.children if child.rank == 0),
                         None,
                     )
-                    if main_child is None:
-                        return None
-                    parents.append(current)
-                    current = main_child
-                    steps -= 1
-                continue
+                if main_child is None:
+                    failed = True
+                    break
+                parent = current
+                parents.append(current)
+                current = main_child
+                steps -= 1
+            if failed:
+                break
+            continue
 
             # Navigate to the move with the specified move_number (white move)
             target_move_num = index
@@ -260,53 +283,111 @@ def find_node_by_path(
                     (child for child in current.children if child.rank == 0), None
                 )
                 if main_child is None:
-                    return None
+                    failed = True
+                    break
+                parent = current
                 parents.append(current)
                 current = main_child
 
-            if current is None or current.move_number != target_move_num:
-                return None
+            if failed or current is None or current.move_number != target_move_num:
+                failed = True
+                break
 
         elif seg_type == "var":
             var_rank = index
-            same_ply = [
-                child
-                for child in current.children
-                if child.move_number == current.move_number
-                and child.color == current.color
-            ]
-            if same_ply:
-                same_ply.sort(key=lambda child: child.rank)
-                if var_rank > len(same_ply):
-                    return None
-                parents.append(current)
-                current = same_ply[var_rank - 1]
-            else:
-                parent = parents[-1] if parents else None
-                if parent:
-                    siblings = [
-                        child
-                        for child in parent.children
-                        if child is not current
-                        and child.move_number == current.move_number
-                        and child.color == current.color
-                    ]
-                    siblings.sort(key=lambda child: child.rank)
-                    if var_rank <= len(siblings):
-                        current = siblings[var_rank - 1]
-                        in_variation = True
-                        continue
-                var_child = next(
-                    (child for child in current.children if child.rank == var_rank),
-                    None,
-                )
-                if var_child is None:
-                    return None
-                parents.append(current)
-                current = var_child
+            var_child = _select_variation_child(current, parent, var_rank)
+            if var_child is None:
+                failed = True
+                break
+            parent = current
+            parents.append(current)
+            current = var_child
             in_variation = True
 
+    if failed:
+        return _find_node_by_path_bfs(root, path)
+
+    if current is None:
+        return None
+
     return current
+
+
+def _find_node_by_path_bfs(
+    root: VariationNode, path: MovePath
+) -> VariationNode | None:
+    queue = [root]
+    while queue:
+        node = queue.pop(0)
+        node_path = get_path_to_node(root, node)
+        if node_path and node_path.segments == path.segments:
+            return node
+        queue.extend(node.children)
+    return None
+
+
+def _select_variation_child(
+    current: VariationNode, parent: VariationNode | None, var_rank: int
+) -> VariationNode | None:
+    if var_rank < 1:
+        return None
+
+    direct_child = next(
+        (child for child in current.children if child.rank == var_rank), None
+    )
+    if direct_child is not None:
+        return direct_child
+
+    if parent is not None:
+        siblings = [
+            child
+            for child in parent.children
+            if child is not current
+            and child.move_number == current.move_number
+            and child.color == current.color
+        ]
+        siblings.sort(key=lambda child: child.rank)
+        if var_rank <= len(siblings):
+            return siblings[var_rank - 1]
+
+    same_ply_children = [
+        child
+        for child in current.children
+        if child.move_number == current.move_number
+        and child.color == current.color
+    ]
+    same_ply_children.sort(key=lambda child: child.rank)
+    if var_rank <= len(same_ply_children):
+        return same_ply_children[var_rank - 1]
+
+    return None
+
+
+def _parse_black_move_notation(path_str: str) -> tuple[int, str] | None:
+    match = re.match(r"^main\.(\d+)\.\.\.(\S+)$", path_str.strip())
+    if not match:
+        return None
+    move_number = int(match.group(1))
+    san = match.group(2)
+    if move_number < 1:
+        return None
+    return move_number, san
+
+
+def _find_black_move_by_san(
+    root: VariationNode, move_number: int, san: str
+) -> VariationNode | None:
+    queue = [root]
+    while queue:
+        node = queue.pop(0)
+        if (
+            node.color == "black"
+            and node.move_number == move_number
+            and node.san == san
+        ):
+            return node
+        queue.extend(node.children)
+    return None
 
 
 def get_path_to_node(
@@ -426,49 +507,48 @@ def prune_before_node(
 
     path_nodes = find_path_nodes(root, target)
     if not path_nodes:
-        return copy_tree(target)
+        return _copy_tree_with_normalized_ranks(target, rank=0)
 
-    current_new = VariationNode(
-        move_number=path_nodes[0].move_number,
-        color=path_nodes[0].color,
-        san=path_nodes[0].san,
-        uci=path_nodes[0].uci,
-        fen=path_nodes[0].fen,
-        nag=path_nodes[0].nag,
-        comment=path_nodes[0].comment,
-        rank=0,
-    )
-    new_root = current_new
+    new_root = _copy_node_with_rank(path_nodes[0], rank=0)
+    current_new = new_root
 
     for node in path_nodes[1:]:
-        new_child = VariationNode(
-            move_number=node.move_number,
-            color=node.color,
-            san=node.san,
-            uci=node.uci,
-            fen=node.fen,
-            nag=node.nag,
-            comment=node.comment,
-            rank=0,
-        )
+        new_child = _copy_node_with_rank(node, rank=0)
         current_new.children = [new_child]
         current_new = new_child
 
-    siblings = []
-    if len(path_nodes) > 1:
-        parent = path_nodes[-2]
-        siblings = [
-            child
-            for child in parent.children
-            if child is not target
-            and child.move_number == target.move_number
-            and child.color == target.color
-        ]
-    current_new.children = [copy_tree(child) for child in target.children] + [
-        copy_tree(child) for child in siblings
+    target_children = sorted(target.children, key=lambda child: child.rank)
+    current_new.children = [
+        _copy_tree_with_normalized_ranks(child, rank=index)
+        for index, child in enumerate(target_children)
     ]
 
     return new_root
+
+
+def _copy_node_with_rank(node: VariationNode, rank: int) -> VariationNode:
+    return VariationNode(
+        move_number=node.move_number,
+        color=node.color,
+        san=node.san,
+        uci=node.uci,
+        fen=node.fen,
+        nag=node.nag,
+        comment=node.comment,
+        rank=rank,
+    )
+
+
+def _copy_tree_with_normalized_ranks(
+    node: VariationNode, rank: int
+) -> VariationNode:
+    new_node = _copy_node_with_rank(node, rank=rank)
+    children_sorted = sorted(node.children, key=lambda child: child.rank)
+    new_node.children = [
+        _copy_tree_with_normalized_ranks(child, rank=index)
+        for index, child in enumerate(children_sorted)
+    ]
+    return new_node
 
 
 def keep_only_after_node(

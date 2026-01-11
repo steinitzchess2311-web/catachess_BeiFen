@@ -4,6 +4,8 @@ Discussion reaction commands.
 
 from dataclasses import dataclass
 
+import emoji
+
 from workspace.domain.policies.limits import DiscussionLimits
 
 
@@ -19,6 +21,8 @@ class AddReactionCommand:
     def __post_init__(self) -> None:
         if not self.emoji:
             raise ValueError("Emoji cannot be empty")
+        if not emoji.is_emoji(self.emoji):
+            raise ValueError("Emoji must be a single valid emoji")
         if self.emoji not in DiscussionLimits.ALLOWED_REACTION_EMOJIS:
             raise ValueError("Emoji is not allowed")
 

@@ -25,6 +25,7 @@ python-multipart==0.0.6
 # Utilities
 python-dateutil==2.8.2
 ulid-py==1.1.0
+emoji==2.12.1
 
 # Storage
 boto3==1.34.14

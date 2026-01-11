@@ -5,7 +5,7 @@ Handles PGN import, chapter detection, auto-splitting, and R2 storage.
 """
 
 from datetime import datetime, timezone
-from ulid import new as ulid_new
+from ulid import ULID
 
 from workspace.db.repos.node_repo import NodeRepository
 from workspace.db.repos.study_repo import StudyRepository
@@ -319,7 +319,7 @@ class ChapterImportService:
         """
         for i, game in enumerate(games):
             # Generate chapter ID
-            chapter_id = str(ulid_new())
+            chapter_id = str(ULID())
 
             # Generate R2 key
             r2_key = R2Keys.chapter_pgn(chapter_id)
