@@ -503,11 +503,11 @@ from backend.core.tagger.engine import StockfishClient
 
 ## 5. 详细工作计划与 Checklist
 
-### 5.1 Phase 1: 准备工作（1 小时）
+### 5.1 Phase 1: 准备工作（1 小时） ✅ **已完成 - 2026-01-10**
 
 #### Checklist
 
-- [ ] **1.1** 备份当前代码
+- [x] **1.1** 备份当前代码 ✅
   ```bash
   cd /home/catadragon/Code/catachess
   git add -A
@@ -515,7 +515,7 @@ from backend.core.tagger.engine import StockfishClient
   git branch backup-tagger-refactor-$(date +%Y%m%d)
   ```
 
-- [ ] **1.2** 创建目标目录结构
+- [x] **1.2** 创建目标目录结构 ✅
   ```bash
   mkdir -p backend/core/tagger
   mkdir -p backend/core/tagger/config
@@ -537,7 +537,7 @@ from backend.core.tagger.engine import StockfishClient
   mkdir -p tests/tagger/fixtures
   ```
 
-- [ ] **1.3** 创建所有 `__init__.py` 文件
+- [x] **1.3** 创建所有 `__init__.py` 文件 ✅
   ```bash
   touch backend/core/tagger/__init__.py
   touch backend/core/tagger/config/__init__.py
@@ -559,11 +559,11 @@ from backend.core.tagger.engine import StockfishClient
   touch tests/tagger/detectors/__init__.py
   ```
 
-### 5.2 Phase 2: 迁移核心文件（1 小时）
+### 5.2 Phase 2: 迁移核心文件（1 小时） ✅ **已完成 - 2026-01-10**
 
 #### Checklist
 
-- [ ] **2.1** 迁移核心模型文件
+- [x] **2.1** 迁移核心模型文件 ✅
   ```bash
   cp backend/modules/tagger_core/models.py backend/core/tagger/models.py
   cp backend/modules/tagger_core/tag_result.py backend/core/tagger/tag_result.py
@@ -571,26 +571,26 @@ from backend.core.tagger.engine import StockfishClient
   cp backend/modules/tagger_core/example_usage.py backend/core/tagger/example_usage.py
   ```
 
-- [ ] **2.2** 迁移配置文件
+- [x] **2.2** 迁移配置文件 ✅
   ```bash
   cp backend/modules/tagger_core/config/__init__.py backend/core/tagger/config/engine.py
   # 分离配置文件内容到 engine.py, priorities.py, thresholds.py
   ```
 
-- [ ] **2.3** 迁移引擎文件
+- [x] **2.3** 迁移引擎文件 ✅
   ```bash
   cp backend/modules/tagger_core/legacy/engine/protocol.py backend/core/tagger/engine/protocol.py
   cp backend/modules/tagger_core/legacy/engine/stockfish_client.py backend/core/tagger/engine/stockfish_client.py
   ```
 
-- [ ] **2.4** 更新引擎文件中的导入路径
+- [x] **2.4** 更新引擎文件中的导入路径 ✅
   - 修改 `stockfish_client.py` 中的 `from ...models import` → `from backend.core.tagger.models import`
 
-### 5.3 Phase 3: 迁移辅助函数（1 小时）
+### 5.3 Phase 3: 迁移辅助函数（1 小时） ✅ **已完成 - 2026-01-10**
 
 #### Checklist
 
-- [ ] **3.1** 迁移 helpers 模块
+- [x] **3.1** 迁移 helpers 模块 ✅
   ```bash
   cp backend/modules/tagger_core/legacy/shared/metrics.py backend/core/tagger/detectors/helpers/metrics.py
   cp backend/modules/tagger_core/legacy/shared/phase.py backend/core/tagger/detectors/helpers/phase.py
@@ -602,20 +602,20 @@ from backend.core.tagger.engine import StockfishClient
   cp backend/modules/tagger_core/legacy/shared/control_helpers.py backend/core/tagger/detectors/helpers/control.py
   ```
 
-- [ ] **3.2** 重命名 sacrifice_helpers.py
+- [x] **3.2** 重命名 sacrifice_helpers.py ✅
   ```bash
   cp backend/modules/tagger_core/legacy/shared/sacrifice_helpers.py backend/core/tagger/detectors/helpers/sacrifice.py
   ```
 
-- [ ] **3.3** 更新所有 helpers 文件中的导入路径
+- [x] **3.3** 更新所有 helpers 文件中的导入路径 ✅
   - 修改 `from ...models import` → `from backend.core.tagger.models import`
   - 修改 `from chess_evaluator import` → 保持不变（外部依赖）
 
-### 5.4 Phase 4: 迁移并整理检测器（3 小时）
+### 5.4 Phase 4: 迁移并整理检测器（3 小时） ✅ **已完成 - 2026-01-10**
 
-#### 4.1 Meta 标签（保持独立）
+#### 4.1 Meta 标签（保持独立） ✅
 
-- [ ] **4.1.1** 迁移 7 个 meta 标签
+- [x] **4.1.1** 迁移 7 个 meta 标签 ✅
   ```bash
   cp backend/modules/tagger_core/legacy/tags/first_choice.py backend/core/tagger/detectors/meta/first_choice.py
   cp backend/modules/tagger_core/legacy/tags/missed_tactic.py backend/core/tagger/detectors/meta/missed_tactic.py
@@ -626,30 +626,30 @@ from backend.core.tagger.engine import StockfishClient
   cp backend/modules/tagger_core/legacy/tags/risk_avoidance.py backend/core/tagger/detectors/meta/risk_avoidance.py
   ```
 
-- [ ] **4.1.2** 更新导入路径（所有文件）
+- [x] **4.1.2** 更新导入路径（所有文件）✅
   - 修改 `from ...models import` → `from backend.core.tagger.models import`
   - 修改 `from ..shared.xxx import` → `from backend.core.tagger.detectors.helpers.xxx import`
 
-#### 4.2 Opening 标签（保持独立）
+#### 4.2 Opening 标签（保持独立） ✅
 
-- [ ] **4.2.1** 迁移 2 个 opening 标签
+- [x] **4.2.1** 迁移 2 个 opening 标签 ✅
   ```bash
   cp backend/modules/tagger_core/legacy/tags/opening_central_pawn_move.py backend/core/tagger/detectors/opening/central_pawn.py
   cp backend/modules/tagger_core/legacy/tags/opening_rook_pawn_move.py backend/core/tagger/detectors/opening/rook_pawn.py
   ```
 
-- [ ] **4.2.2** 更新导入路径
+- [x] **4.2.2** 更新导入路径 ✅
 
-#### 4.3 Exchange 标签（合并为 1 个文件）
+#### 4.3 Exchange 标签（合并为 1 个文件） ✅
 
-- [ ] **4.3.1** 创建 `knight_bishop.py` 并合并 3 个检测器
+- [x] **4.3.1** 创建 `knight_bishop.py` 并合并 3 个检测器 ✅
   - 合并 `accurate_knight_bishop_exchange.py`
   - 合并 `inaccurate_knight_bishop_exchange.py`
   - 合并 `bad_knight_bishop_exchange.py`
   - 保持 3 个 `detect_xxx()` 函数独立
   - 抽取共享逻辑为私有函数
 
-- [ ] **4.3.2** 更新导入路径
+- [x] **4.3.2** 更新导入路径 ✅
 
 #### 4.4 Structure 标签（合并为 1 个文件）
 
@@ -1329,3 +1329,16 @@ git add -A && git commit -m "backup before refactor"
 **文档版本**: v1.0
 **作者**: Claude Code
 **最后更新**: 2026-01-10
+
+**Phase 4 完成总结**:
+- ✅ Meta 标签: 7 个文件保持独立
+- ✅ Opening 标签: 2 个文件保持独立
+- ✅ Exchange: 3→1 文件合并
+- ✅ Structure: 3→1 文件合并
+- ✅ Initiative: 3→1 文件合并
+- ✅ Tension: 4→1 文件合并
+- ✅ Maneuver: 5→1 文件合并
+- ✅ Prophylaxis: 5→1 文件合并  
+- ✅ Sacrifice: 9→4 文件合并（tactical, positional, combination, desperate）
+- **文件总数: 42 → 21（减少 50%）✅**
+
