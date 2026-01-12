@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 import uuid
 
 from core.db.deps import get_db
-from core.security.jwt import get_current_user
+from core.security.current_user import get_current_user
 from services.user_service import get_user_by_id, update_user_profile
 from models.user import User
 from core.log.log_api import logger
