@@ -9,10 +9,12 @@ from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
 from workspace.db.repos.event_repo import EventRepository
 from workspace.db.repos.node_repo import NodeRepository
 from workspace.db.repos.presence_repo import PresenceRepository
+from workspace.db.repos.search_index_repo import SearchIndexRepository
 from workspace.db.session import get_session
 from workspace.domain.services.discussion_service import DiscussionService
 from workspace.domain.services.node_service import NodeService
 from workspace.domain.services.presence_service import PresenceService
+from workspace.domain.services.search_service import SearchService
 from workspace.domain.services.share_service import ShareService
 from workspace.events.bus import EventBus
 from workspace.events.subscribers.registry import register_all_subscribers
@@ -90,3 +92,12 @@ async def get_presence_service(
 ) -> PresenceService:
     presence_repo = PresenceRepository(session)
     return PresenceService(session, presence_repo, event_bus)
+
+
+async def get_search_service(
+    session: AsyncSession = Depends(get_session),
+    node_repo: NodeRepository = Depends(get_node_repo),
+    acl_repo: ACLRepository = Depends(get_acl_repo),
+) -> SearchService:
+    search_repo = SearchIndexRepository(session)
+    return SearchService(search_repo, node_repo, acl_repo)

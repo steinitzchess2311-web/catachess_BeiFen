@@ -21,9 +21,8 @@ class Settings(BaseSettings):
     SPOT_MAX_RETRIES: int = 2
 
     # ===== database =====
-    # Default to Railway external proxy for local development
-    # Change to postgres.railway.internal:5432 for production deployment
-    DATABASE_URL: str = "postgresql://postgres:yRuedDjiwzhbrBKDbIDCtCxTMzzRDQTL@yamabiko.proxy.rlwy.net:20407/railway"
+    # Default to Railway internal PostgreSQL for production deployment
+    DATABASE_URL: str = "postgresql://postgres:yRuedDjiwzhbrBKDbIDCtCxTMzzRDQTL@postgres.railway.internal:5432/railway"
 
     # ===== security =====
     JWT_SECRET_KEY: str = "dev-secret-key-change-in-production"
@@ -31,7 +30,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # ===== email (Resend) =====
-    RESEND_API_KEY: str = "re_eRozq9hQ_NF7t1opa4d3AwUwzfZXj9VGy"
+    RESEND_API_KEY: str = ""
     RESEND_FROM_EMAIL: str = "noreply@catachess.com"
     VERIFICATION_CODE_EXPIRE_MINUTES: int = 15
     VERIFICATION_CODE_LENGTH: int = 6
@@ -72,4 +71,3 @@ class Settings(BaseSettings):
 
 settings = Settings()
 settings.validate_database_url()
-

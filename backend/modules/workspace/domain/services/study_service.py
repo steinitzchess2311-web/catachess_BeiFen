@@ -2,8 +2,10 @@
 Study service.
 
 Handles study editing operations including move annotations.
+Integrated with version service for automatic snapshots.
 """
 
+from typing import TYPE_CHECKING
 from ulid import ULID
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +22,9 @@ from workspace.domain.models.move_annotation import (
     SetNAGCommand,
 )
 from workspace.events.bus import EventBus
+
+if TYPE_CHECKING:
+    from workspace.domain.services.version_service import VersionService
 
 
 class StudyServiceError(Exception):
@@ -57,6 +62,7 @@ class StudyService:
     Service for study editing operations.
 
     Handles move annotations and study tree modifications.
+    Optionally integrates with version service for automatic snapshots.
     """
 
     def __init__(
@@ -64,6 +70,7 @@ class StudyService:
         session: AsyncSession,
         variation_repo: VariationRepository,
         event_bus: EventBus,
+        version_service: "VersionService | None" = None,
     ):
         """
         Initialize service.
@@ -72,10 +79,13 @@ class StudyService:
             session: Database session
             variation_repo: Variation repository
             event_bus: Event bus
+            version_service: Optional version service for auto-snapshots
         """
         self.session = session
         self.variation_repo = variation_repo
         self.event_bus = event_bus
+        self.version_service = version_service
+        self._operation_count = 0  # Track operations for auto-snapshot
 
     async def add_move_annotation(
         self, command: AddMoveAnnotationCommand
@@ -119,6 +129,14 @@ class StudyService:
 
         await self.variation_repo.create_annotation(annotation)
         await self.session.commit()
+
+        # Check for auto-snapshot (requires study_id from chapter)
+        # Note: This is a placeholder - real implementation needs chapter->study mapping
+        # await self._check_and_create_auto_snapshot(
+        #     study_id="TODO",
+        #     actor_id=command.author_id,
+        #     change_summary="Added move annotation"
+        # )
 
         return annotation
 
@@ -321,3 +339,75 @@ class StudyService:
 
         # Delete this variation
         await self.variation_repo.delete_variation(variation)
+
+    async def _check_and_create_auto_snapshot(
+        self,
+        study_id: str,
+        actor_id: str,
+        change_summary: str,
+    ) -> None:
+        """
+        Check if auto-snapshot should be created and create it if needed.
+
+        This method is called after significant operations (add/edit/delete moves).
+
+        Args:
+            study_id: Study ID
+            actor_id: User who performed the operation
+            change_summary: Brief description of the change
+        """
+        if self.version_service is None:
+            # Version service not configured, skip auto-snapshot
+            return
+
+        # Increment operation count
+        self._operation_count += 1
+
+        # Check if snapshot should be created
+        try:
+            should_create = await self.version_service.should_create_auto_snapshot(
+                study_id=study_id,
+                operation_count=self._operation_count,
+                time_threshold_minutes=5,
+            )
+
+            if should_create:
+                # Create snapshot
+                # Note: This requires capturing full study state
+                # For now, we'll create a minimal snapshot
+                # TODO: Implement full study state capture
+                from workspace.domain.models.version import (
+                    CreateVersionCommand,
+                    SnapshotContent,
+                )
+
+                snapshot_content = SnapshotContent(
+                    version_number=0,  # Will be set by service
+                    study_id=study_id,
+                    study_data={"title": "Auto Snapshot"},  # TODO: Get actual data
+                    chapters=[],  # TODO: Get actual chapters
+                    variations=[],  # TODO: Get actual variations
+                    annotations=[],  # TODO: Get actual annotations
+                )
+
+                await self.version_service.create_snapshot(
+                    command=CreateVersionCommand(
+                        study_id=study_id,
+                        created_by=actor_id,
+                        change_summary=f"Auto snapshot: {change_summary}",
+                        is_rollback=False,
+                    ),
+                    snapshot_content=snapshot_content,
+                )
+
+                # Reset operation count after snapshot
+                self._operation_count = 0
+
+        except Exception as e:
+            # Log error but don't fail the operation
+            # Auto-snapshot is a nice-to-have feature
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Failed to create auto-snapshot for study {study_id}: {e}"
+            )

@@ -341,6 +341,15 @@ async def resend_verification(
             message="If the email exists, a verification code has been sent",
         )
 
+    if user.identifier_type != "email":
+        logger.info(
+            f"Resend verification skipped for non-email identifier: {request.identifier}"
+        )
+        return ResendVerificationResponse(
+            success=True,
+            message="If the email exists, a verification code has been sent",
+        )
+
     # Create new verification code
     _, plain_code = SignupVerificationService.create_verification_code(
         db=db,
@@ -350,7 +359,7 @@ async def resend_verification(
 
     # Send email
     email_sent = await ResendEmailService.send_verification_code(
-        to_email=user.identifier if user.identifier_type == "email" else None,
+        to_email=user.identifier,
         code=plain_code,
         username=user.username,
     )

@@ -10,6 +10,7 @@ from workspace.api.deps_core import (
     get_node_service,
     get_presence_service,
     get_rate_limiter,
+    get_search_service,
     get_share_service,
 )
 from workspace.api.discussion_deps import (

@@ -27,6 +27,16 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on startup"""
+    try:
+        from init_verification_table import init_verification_table
+        init_verification_table()
+    except Exception as e:
+        logger.warning(f"Could not initialize verification table: {e}")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,

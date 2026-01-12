@@ -57,6 +57,14 @@ class ResendEmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
+        if not to_email:
+            logger.error("Verification email missing recipient address")
+            return False
+
+        if not settings.RESEND_API_KEY:
+            logger.error("RESEND_API_KEY is not configured")
+            return False
+
         try:
             # Load templates
             html_template = ResendEmailService._load_template("signup_code.html")

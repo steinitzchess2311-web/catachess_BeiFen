@@ -248,3 +248,37 @@ class NodeRepository:
         stmt = select(Node).where(and_(*conditions)).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def search_by_name(
+        self,
+        query: str,
+        node_type: str | None = None,
+        owner_id: str | None = None,
+        limit: int = 50,
+    ) -> Sequence[Node]:
+        """
+        Search nodes by name (title).
+
+        Args:
+            query: Name search query
+            node_type: Optional node type filter
+            owner_id: Optional owner filter
+            limit: Maximum results
+
+        Returns:
+            List of matching nodes
+        """
+        conditions = [
+            Node.title.ilike(f"%{query}%"),
+            Node.deleted_at.is_(None),
+        ]
+
+        if node_type is not None:
+            conditions.append(Node.node_type == node_type)
+
+        if owner_id is not None:
+            conditions.append(Node.owner_id == owner_id)
+
+        stmt = select(Node).where(and_(*conditions)).limit(limit)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()

@@ -1,10 +1,10 @@
 """
-Verification Code ORM model for email/phone verification
+Verification Code ORM model for email/phone verification.
 """
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, ForeignKey, Index
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 

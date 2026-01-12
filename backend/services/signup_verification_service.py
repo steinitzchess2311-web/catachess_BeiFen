@@ -4,7 +4,6 @@ Signup verification service for generating, storing, and validating verification
 import secrets
 import string
 import logging
-import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -12,7 +11,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
 from core.config import settings
-from core.security.password import get_password_hash, verify_password
+from core.security.password import hash_password, verify_password
 from models.verification_code import VerificationCode
 from models.user import User
 
@@ -49,7 +48,7 @@ class SignupVerificationService:
         Returns:
             Hashed code
         """
-        return get_password_hash(code)
+        return hash_password(code)
 
     @staticmethod
     def verify_code_hash(plain_code: str, hashed_code: str) -> bool:
@@ -68,7 +67,7 @@ class SignupVerificationService:
     @staticmethod
     def create_verification_code(
         db: Session,
-        user_id: uuid.UUID,
+        user_id: str,
         purpose: str = "signup",
     ) -> tuple[VerificationCode, str]:
         """
@@ -131,7 +130,7 @@ class SignupVerificationService:
     @staticmethod
     def validate_and_consume_code(
         db: Session,
-        user_id: uuid.UUID,
+        user_id: str,
         plain_code: str,
         purpose: str = "signup",
     ) -> tuple[bool, Optional[str]]:
@@ -204,7 +203,7 @@ class SignupVerificationService:
         return True, None
 
     @staticmethod
-    def mark_user_verified(db: Session, user_id: uuid.UUID) -> bool:
+    def mark_user_verified(db: Session, user_id: str) -> bool:
         """
         Mark a user as verified (if using is_verified field)
 
