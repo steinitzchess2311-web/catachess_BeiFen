@@ -110,14 +110,111 @@ class SearchIndexer:
     async def _delete_entry(self, target_id: str, target_type: str) -> None:
         await self.search_repo.delete_by_target(target_id, target_type)
 
+    async def _index_study(self, study_id: str) -> None:
+        """Index a study (node title + study description)."""
+        # Get node data
+        node = await self.node_repo.get_by_id(study_id)
+        if not node:
+            return
+
+        # Get study data
+        study = await self.study_repo.get_study_by_id(study_id)
+        if not study:
+            return
+
+        # Combine title and description for indexing
+        content_parts = [node.title]
+        if study.description:
+            content_parts.append(study.description)
+        if study.tags:
+            content_parts.append(study.tags)
+
+        content = "\n".join(content_parts)
+
+        await self.search_repo.upsert(
+            entry_id=str(ULID()),
+            target_id=study.id,
+            target_type="study",
+            content=content,
+            author_id=node.owner_id,
+        )
+
+    async def _index_chapter(self, chapter_id: str) -> None:
+        """Index a chapter (title + PGN metadata)."""
+        chapter = await self.study_repo.get_chapter_by_id(chapter_id)
+        if not chapter:
+            return
+
+        # Build searchable content from chapter metadata
+        content_parts = [chapter.title]
+        if chapter.white:
+            content_parts.append(f"White: {chapter.white}")
+        if chapter.black:
+            content_parts.append(f"Black: {chapter.black}")
+        if chapter.event:
+            content_parts.append(f"Event: {chapter.event}")
+        if chapter.date:
+            content_parts.append(f"Date: {chapter.date}")
+
+        content = "\n".join(content_parts)
+
+        # Get study owner for author_id
+        study = await self.study_repo.get_study_by_id(chapter.study_id)
+        if not study:
+            return
+
+        node = await self.node_repo.get_by_id(study.id)
+        if not node:
+            return
+
+        await self.search_repo.upsert(
+            entry_id=str(ULID()),
+            target_id=chapter.id,
+            target_type="chapter",
+            content=content,
+            author_id=node.owner_id,
+        )
+
+    async def _index_annotation(self, annotation_id: str) -> None:
+        """Index a move annotation (analytical text)."""
+        annotation = await self.variation_repo.get_annotation_by_id(annotation_id)
+        if not annotation:
+            return
+
+        # Only index if there's text content
+        if not annotation.text:
+            return
+
+        # Build content from NAG + text
+        content_parts = []
+        if annotation.nag:
+            content_parts.append(f"NAG: {annotation.nag}")
+        if annotation.text:
+            content_parts.append(annotation.text)
+
+        content = "\n".join(content_parts)
+
+        await self.search_repo.upsert(
+            entry_id=str(ULID()),
+            target_id=annotation.id,
+            target_type="move_annotation",
+            content=content,
+            author_id=annotation.author_id,
+        )
+
 
 def register_search_indexer(
     bus,
     thread_repo: DiscussionThreadRepository,
     reply_repo: DiscussionReplyRepository,
+    node_repo: NodeRepository,
+    study_repo: StudyRepository,
+    variation_repo: VariationRepository,
     search_repo: SearchIndexRepository,
 ) -> SearchIndexer:
     """Register the search indexer subscriber on the bus."""
-    indexer = SearchIndexer(thread_repo, reply_repo, search_repo)
+    indexer = SearchIndexer(
+        thread_repo, reply_repo, node_repo, study_repo, variation_repo, search_repo
+    )
     bus.subscribe(indexer.handle_event)
     return indexer
