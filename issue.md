@@ -15,6 +15,12 @@ Scope: backend + frontend code scan with emphasis on correctness, security, and 
 - ✅ `backend/modules/workspace/main.py`: same CORS misconfiguration as `backend/main.py` (`allow_origins=["*"]` + `allow_credentials=True`), which is insecure and browser-incompatible.
 - ✅ `backend/modules/workspace/domain/services/search_service.py`: permission checks for discussion threads, replies, chapters, and annotations return `True` unconditionally, so search results can leak content from objects the user should not access.
 
+## Critical Frontend Issues
+- ✅ `frontend/ui/modules/`: **MISSING login and signup modules entirely** - Users cannot authenticate, making all workspace features inaccessible. No UI for /auth/login, /auth/register, /auth/verify-signup endpoints. **FIXED: Created complete login and signup modules with three-tier separation (layout/modules/styles).**
+- ✅ `frontend/ui/modules/workspace/modules/state/reducers.ts`: SESSION_SET action exists but is never dispatched - all API requests go out unauthenticated and fail with 401. **FIXED: Login module now properly stores tokens and user ID.**
+- ✅ Frontend has no mechanism to store JWT tokens from backend authentication endpoints. **FIXED: Implemented storage module with localStorage/sessionStorage support.**
+- ✅ All workspace buttons/features are non-functional without authentication. **FIXED: Authentication flow now complete.**
+
 ## Medium
 - ❓ `backend/modules/workspace/api/router.py`: omits `notifications`, `presence`, and `versions` routers, so those endpoints (used by frontend) are never mounted.
 - ❓ `backend/modules/workspace/api/endpoints/presence.py`: dependencies are placeholders raising `NotImplementedError`, so presence REST endpoints are non-functional.
