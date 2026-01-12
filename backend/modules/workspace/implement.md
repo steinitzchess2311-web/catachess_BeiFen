@@ -1254,46 +1254,46 @@
 
 ### 10.1 数据库层
 
-- [ ] 创建 `search_index` 表（tsvector）
-  - [ ] target_id + target_type
-  - [ ] content（索引内容）
-  - [ ] search_vector（tsvector 列）
-- [ ] 创建 tsvector 触发器（自动更新）
+- [x] 创建 `search_index` 表（tsvector）
+  - [x] target_id + target_type
+  - [x] content（索引内容）
+  - [x] search_vector（tsvector 列）
+- [x] 创建 tsvector 触发器（自动更新）
 
 ### 10.2 领域层
 
-- [ ] 实现 `domain/services/search_service.py`
-  - [ ] search_metadata（DB 查询）
-  - [ ] search_content（tsvector 查询）
-  - [ ] build_search_query
+- [x] 实现 `domain/services/search_service.py`
+  - [x] search_metadata（DB 查询）
+  - [x] search_content（tsvector 查询）
+  - [x] build_search_query
 
 ### 10.3 事件订阅器
 
-- [ ] 扩展 `events/subscribers/search_indexer.py`
-  - [ ] 监听所有需要索引的事件
-  - [ ] 更新搜索索引
-    - [ ] study.* → 索引 study title
-    - [ ] study.chapter.* → 索引 chapter title
-    - [ ] study.move_annotation.* → 索引 annotation
-    - [ ] discussion.* → 索引 discussion 内容
+- [x] 扩展 `events/subscribers/search_indexer.py`
+  - [x] 监听所有需要索引的事件
+  - [x] 更新搜索索引
+    - [x] study.* → 索引 study title
+    - [x] study.chapter.* → 索引 chapter title
+    - [x] study.move_annotation.* → 索引 annotation
+    - [x] discussion.* → 索引 discussion 内容
 
 ### 10.4 API 层
 
-- [ ] 实现 `api/schemas/search.py`
-- [ ] 实现 `api/endpoints/search.py`
-  - [ ] GET /search?q={query}
+- [x] 实现 `api/schemas/search.py`
+- [x] 实现 `api/endpoints/search.py`
+  - [x] GET /search?q={query}
     - Query params: type, scope, sort, page
 
 ### 10.5 测试
 
-- [ ] 单元测试：`test_search_service.py`
-  - [ ] 测试元数据搜索
-  - [ ] 测试内容搜索
-- [ ] 集成测试：`test_search_metadata_and_content.py`
-  - [ ] 测试写入索引
-  - [ ] 测试查询命中
-  - [ ] 测试搜索排序
-  - [ ] 测试搜索分页
+- [x] 单元测试：`test_search_service.py`
+  - [x] 测试元数据搜索
+  - [x] 测试内容搜索
+- [x] 集成测试：`test_search_metadata_and_content.py`
+  - [x] 测试写入索引
+  - [x] 测试查询命中
+  - [x] 测试搜索排序
+  - [x] 测试搜索分页
 
 ### 完成标准
 
