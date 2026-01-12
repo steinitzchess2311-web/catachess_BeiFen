@@ -7,5 +7,18 @@ export function renderDiscussions(container: Element, state: AppState): void {
   const threads = active ? state.discussions.threadsByTargetId[active] || [] : [];
   list.innerHTML = threads
     .map(
-      (thread) => `\n      <div class="discussion-item" data-thread-id="${thread.id}">\n        <div class="discussion-title">${thread.title}</div>\n        <div class="discussion-actions">\n          <button data-action="discussion-resolve" data-thread-id="${thread.id}" type="button">Resolve</button>\n          <button data-action="discussion-pin" data-thread-id="${thread.id}" type="button">Pin</button>\n          <button data-action="discussion-delete" data-thread-id="${thread.id}" type="button">Delete</button>\n        </div>\n        <textarea data-role="reply-content" placeholder="Reply"></textarea>\n        <button data-action="discussion-reply" data-thread-id="${thread.id}" type="button">Reply</button>\n      </div>\n    `\n    )\n    .join("");
+      (thread) => `
+      <div class="discussion-item" data-thread-id="${thread.id}">
+        <div class="discussion-title">${thread.title}</div>
+        <div class="discussion-actions">
+          <button data-action="discussion-resolve" data-thread-id="${thread.id}" type="button">Resolve</button>
+          <button data-action="discussion-pin" data-thread-id="${thread.id}" type="button">Pin</button>
+          <button data-action="discussion-delete" data-thread-id="${thread.id}" type="button">Delete</button>
+        </div>
+        <textarea data-role="reply-content" placeholder="Reply"></textarea>
+        <button data-action="discussion-reply" data-thread-id="${thread.id}" type="button">Reply</button>
+      </div>
+    `
+    )
+    .join("");
 }
