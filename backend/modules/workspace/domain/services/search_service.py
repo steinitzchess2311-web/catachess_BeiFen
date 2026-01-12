@@ -194,6 +194,10 @@ class SearchService:
         """
         Check if user has permission to see this search result.
 
+        SECURITY FIX: Changed default behavior to be more restrictive.
+        Previously, this method returned True for most cases, allowing
+        unauthorized access to search results.
+
         Args:
             user_id: User ID
             entry: Search index entry
@@ -201,26 +205,36 @@ class SearchService:
         Returns:
             True if user can see this result
         """
-        # For discussion threads and replies, check parent object permission
-        if entry.target_type in ["discussion_thread", "discussion_reply"]:
-            # Get the target object ID from metadata
-            # For discussions, we need to look up the thread's target
-            # This is a simplified check - in production, you'd need to
-            # resolve the actual parent object
-            return True  # Simplified: assume visible if indexed
-
         # For nodes (workspace/folder/study), check ACL
         if entry.target_type in ["workspace", "folder", "study"]:
             return await can_read(self.acl_repo, entry.target_id, user_id)
 
-        # For chapters and annotations, check parent study permission
-        if entry.target_type in ["chapter", "move_annotation"]:
-            # Need to resolve parent study ID
-            # Simplified: assume visible if indexed
-            return True
+        # SECURITY FIX: For discussion threads and replies, we need proper permission checking
+        # These need to resolve their parent object (study/chapter) and check ACL
+        if entry.target_type in ["discussion_thread", "discussion_reply"]:
+            # TODO: Implement proper permission check by:
+            # 1. Looking up the thread's target_id and target_type from discussion_threads table
+            # 2. If target is a study/chapter, check read permission on that resource
+            # 3. If target is a reply, recursively find the root thread
+            #
+            # For now, SECURITY FIX: Return False to prevent leaking unauthorized content
+            # This is safer than returning True, but will hide valid results
+            # Needs proper implementation before enabling
+            return False
 
-        # Default: allow (better to be permissive than block incorrectly)
-        return True
+        # SECURITY FIX: For chapters and annotations, check parent study permission
+        if entry.target_type in ["chapter", "move_annotation"]:
+            # TODO: Implement proper permission check by:
+            # 1. Resolving the parent study ID from chapters table
+            # 2. Checking read permission on the parent study
+            #
+            # For now, SECURITY FIX: Return False to prevent leaking unauthorized content
+            return False
+
+        # SECURITY FIX: Changed default from True to False
+        # Better to hide results than leak unauthorized content
+        # Unknown types should be explicitly handled above
+        return False
 
     def _extract_highlight(self, content: str, query: str, context_size: int = 100) -> str:
         """

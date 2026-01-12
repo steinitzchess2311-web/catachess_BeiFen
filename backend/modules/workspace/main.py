@@ -5,10 +5,18 @@ This is a standalone app for development/testing.
 In production, import api_router and mount it to main app.
 """
 
+import sys
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
+# Add backend directory to path to import from core modules
+backend_dir = Path(__file__).parent.parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+from core.config import settings
 from workspace.api.router import api_router
 from workspace.db.session import engine, Base
 
@@ -26,9 +34,11 @@ app = FastAPI(
 )
 
 # Configure CORS
+# SECURITY FIX: Cannot use allow_origins=["*"] with allow_credentials=True
+# This is both insecure and incompatible with browsers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=settings.cors_origins_list,  # Specific origins from config
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -84,7 +84,8 @@ def get_current_user(
         def get_me(current_user: User = Depends(get_current_user)):
             return current_user
     """
-    logger.debug(f"Authenticating request with token: {token[:20]}...")
+    # SECURITY FIX: Removed token prefix logging to prevent token exposure in logs
+    logger.debug("Authenticating request")
 
     # Decode token to get user_id
     user_id = decode_token(token)
@@ -98,11 +99,12 @@ def get_current_user(
         )
 
     # Load user from database
-    logger.debug(f"Loading user from database: user_id={user_id}")
+    logger.debug("Loading user from database")
     try:
         user_uuid = uuid.UUID(user_id)
     except ValueError:
-        logger.warning(f"Invalid UUID format: {user_id}")
+        # SECURITY FIX: Don't log the invalid user_id to prevent log injection
+        logger.warning("Invalid UUID format in token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid user ID format",
@@ -111,7 +113,8 @@ def get_current_user(
     user = db.get(User, user_uuid)
 
     if not user:
-        logger.warning(f"User not found in database: user_id={user_id}")
+        # SECURITY FIX: Don't log user_id for missing users
+        logger.warning("User not found in database")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
@@ -119,14 +122,16 @@ def get_current_user(
         )
 
     if not user.is_active:
-        logger.warning(f"User is inactive: user_id={user_id}, username={user.username}")
+        # SECURITY FIX: Reduced logging - only log role, not identifiers
+        logger.warning(f"Inactive user authentication attempt: role={user.role}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Inactive user",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    logger.info(f"User authenticated: user_id={user.id}, username={user.username}, role={user.role}")
+    # SECURITY FIX: Reduced logging - only log role for successful auth
+    logger.info(f"User authenticated successfully: role={user.role}")
 
     return user
 
@@ -156,19 +161,23 @@ def get_current_user_sync(token: str, db: Session) -> User:
     try:
         user_uuid = uuid.UUID(user_id)
     except ValueError:
-        logger.warning(f"Invalid UUID format: {user_id}")
+        # SECURITY FIX: Don't log the invalid user_id
+        logger.warning("Invalid UUID format in token")
         raise InvalidTokenError("Invalid user ID format")
 
     user = db.get(User, user_uuid)
 
     if not user:
-        logger.warning(f"User not found: user_id={user_id}")
+        # SECURITY FIX: Don't log user_id for missing users
+        logger.warning("User not found")
         raise InvalidTokenError("User not found")
 
     if not user.is_active:
-        logger.warning(f"User inactive: user_id={user_id}")
+        # SECURITY FIX: Reduced logging
+        logger.warning(f"User inactive: role={user.role}")
         raise UserInactiveError(user.identifier)
 
-    logger.info(f"User authenticated: {user.username}")
+    # SECURITY FIX: Reduced logging
+    logger.info(f"User authenticated: role={user.role}")
 
     return user

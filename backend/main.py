@@ -38,9 +38,11 @@ async def startup_event():
         logger.warning(f"Could not initialize verification table: {e}")
 
 # Configure CORS
+# SECURITY FIX: Cannot use allow_origins=["*"] with allow_credentials=True
+# This is both insecure and incompatible with browsers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=settings.cors_origins_list,  # Specific origins from config
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

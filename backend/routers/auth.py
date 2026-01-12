@@ -24,6 +24,7 @@ from services.user_service import authenticate_user, create_user, get_user_by_id
 from services.signup_verification_service import SignupVerificationService
 from services.resend_email_service import ResendEmailService
 from core.security.jwt import create_access_token
+from core.security.rate_limiter import rate_limit
 from core.log.log_api import logger
 from core.errors import UserAlreadyExistsError, get_error_response, get_http_status_code
 
@@ -35,8 +36,9 @@ class RegisterRequest(BaseModel):
     identifier: str
     identifier_type: str = "email"
     password: str
-    role: str = "student"
     username: str | None = None
+    # SECURITY: role is NOT accepted from client - all new users are students
+    # Teacher role must be assigned by administrators after registration
 
 
 class TokenResponse(BaseModel):
@@ -52,7 +54,12 @@ class UserResponse(BaseModel):
     verification_sent: bool = False
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit(5, 300))],  # 5 registrations per 5 minutes per IP
+)
 async def register(
     request: RegisterRequest,
     db: Session = Depends(get_db),
@@ -63,8 +70,11 @@ async def register(
     Creates a new user account with hashed password.
     Does NOT automatically log in - client must call /login after registration.
 
+    SECURITY: All new users are registered as 'student' role.
+    Teacher role must be assigned by administrators after registration.
+
     Args:
-        request: Registration data (identifier, password, role, username)
+        request: Registration data (identifier, password, username)
         db: Database session (auto-injected)
 
     Returns:
@@ -74,7 +84,11 @@ async def register(
         409: User with identifier already exists
         400: Invalid input data
     """
-    logger.info(f"Registration attempt: identifier={request.identifier}, role={request.role}")
+    # SECURITY FIX: Force role to "student" - prevent privilege escalation
+    # Teachers must be promoted by admins after registration
+    forced_role = "student"
+
+    logger.info(f"Registration attempt: identifier={request.identifier}, role={forced_role}")
 
     try:
         user = create_user(
@@ -82,7 +96,7 @@ async def register(
             identifier=request.identifier,
             identifier_type=request.identifier_type,
             password=request.password,
-            role=request.role,
+            role=forced_role,  # Always student, not from client input
             username=request.username,
         )
 
@@ -132,7 +146,11 @@ async def register(
         )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limit(10, 300))],  # 10 login attempts per 5 minutes per IP
+)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
@@ -187,7 +205,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
-@router.post("/login/json", response_model=TokenResponse)
+@router.post(
+    "/login/json",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limit(10, 300))],  # 10 login attempts per 5 minutes per IP
+)
 def login_json(
     request: LoginRequest,
     db: Session = Depends(get_db),
@@ -307,7 +329,11 @@ class ResendVerificationResponse(BaseModel):
     message: str
 
 
-@router.post("/resend-verification", response_model=ResendVerificationResponse)
+@router.post(
+    "/resend-verification",
+    response_model=ResendVerificationResponse,
+    dependencies=[Depends(rate_limit(3, 300))],  # 3 resends per 5 minutes per IP
+)
 async def resend_verification(
     request: ResendVerificationRequest,
     db: Session = Depends(get_db),

@@ -8,10 +8,18 @@ import re
 class Settings(BaseSettings):
     # ===== basic =====
     ENV: str = "dev"
-    DEBUG: bool = True
+    # SECURITY FIX: DEBUG should default to False for production safety
+    DEBUG: bool = False
+
+    # ===== CORS =====
+    # Comma-separated list of allowed origins
+    # For development: "http://localhost:3000,http://localhost:5173"
+    # For production: "https://yourdomain.com"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://localhost:5174"
 
     # ===== engine =====
-    ENGINE_URL: str = "http://192.168.40.33:8001"
+    # SECURITY FIX: Removed hardcoded internal IP - must be set via environment variable
+    ENGINE_URL: str = ""  # Set via ENGINE_URL environment variable
     ENGINE_TIMEOUT: int = 60
 
     # ===== multi-spot engine =====
@@ -21,11 +29,15 @@ class Settings(BaseSettings):
     SPOT_MAX_RETRIES: int = 2
 
     # ===== database =====
-    # Default to Railway internal PostgreSQL for production deployment
-    DATABASE_URL: str = "postgresql://postgres:yRuedDjiwzhbrBKDbIDCtCxTMzzRDQTL@postgres.railway.internal:5432/railway"
+    # SECURITY FIX: Removed hardcoded credentials - must be set via environment variable
+    # For Railway: DATABASE_URL is automatically provided
+    # For local dev: Set DATABASE_URL in .env file
+    DATABASE_URL: str = ""
 
     # ===== security =====
-    JWT_SECRET_KEY: str = "dev-secret-key-change-in-production"
+    # SECURITY FIX: JWT_SECRET_KEY must be set via environment variable
+    # Using a weak default only for local development convenience
+    JWT_SECRET_KEY: str = "CHANGE_ME_IN_PRODUCTION"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
@@ -42,9 +54,30 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS_ORIGINS string into list of origins."""
+        if not self.CORS_ORIGINS:
+            return []
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
     def validate_database_url(self):
         """Validate DATABASE_URL has actual values, not placeholders"""
         url = self.DATABASE_URL
+
+        if not url:
+            print(f"\n{'='*60}")
+            print("ERROR: DATABASE_URL is not set!")
+            print(f"{'='*60}")
+            print("Please set DATABASE_URL in environment variables or .env file.")
+            print("\nFor Railway PostgreSQL:")
+            print("  1. Add PostgreSQL plugin in Railway dashboard")
+            print("  2. Railway will auto-provide DATABASE_URL variable")
+            print("\nFor local development:")
+            print("  Set DATABASE_URL in .env file:")
+            print("  DATABASE_URL=postgresql://user:pass@localhost:5432/dbname")
+            print(f"{'='*60}\n")
+            sys.exit(1)
 
         # Check for common placeholder patterns
         placeholder_patterns = [
@@ -60,14 +93,40 @@ class Settings(BaseSettings):
                 print("ERROR: DATABASE_URL contains placeholder values!")
                 print(f"{'='*60}")
                 print(f"Current DATABASE_URL: {url}")
-                print("\nPlease set a valid DATABASE_URL in Railway environment variables.")
-                print("\nFor Railway PostgreSQL:")
-                print("  1. Add PostgreSQL plugin in Railway dashboard")
-                print("  2. Railway will auto-provide DATABASE_URL variable")
-                print("  3. Or manually set: postgresql://user:pass@host:port/dbname")
+                print("\nPlease set a valid DATABASE_URL in environment variables.")
                 print(f"{'='*60}\n")
+                sys.exit(1)
+
+    def validate_security_settings(self):
+        """Validate security-critical settings are properly configured"""
+        warnings = []
+
+        # Check JWT secret key
+        if self.JWT_SECRET_KEY in ["CHANGE_ME_IN_PRODUCTION", "dev-secret-key-change-in-production", ""]:
+            warnings.append("⚠️  JWT_SECRET_KEY is using default/weak value! Set a strong secret in production.")
+
+        # Check ENGINE_URL
+        if not self.ENGINE_URL and self.ENV == "production":
+            warnings.append("⚠️  ENGINE_URL is not set!")
+
+        # Check DEBUG in production
+        if self.DEBUG and self.ENV == "production":
+            warnings.append("⚠️  DEBUG=True in production environment! This exposes sensitive information.")
+
+        if warnings:
+            print(f"\n{'='*60}")
+            print("SECURITY WARNINGS:")
+            print(f"{'='*60}")
+            for warning in warnings:
+                print(warning)
+            print(f"{'='*60}\n")
+
+            # In production, fail fast on security issues
+            if self.ENV == "production":
+                print("ERROR: Cannot start in production with security warnings!")
                 sys.exit(1)
 
 
 settings = Settings()
 settings.validate_database_url()
+settings.validate_security_settings()

@@ -1,4 +1,18 @@
-from fastapi import Header, HTTPException, status
+import sys
+from pathlib import Path
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+import uuid
+
+# Add backend directory to path to import from core modules
+backend_dir = Path(__file__).parent.parent.parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
+from core.security.jwt import decode_token
+from core.db.deps import get_db
+from models.user import User
 
 from workspace.api.deps_core import (
     get_acl_repo,
@@ -23,20 +37,67 @@ from workspace.api.discussion_deps import (
     get_thread_state_service,
 )
 
+# OAuth2 scheme for token extraction
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-async def get_current_user_id(
-    authorization: str | None = Header(None)
-) -> str:
-    if authorization is None:
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    """
+    Get current authenticated user from JWT token with proper validation.
+
+    This replaces the insecure get_current_user_id that trusted raw Bearer tokens.
+    Now properly decodes JWT, validates signature/expiry, and loads user from DB.
+    """
+    # Decode and validate JWT token
+    user_id = decode_token(token)
+
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    if authorization.startswith("Bearer "):
-        user_id = authorization[7:]
-        if user_id:
-            return user_id
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid authentication",
-    )
+
+    # Validate UUID format
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Load user from database
+    user = db.get(User, user_uuid)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
+
+
+async def get_current_user_id(
+    user: User = Depends(get_current_user)
+) -> str:
+    """
+    Get current user ID from authenticated user.
+
+    This is a convenience wrapper that maintains backward compatibility
+    with existing code that expects user_id as a string.
+    """
+    return str(user.id)

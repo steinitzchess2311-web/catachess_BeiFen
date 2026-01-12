@@ -1,3 +1,4 @@
+import logging
 from ulid import ULID
 
 from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
@@ -8,6 +9,8 @@ from workspace.db.tables.notifications import Notification
 from workspace.events.payloads import extract_event_payload
 from workspace.events.types import EventType
 from workspace.notifications.dispatcher import NotificationDispatcher
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationCreator:
@@ -99,6 +102,16 @@ class NotificationCreator:
                     },
                     target_id=event.target_id,
                 )
-            except Exception:
-                # Don't fail notification creation if dispatch fails
-                pass
+            except Exception as e:
+                # SECURITY FIX: Log dispatch failures instead of silently swallowing them
+                # Don't fail notification creation if dispatch fails, but make failures visible
+                logger.error(
+                    f"Failed to dispatch notification: {e}",
+                    exc_info=True,
+                    extra={
+                        "user_id": user_id,
+                        "event_type": event.type,
+                        "notification_id": notification.id,
+                        "target_id": event.target_id,
+                    }
+                )

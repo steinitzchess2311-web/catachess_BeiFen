@@ -205,7 +205,7 @@ class SignupVerificationService:
     @staticmethod
     def mark_user_verified(db: Session, user_id: str) -> bool:
         """
-        Mark a user as verified (if using is_verified field)
+        Mark a user as verified after successful verification code validation.
 
         Args:
             db: Database session
@@ -216,13 +216,12 @@ class SignupVerificationService:
         """
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
+            logger.warning(f"Cannot mark user as verified: user not found", extra={"user_id": str(user_id)})
             return False
 
-        # Note: The current User model doesn't have is_verified field
-        # This is a placeholder for future implementation
-        # When adding is_verified field to User model, uncomment:
-        # user.is_verified = True
-        # db.commit()
+        # SECURITY FIX: Now properly persists verification status
+        user.is_verified = True
+        db.commit()
 
         logger.info(f"User marked as verified", extra={"user_id": str(user_id)})
         return True
