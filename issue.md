@@ -20,6 +20,10 @@ Scope: backend + frontend code scan with emphasis on correctness, security, and 
 - ✅ `frontend/ui/modules/workspace/modules/state/reducers.ts`: SESSION_SET action exists but is never dispatched - all API requests go out unauthenticated and fail with 401. **FIXED: Login module now properly stores tokens and user ID.**
 - ✅ Frontend has no mechanism to store JWT tokens from backend authentication endpoints. **FIXED: Implemented storage module with localStorage/sessionStorage support.**
 - ✅ All workspace buttons/features are non-functional without authentication. **FIXED: Authentication flow now complete.**
+- ✅ **No landing page or entry point** - Users had no way to access login/signup pages. **FIXED: Created home.html with clear navigation to login/signup.**
+- ✅ **No workspace selection UI** - Users need to select which workspace to enter before creating files/studies. **FIXED: Created workspace-select.html with proper flow.**
+- ✅ **No user info display** - TopNav didn't show logged-in user information. **FIXED: TopNav now displays username/avatar with dropdown menu (logout, switch workspace).**
+- ✅ **No authentication check** - index.html loaded workspace without checking if user is logged in. **FIXED: Added authentication check and redirect logic.**
 
 ## Medium
 - ❓ `backend/modules/workspace/api/router.py`: omits `notifications`, `presence`, and `versions` routers, so those endpoints (used by frontend) are never mounted.

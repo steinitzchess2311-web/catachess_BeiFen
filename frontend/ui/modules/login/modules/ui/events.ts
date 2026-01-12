@@ -96,8 +96,8 @@ async function handleSubmit(event: Event): Promise<void> {
 
             showToast('登录成功！正在跳转...', 'success');
 
-            // Redirect to workspace or intended page
-            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/workspace';
+            // Redirect to workspace selection page or intended page
+            const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/frontend/workspace-select.html';
             setTimeout(() => {
                 window.location.href = redirectUrl;
             }, 1000);

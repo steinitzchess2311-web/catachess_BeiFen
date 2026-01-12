@@ -11,6 +11,42 @@
 </head>
 <body>
   <div id="app"></div>
+
+  <!-- Authentication Check -->
+  <script>
+    // Check if user is authenticated
+    const token = localStorage.getItem('catachess_token') || sessionStorage.getItem('catachess_token');
+    const userId = localStorage.getItem('catachess_user_id') || sessionStorage.getItem('catachess_user_id');
+
+    if (!token || !userId) {
+      // Not authenticated, redirect to login
+      window.location.href = '/frontend/ui/modules/login/layout/LoginPage.html?redirect=/workspace-select.html';
+    } else {
+      // Check if workspace ID is provided in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const workspaceId = urlParams.get('workspace');
+
+      if (!workspaceId) {
+        // No workspace selected, redirect to workspace selection
+        window.location.href = '/frontend/workspace-select.html';
+      } else {
+        // Store workspace ID for the app
+        sessionStorage.setItem('current_workspace_id', workspaceId);
+
+        // Dispatch SESSION_SET event for workspace app
+        window.addEventListener('DOMContentLoaded', () => {
+          // This will be picked up by the workspace app
+          if (window.store) {
+            window.store.dispatch({
+              type: 'SESSION_SET',
+              payload: { userId, token }
+            });
+          }
+        });
+      }
+    }
+  </script>
+
   <script type="module" src="/frontend/ui/modules/workspace/assets/workspace-app.js"></script>
 </body>
 </html>
