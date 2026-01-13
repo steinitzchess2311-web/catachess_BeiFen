@@ -46,7 +46,7 @@ export function initLogin(container: HTMLElement) {
                 localStorage.setItem('token', response.access_token);
                 localStorage.setItem('tokenType', response.token_type);
                 // Redirect to workspace
-                window.location.hash = '/workspace';
+                window.location.hash = '#/workspace';
             }
         } catch (error: any) {
             console.error('Login failed:', error);
@@ -57,6 +57,6 @@ export function initLogin(container: HTMLElement) {
     // Handle signup link navigation within SPA
     signupLink.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.hash = '/signup';
+        window.location.hash = '#/signup';
     });
 }
