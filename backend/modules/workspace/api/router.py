@@ -4,7 +4,7 @@ Main API router.
 
 from fastapi import APIRouter
 
-from workspace.api.endpoints import discussions, nodes, search, shares, studies, notifications
+from workspace.api.endpoints import discussions, nodes, search, shares, studies, notifications, versions, presence
 
 api_router = APIRouter()
 
@@ -15,3 +15,5 @@ api_router.include_router(studies.router)
 api_router.include_router(discussions.router)
 api_router.include_router(search.router)
 api_router.include_router(notifications.router)
+api_router.include_router(versions.router)
+api_router.include_router(presence.router)
