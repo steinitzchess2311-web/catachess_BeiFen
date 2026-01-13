@@ -1,6 +1,6 @@
-from workspace.domain.models.acl import ACLModel
-from workspace.domain.models.node import NodeModel
-from workspace.domain.models.types import Permission
+from modules.workspace.domain.models.acl import ACLModel
+from modules.workspace.domain.models.node import NodeModel
+from modules.workspace.domain.models.types import Permission
 
 
 class PermissionPolicy:

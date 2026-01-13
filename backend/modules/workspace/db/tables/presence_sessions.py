@@ -9,7 +9,7 @@ from sqlalchemy import String, DateTime, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class PresenceSessionTable(Base, TimestampMixin):

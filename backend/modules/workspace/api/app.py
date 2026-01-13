@@ -4,7 +4,7 @@ Main FastAPI application.
 
 from fastapi import FastAPI
 
-from workspace.api.router import api_router
+from modules.workspace.api.router import api_router
 
 app = FastAPI(title="CataChess Workspace API", version="1.0.0")
 

@@ -6,11 +6,11 @@ import pytest
 from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.app import app
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.tables.discussions import DiscussionThread
-from workspace.db.tables.nodes import Node
+from modules.workspace.api.app import app
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.tables.discussions import DiscussionThread
+from modules.workspace.db.tables.nodes import Node
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ async def test_concurrent_study_update_conflict(
 
     # User B tries to update with stale version
     # This should be detected by the service layer
-    from workspace.domain.services.study_service import OptimisticLockError
+    from modules.workspace.domain.services.study_service import OptimisticLockError
 
     # In a real scenario, this would raise OptimisticLockError
     # For now, verify the version changed

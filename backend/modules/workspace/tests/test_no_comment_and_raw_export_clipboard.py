@@ -1,7 +1,7 @@
 """Clipboard export tests."""
-from workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn_to_clipboard
-from workspace.pgn.cleaner.raw_pgn import export_raw_pgn_to_clipboard
-from workspace.pgn.serializer.to_tree import pgn_to_tree
+from modules.workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn_to_clipboard
+from modules.workspace.pgn.cleaner.raw_pgn import export_raw_pgn_to_clipboard
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree
 
 
 def _tree(pgn: str):

@@ -1,8 +1,8 @@
-from workspace.db.base import Base
-from workspace.db.session import get_db_config, init_db
-from workspace.db.tables.acl import ACL
-from workspace.db.tables.nodes import Node
-from workspace.domain.models.types import NodeType, Permission, Visibility
+from modules.workspace.db.base import Base
+from modules.workspace.db.session import get_db_config, init_db
+from modules.workspace.db.tables.acl import ACL
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.domain.models.types import NodeType, Permission, Visibility
 
 
 async def init_test_db() -> None:

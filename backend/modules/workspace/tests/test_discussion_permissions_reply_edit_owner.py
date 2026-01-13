@@ -6,9 +6,9 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from workspace.api.router import api_router
-from workspace.db.session import get_db_config
-from workspace.tests.helpers.discussion_setup import init_test_db, create_study_node
+from modules.workspace.api.router import api_router
+from modules.workspace.db.session import get_db_config
+from modules.workspace.tests.helpers.discussion_setup import init_test_db, create_study_node
 
 
 @pytest.fixture

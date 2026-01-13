@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.search_index import SearchIndex
+from modules.workspace.db.tables.search_index import SearchIndex
 
 
 class SearchIndexRepository:

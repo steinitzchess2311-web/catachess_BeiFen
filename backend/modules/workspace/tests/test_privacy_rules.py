@@ -6,11 +6,11 @@ import pytest
 from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.app import app
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.tables.acl import ACL
-from workspace.db.tables.nodes import Node
+from modules.workspace.api.app import app
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.tables.acl import ACL
+from modules.workspace.db.tables.nodes import Node
 
 
 @pytest.fixture

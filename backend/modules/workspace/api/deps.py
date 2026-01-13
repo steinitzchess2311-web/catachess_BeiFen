@@ -15,7 +15,7 @@ from core.security.jwt import decode_token
 from core.db.deps import get_db
 from models.user import User
 
-from workspace.api.deps_core import (
+from modules.workspace.api.deps_core import (
     get_acl_repo,
     get_audit_repo,
     get_discussion_service,
@@ -28,14 +28,14 @@ from workspace.api.deps_core import (
     get_search_service,
     get_share_service,
 )
-from workspace.db.session import get_session
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.domain.services.pgn_clip_service import PgnClipService
-from workspace.events.bus import EventBus
-from workspace.storage.r2_client import create_r2_client_from_env
-from workspace.api.discussion_deps import (
+from modules.workspace.db.session import get_session
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.domain.services.pgn_clip_service import PgnClipService
+from modules.workspace.events.bus import EventBus
+from modules.workspace.storage.r2_client import create_r2_client_from_env
+from modules.workspace.api.discussion_deps import (
     get_reaction_repo,
     get_reaction_service,
     get_reply_repo,

@@ -8,9 +8,9 @@ This export mode:
 - Useful for sharing games without giving away analysis
 """
 
-from workspace.pgn.cleaner.variation_pruner import remove_comments
-from workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
-from workspace.pgn.serializer.to_tree import VariationNode
+from modules.workspace.pgn.cleaner.variation_pruner import remove_comments
+from modules.workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
+from modules.workspace.pgn.serializer.to_tree import VariationNode
 
 
 def export_no_comment_pgn(

@@ -4,7 +4,7 @@ Discussion reply commands.
 
 from dataclasses import dataclass
 
-from workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.domain.policies.limits import DiscussionLimits
 
 
 @dataclass

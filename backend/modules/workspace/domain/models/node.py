@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.models.types import NodeType, Visibility
 
 
 @dataclass

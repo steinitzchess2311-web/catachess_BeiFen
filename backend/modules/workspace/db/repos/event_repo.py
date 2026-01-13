@@ -7,9 +7,9 @@ from typing import Sequence
 from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.events import Event
-from workspace.domain.models.event import EventQuery
-from workspace.events.types import EventType
+from modules.workspace.db.tables.events import Event
+from modules.workspace.domain.models.event import EventQuery
+from modules.workspace.events.types import EventType
 
 
 class EventRepository:

@@ -8,8 +8,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from workspace.domain.models.types import NodeType
-from workspace.events.types import EventType
+from modules.workspace.domain.models.types import NodeType
+from modules.workspace.events.types import EventType
 
 
 @dataclass

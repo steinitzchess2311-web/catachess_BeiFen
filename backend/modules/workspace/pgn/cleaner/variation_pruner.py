@@ -13,7 +13,7 @@ import logging
 import re
 from typing import Literal
 
-from workspace.pgn.serializer.to_tree import VariationNode
+from modules.workspace.pgn.serializer.to_tree import VariationNode
 
 logger = logging.getLogger(__name__)
 

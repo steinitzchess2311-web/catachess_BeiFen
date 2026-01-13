@@ -12,14 +12,14 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.collaboration.presence_manager import PresenceManager
-from workspace.db.repos.presence_repo import PresenceRepository
-from workspace.db.tables.presence_sessions import PresenceSessionTable
-from workspace.domain.models.presence import PresenceSession, CursorPosition
-from workspace.domain.models.types import PresenceStatus
-from workspace.domain.models.event import CreateEventCommand
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.collaboration.presence_manager import PresenceManager
+from modules.workspace.db.repos.presence_repo import PresenceRepository
+from modules.workspace.db.tables.presence_sessions import PresenceSessionTable
+from modules.workspace.domain.models.presence import PresenceSession, CursorPosition
+from modules.workspace.domain.models.types import PresenceStatus
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 logger = logging.getLogger(__name__)
 

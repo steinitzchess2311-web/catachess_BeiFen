@@ -4,14 +4,14 @@ Discussion nesting tests.
 
 import pytest
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_reply import AddReplyCommand
-from workspace.domain.models.discussion_thread import CreateThreadCommand
-from workspace.domain.policies.limits import DiscussionLimits
-from workspace.domain.services.discussion.reply_service import ReplyService
-from workspace.domain.services.discussion.nesting import NestingDepthExceededError
-from workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_reply import AddReplyCommand
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand
+from modules.workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.domain.services.discussion.reply_service import ReplyService
+from modules.workspace.domain.services.discussion.nesting import NestingDepthExceededError
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
 
 
 @pytest.mark.asyncio

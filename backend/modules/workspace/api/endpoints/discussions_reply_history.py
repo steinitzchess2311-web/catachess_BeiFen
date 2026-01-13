@@ -4,8 +4,8 @@ Discussion reply history endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.audit_helpers import log_permission_denial
-from workspace.api.deps import (
+from modules.workspace.api.audit_helpers import log_permission_denial
+from modules.workspace.api.deps import (
     get_acl_repo,
     get_audit_repo,
     get_current_user_id,
@@ -13,12 +13,12 @@ from workspace.api.deps import (
     get_reply_repo,
     get_thread_repo,
 )
-from workspace.api.schemas.discussion_reply import ReplyEditHistoryEntry
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.domain.policies.discussion_permissions import (
+from modules.workspace.api.schemas.discussion_reply import ReplyEditHistoryEntry
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.domain.policies.discussion_permissions import (
     DiscussionPermissionError,
     require_commenter_access,
 )

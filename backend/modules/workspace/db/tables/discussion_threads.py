@@ -7,7 +7,7 @@ from enum import Enum
 from sqlalchemy import Boolean, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class ThreadType(str, Enum):

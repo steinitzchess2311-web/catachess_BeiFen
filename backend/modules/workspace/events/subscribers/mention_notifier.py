@@ -1,10 +1,10 @@
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.user_repo import UserRepository
-from workspace.domain.models.event import CreateEventCommand
-from workspace.domain.services.discussion_mentions import extract_mentions
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.user_repo import UserRepository
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.domain.services.discussion_mentions import extract_mentions
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 
 class MentionNotifier:

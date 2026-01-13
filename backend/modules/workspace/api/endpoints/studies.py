@@ -5,26 +5,26 @@ Study endpoints.
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.deps import (
+from modules.workspace.api.deps import (
     get_current_user_id,
     get_event_bus,
     get_event_repo,
     get_node_repo,
     get_node_service,
 )
-from workspace.api.schemas.annotation import (
+from modules.workspace.api.schemas.annotation import (
     AnnotationCreate,
     AnnotationResponse,
     AnnotationUpdate,
     SetNAGRequest,
 )
-from workspace.api.schemas.pgn_clip import (
+from modules.workspace.api.schemas.pgn_clip import (
     PgnClipPreviewResponse,
     PgnClipRequest,
     PgnClipResponse,
     PgnExportRequest,
 )
-from workspace.api.schemas.study import (
+from modules.workspace.api.schemas.study import (
     ChapterResponse,
     ImportResultResponse,
     StudyCreate,
@@ -33,48 +33,48 @@ from workspace.api.schemas.study import (
     StudyUpdate,
     StudyWithChaptersResponse,
 )
-from workspace.api.schemas.variation import (
+from modules.workspace.api.schemas.variation import (
     DemoteVariationRequest,
     MoveCreate,
     MoveResponse,
     PromoteVariationRequest,
     ReorderVariationsRequest,
 )
-from workspace.domain.models.move_annotation import (
+from modules.workspace.domain.models.move_annotation import (
     AddMoveAnnotationCommand,
     SetNAGCommand,
     UpdateMoveAnnotationCommand,
 )
-from workspace.domain.models.node import CreateNodeCommand
-from workspace.domain.models.study import CreateStudyCommand, ImportPGNCommand, UpdateStudyCommand
-from workspace.domain.models.types import NodeType
-from workspace.domain.models.variation import (
+from modules.workspace.domain.models.node import CreateNodeCommand
+from modules.workspace.domain.models.study import CreateStudyCommand, ImportPGNCommand, UpdateStudyCommand
+from modules.workspace.domain.models.types import NodeType
+from modules.workspace.domain.models.variation import (
     AddMoveCommand,
     DeleteMoveCommand,
     PromoteVariationCommand,
 )
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.session import get_session
-from workspace.domain.services.chapter_import_service import ChapterImportError, ChapterImportService
-from workspace.domain.services.node_service import NodeNotFoundError, NodeService, NodeServiceError, PermissionDeniedError
-from workspace.domain.services.pgn_clip_service import PgnClipService
-from workspace.domain.services.study_service import (
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.session import get_session
+from modules.workspace.domain.services.chapter_import_service import ChapterImportError, ChapterImportService
+from modules.workspace.domain.services.node_service import NodeNotFoundError, NodeService, NodeServiceError, PermissionDeniedError
+from modules.workspace.domain.services.pgn_clip_service import PgnClipService
+from modules.workspace.domain.services.study_service import (
     AnnotationAlreadyExistsError,
     AnnotationNotFoundError,
     MoveNotFoundError,
     StudyService,
 )
-from workspace.domain.services.variation_service import (
+from modules.workspace.domain.services.variation_service import (
     InvalidOperationError,
     OptimisticLockError,
     VariationNotFoundError,
     VariationService,
 )
-from workspace.events.bus import EventBus
-from workspace.storage.r2_client import create_r2_client_from_env
+from modules.workspace.events.bus import EventBus
+from modules.workspace.storage.r2_client import create_r2_client_from_env
 
 router = APIRouter(prefix="/studies", tags=["studies"])
 

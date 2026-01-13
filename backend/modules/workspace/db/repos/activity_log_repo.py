@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.activity_log import ActivityLog
+from modules.workspace.db.tables.activity_log import ActivityLog
 
 
 class ActivityLogRepository:

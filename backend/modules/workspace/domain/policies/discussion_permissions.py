@@ -1,6 +1,6 @@
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.domain.models.types import Permission
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.domain.models.types import Permission
 
 
 class DiscussionPermissionError(Exception):

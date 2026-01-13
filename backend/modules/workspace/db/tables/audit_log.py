@@ -2,7 +2,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class AuditLog(Base, TimestampMixin):

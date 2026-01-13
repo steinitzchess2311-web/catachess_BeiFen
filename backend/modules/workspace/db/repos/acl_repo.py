@@ -7,8 +7,8 @@ from typing import Sequence
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.acl import ACL, ShareLink
-from workspace.domain.models.types import Permission
+from modules.workspace.db.tables.acl import ACL, ShareLink
+from modules.workspace.domain.models.types import Permission
 
 
 class ACLRepository:
@@ -73,7 +73,7 @@ class ACLRepository:
         Returns:
             List of (ACL, Node) tuples for non-deleted nodes
         """
-        from workspace.db.tables.nodes import Node
+        from modules.workspace.db.tables.nodes import Node
 
         stmt = (
             select(ACL, Node)

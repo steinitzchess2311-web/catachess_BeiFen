@@ -4,7 +4,7 @@ Discussion reaction validation tests.
 
 import pytest
 
-from workspace.domain.models.discussion_reaction import AddReactionCommand
+from modules.workspace.domain.models.discussion_reaction import AddReactionCommand
 
 
 @pytest.mark.parametrize("emoji", ["👍", "❤️", "🎯", "🚀", "👏", "🔥", "💯"])

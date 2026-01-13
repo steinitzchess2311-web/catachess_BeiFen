@@ -9,24 +9,24 @@ from hashlib import sha256
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.tables.acl import ACL, ShareLink
-from workspace.domain.models.acl import (
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.tables.acl import ACL, ShareLink
+from modules.workspace.domain.models.acl import (
     ChangeRoleCommand,
     CreateShareLinkCommand,
     RevokeShareCommand,
     RevokeShareLinkCommand,
     ShareCommand,
 )
-from workspace.domain.models.types import Permission
-from workspace.domain.policies.permissions import PermissionPolicy
-from workspace.domain.services.node_service import (
+from modules.workspace.domain.models.types import Permission
+from modules.workspace.domain.policies.permissions import PermissionPolicy
+from modules.workspace.domain.services.node_service import (
     NodeNotFoundError,
     NodeServiceError,
     PermissionDeniedError,
 )
-from workspace.events.bus import EventBus, publish_acl_revoked, publish_acl_shared
+from modules.workspace.events.bus import EventBus, publish_acl_revoked, publish_acl_shared
 
 
 class ShareService:
@@ -81,7 +81,7 @@ class ShareService:
 
         # Check if actor can manage ACL
         actor_acl = await self.acl_repo.get_acl(command.object_id, actor_id)
-        from workspace.domain.models.node import NodeModel
+        from modules.workspace.domain.models.node import NodeModel
 
         node_model = NodeModel(
             id=node.id,
@@ -102,7 +102,7 @@ class ShareService:
 
         actor_acl_model = None
         if actor_acl:
-            from workspace.domain.models.acl import ACLModel
+            from modules.workspace.domain.models.acl import ACLModel
 
             actor_acl_model = ACLModel(
                 id=actor_acl.id,

@@ -6,8 +6,8 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from workspace.api.router import api_router
-from workspace.domain.models.types import NodeType
+from modules.workspace.api.router import api_router
+from modules.workspace.domain.models.types import NodeType
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def app() -> FastAPI:
 @pytest.mark.asyncio
 async def test_create_workspace_api(app: FastAPI, session):
     """Test creating workspace via API."""
-    from workspace.db.session import init_db
+    from modules.workspace.db.session import init_db
 
     # Initialize DB for API deps
     init_db("sqlite+aiosqlite:///:memory:", echo=False)
@@ -46,7 +46,7 @@ async def test_create_workspace_api(app: FastAPI, session):
 @pytest.mark.asyncio
 async def test_get_node_api(app: FastAPI, node_service):
     """Test getting node via API."""
-    from workspace.domain.models.node import CreateNodeCommand
+    from modules.workspace.domain.models.node import CreateNodeCommand
 
     # Create node via service
     node = await node_service.create_node(
@@ -73,7 +73,7 @@ async def test_get_node_api(app: FastAPI, node_service):
 @pytest.mark.asyncio
 async def test_update_node_api(app: FastAPI, node_service):
     """Test updating node via API."""
-    from workspace.domain.models.node import CreateNodeCommand
+    from modules.workspace.domain.models.node import CreateNodeCommand
 
     node = await node_service.create_node(
         CreateNodeCommand(
@@ -103,7 +103,7 @@ async def test_update_node_api(app: FastAPI, node_service):
 @pytest.mark.asyncio
 async def test_delete_node_api(app: FastAPI, node_service):
     """Test deleting node via API."""
-    from workspace.domain.models.node import CreateNodeCommand
+    from modules.workspace.domain.models.node import CreateNodeCommand
 
     node = await node_service.create_node(
         CreateNodeCommand(

@@ -7,7 +7,7 @@ Variations represent nodes in the chess move tree structure.
 from dataclasses import dataclass
 from datetime import datetime
 
-from workspace.db.tables.variations import VariationPriority, VariationVisibility
+from modules.workspace.db.tables.variations import VariationPriority, VariationVisibility
 
 
 @dataclass

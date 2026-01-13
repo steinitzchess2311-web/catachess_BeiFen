@@ -1,17 +1,17 @@
-from workspace.domain.models.types import Permission
-from workspace.domain.policies.discussion_permissions import (
+from modules.workspace.domain.models.types import Permission
+from modules.workspace.domain.policies.discussion_permissions import (
     DiscussionPermissionError,
     require_admin_access,
     require_commenter_access,
     require_editor_access,
 )
-from workspace.domain.policies.permissions_core import PermissionPolicy
-from workspace.domain.policies.permissions_inheritance import InheritancePolicy
+from modules.workspace.domain.policies.permissions_core import PermissionPolicy
+from modules.workspace.domain.policies.permissions_inheritance import InheritancePolicy
 
 
 def _node_to_model(node):
     """Convert ORM node to domain model for permission checks."""
-    from workspace.domain.models.node import NodeModel
+    from modules.workspace.domain.models.node import NodeModel
     return NodeModel(
         id=node.id,
         node_type=node.node_type,
@@ -39,7 +39,7 @@ def _acl_to_model(acl):
         if isinstance(acl.permission, Permission)
         else Permission(str(acl.permission))
     )
-    from workspace.domain.models.acl import ACLModel
+    from modules.workspace.domain.models.acl import ACLModel
     return ACLModel(
         id=acl.id,
         object_id=acl.object_id,

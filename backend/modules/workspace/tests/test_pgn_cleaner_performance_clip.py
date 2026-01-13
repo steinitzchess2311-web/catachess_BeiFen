@@ -1,8 +1,8 @@
 """PGN clip performance tests."""
 from time import perf_counter
 
-from workspace.pgn.cleaner.pgn_cleaner import clip_pgn_from_move
-from workspace.pgn.serializer.to_tree import pgn_to_tree
+from modules.workspace.pgn.cleaner.pgn_cleaner import clip_pgn_from_move
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree
 
 
 def _loop_pgn(moves: int, with_comments: bool = False) -> str:

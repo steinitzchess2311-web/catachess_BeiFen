@@ -11,7 +11,7 @@ from sqlalchemy import JSON, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
-from workspace.db.base import Base
+from modules.workspace.db.base import Base
 
 
 class IdempotencyCache(Base):

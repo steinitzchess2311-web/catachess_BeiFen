@@ -1,10 +1,10 @@
 """Notification dispatcher that routes notifications to appropriate channels."""
 from datetime import UTC, datetime
 
-from workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
-from workspace.notifications.channels.email import EmailChannel
-from workspace.notifications.channels.in_app import InAppChannel
-from workspace.notifications.channels.push import PushChannel
+from modules.workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
+from modules.workspace.notifications.channels.email import EmailChannel
+from modules.workspace.notifications.channels.in_app import InAppChannel
+from modules.workspace.notifications.channels.push import PushChannel
 
 
 class NotificationDispatcher:

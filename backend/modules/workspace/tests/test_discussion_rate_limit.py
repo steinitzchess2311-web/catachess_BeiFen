@@ -6,13 +6,13 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from workspace.api.deps import get_rate_limiter
-from workspace.api.rate_limit import RateLimiter
-from workspace.api.router import api_router
-from workspace.db.session import get_db_config
-from workspace.domain.models.types import Permission
-from workspace.domain.policies.limits import DiscussionLimits
-from workspace.tests.helpers.discussion_setup import init_test_db, create_study_node, grant_acl
+from modules.workspace.api.deps import get_rate_limiter
+from modules.workspace.api.rate_limit import RateLimiter
+from modules.workspace.api.router import api_router
+from modules.workspace.db.session import get_db_config
+from modules.workspace.domain.models.types import Permission
+from modules.workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.tests.helpers.discussion_setup import init_test_db, create_study_node, grant_acl
 
 
 @pytest.fixture

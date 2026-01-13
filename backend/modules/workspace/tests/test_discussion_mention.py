@@ -2,7 +2,7 @@
 Discussion mention parsing tests.
 """
 
-from workspace.domain.services.discussion_mentions import extract_mentions
+from modules.workspace.domain.services.discussion_mentions import extract_mentions
 
 
 def test_extract_mentions_unique():

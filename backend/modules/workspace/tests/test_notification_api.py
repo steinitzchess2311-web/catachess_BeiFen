@@ -7,11 +7,11 @@ import pytest
 from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.app import app
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
-from workspace.db.tables.notification_preferences import NotificationPreference
-from workspace.db.tables.notifications import Notification
+from modules.workspace.api.app import app
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
+from modules.workspace.db.tables.notification_preferences import NotificationPreference
+from modules.workspace.db.tables.notifications import Notification
 
 
 @pytest.fixture

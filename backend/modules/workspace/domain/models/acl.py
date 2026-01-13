@@ -7,7 +7,7 @@ Represents access control and sharing.
 from dataclasses import dataclass
 from datetime import datetime
 
-from workspace.domain.models.types import Permission
+from modules.workspace.domain.models.types import Permission
 
 
 @dataclass

@@ -7,7 +7,7 @@ Pydantic models for presence-related API requests and responses.
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
-from workspace.domain.models.types import PresenceStatus
+from modules.workspace.domain.models.types import PresenceStatus
 
 
 class HeartbeatRequest(BaseModel):

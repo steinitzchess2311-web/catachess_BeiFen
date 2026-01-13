@@ -4,11 +4,11 @@ Tests for ShareService.
 
 import pytest
 
-from workspace.domain.models.acl import ChangeRoleCommand, CreateShareLinkCommand, RevokeShareCommand, ShareCommand
-from workspace.domain.models.node import CreateNodeCommand
-from workspace.domain.models.types import NodeType, Permission
-from workspace.domain.services.node_service import NodeService, PermissionDeniedError
-from workspace.domain.services.share_service import ShareService
+from modules.workspace.domain.models.acl import ChangeRoleCommand, CreateShareLinkCommand, RevokeShareCommand, ShareCommand
+from modules.workspace.domain.models.node import CreateNodeCommand
+from modules.workspace.domain.models.types import NodeType, Permission
+from modules.workspace.domain.services.node_service import NodeService, PermissionDeniedError
+from modules.workspace.domain.services.share_service import ShareService
 
 
 @pytest.mark.asyncio

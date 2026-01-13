@@ -1,4 +1,4 @@
-from workspace.domain.models.acl import ACLModel
+from modules.workspace.domain.models.acl import ACLModel
 
 
 class InheritancePolicy:

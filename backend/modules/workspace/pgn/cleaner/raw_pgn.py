@@ -8,9 +8,9 @@ This export mode:
 - Simplest view of the game
 """
 
-from workspace.pgn.cleaner.variation_pruner import extract_mainline
-from workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
-from workspace.pgn.serializer.to_tree import VariationNode
+from modules.workspace.pgn.cleaner.variation_pruner import extract_mainline
+from modules.workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
+from modules.workspace.pgn.serializer.to_tree import VariationNode
 
 
 def export_raw_pgn(
@@ -89,7 +89,7 @@ def export_clean_mainline(
         >>> # Result:
         >>> # 1. e4 e5
     """
-    from workspace.pgn.cleaner.variation_pruner import remove_comments
+    from modules.workspace.pgn.cleaner.variation_pruner import remove_comments
 
     # Extract mainline and remove comments
     mainline = extract_mainline(root)

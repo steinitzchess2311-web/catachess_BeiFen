@@ -1,7 +1,7 @@
 import os
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.domain.policies.limits import DiscussionLimits
 
 
 class NestingDepthExceededError(Exception):

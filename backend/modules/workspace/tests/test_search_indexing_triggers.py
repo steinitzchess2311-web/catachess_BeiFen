@@ -4,14 +4,14 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.tables.discussion_replies import DiscussionReply
-from workspace.db.tables.discussions import DiscussionThread
-from workspace.events.bus import EventBus
-from workspace.events.subscribers.search_indexer import SearchIndexer, register_search_indexer
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.tables.discussion_replies import DiscussionReply
+from modules.workspace.db.tables.discussions import DiscussionThread
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.subscribers.search_indexer import SearchIndexer, register_search_indexer
+from modules.workspace.events.types import EventType
 
 
 @pytest.fixture

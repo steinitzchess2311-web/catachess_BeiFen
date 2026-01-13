@@ -7,13 +7,13 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.tables.acls import ACL
-from workspace.db.tables.nodes import Node
-from workspace.db.tables.search_index import SearchIndex
-from workspace.domain.services.search_service import SearchService
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.tables.acls import ACL
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.db.tables.search_index import SearchIndex
+from modules.workspace.domain.services.search_service import SearchService
 
 
 @pytest.fixture

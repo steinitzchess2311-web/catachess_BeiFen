@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.version_repo import VersionRepository
-from workspace.domain.models.version import (
+from modules.workspace.db.repos.version_repo import VersionRepository
+from modules.workspace.domain.models.version import (
     CreateVersionCommand,
     RollbackCommand,
     SnapshotContent,
@@ -15,10 +15,10 @@ from workspace.domain.models.version import (
     VersionComparison,
     VersionSnapshot,
 )
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
-from workspace.storage.keys import R2Keys
-from workspace.storage.r2_client import R2Client
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
+from modules.workspace.storage.keys import R2Keys
+from modules.workspace.storage.r2_client import R2Client
 
 
 class VersionService:
@@ -122,7 +122,7 @@ class VersionService:
         await self.session.commit()
 
         # Publish event
-        from workspace.domain.models.event import CreateEventCommand
+        from modules.workspace.domain.models.event import CreateEventCommand
 
         await self.event_bus.publish(
             CreateEventCommand(
@@ -438,7 +438,7 @@ class VersionService:
         )
 
         # Publish rollback event
-        from workspace.domain.models.event import CreateEventCommand
+        from modules.workspace.domain.models.event import CreateEventCommand
 
         await self.event_bus.publish(
             CreateEventCommand(

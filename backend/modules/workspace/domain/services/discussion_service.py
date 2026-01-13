@@ -2,22 +2,22 @@
 Discussion service facade.
 """
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_reaction import AddReactionCommand, RemoveReactionCommand
-from workspace.domain.models.discussion_reply import AddReplyCommand, EditReplyCommand, DeleteReplyCommand
-from workspace.domain.models.discussion_thread import (
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_reaction import AddReactionCommand, RemoveReactionCommand
+from modules.workspace.domain.models.discussion_reply import AddReplyCommand, EditReplyCommand, DeleteReplyCommand
+from modules.workspace.domain.models.discussion_thread import (
     CreateThreadCommand,
     UpdateThreadCommand,
     ResolveThreadCommand,
     PinThreadCommand,
 )
-from workspace.domain.services.discussion.reaction_service import ReactionService
-from workspace.domain.services.discussion.reply_service import ReplyService
-from workspace.domain.services.discussion.thread_service import ThreadService
-from workspace.domain.services.discussion.thread_state_service import ThreadStateService
-from workspace.events.bus import EventBus
+from modules.workspace.domain.services.discussion.reaction_service import ReactionService
+from modules.workspace.domain.services.discussion.reply_service import ReplyService
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.domain.services.discussion.thread_state_service import ThreadStateService
+from modules.workspace.events.bus import EventBus
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

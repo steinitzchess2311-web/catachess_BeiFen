@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, fun
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class StudyVersionTable(Base, TimestampMixin):
@@ -59,7 +59,7 @@ class VersionSnapshotTable(Base):
     r2_key: Mapped[str] = mapped_column(String(512), nullable=False)
     size_bytes: Mapped[int | None] = mapped_column(nullable=True)
     content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    meta_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

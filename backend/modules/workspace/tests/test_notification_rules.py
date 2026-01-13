@@ -1,14 +1,14 @@
 """Tests for notification rules."""
 import pytest
 
-from workspace.domain.policies.notification_rules import (
+from modules.workspace.domain.policies.notification_rules import (
     NOTIFICATION_RULES,
     get_all_notification_types,
     get_default_channels,
     get_notification_priority,
     should_notify,
 )
-from workspace.events.types import EventType
+from modules.workspace.events.types import EventType
 
 
 def test_notification_rules_defined() -> None:

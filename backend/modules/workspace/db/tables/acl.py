@@ -9,8 +9,8 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, synonym
 
-from workspace.db.base import Base, TimestampMixin
-from workspace.domain.models.types import Permission
+from modules.workspace.db.base import Base, TimestampMixin
+from modules.workspace.domain.models.types import Permission
 
 
 class ACL(Base, TimestampMixin):

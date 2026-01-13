@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import emoji
 
-from workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.domain.policies.limits import DiscussionLimits
 
 
 @dataclass

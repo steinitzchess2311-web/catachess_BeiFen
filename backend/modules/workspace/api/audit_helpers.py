@@ -1,7 +1,7 @@
 from ulid import ULID
 
-from workspace.db.repos.audit_log_repo import AuditLogRepository
-from workspace.db.tables.audit_log import AuditLog
+from modules.workspace.db.repos.audit_log_repo import AuditLogRepository
+from modules.workspace.db.tables.audit_log import AuditLog
 
 
 async def log_permission_denial(

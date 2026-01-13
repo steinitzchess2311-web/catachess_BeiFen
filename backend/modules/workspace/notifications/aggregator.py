@@ -2,7 +2,7 @@
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 
-from workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
 
 
 class NotificationAggregator:

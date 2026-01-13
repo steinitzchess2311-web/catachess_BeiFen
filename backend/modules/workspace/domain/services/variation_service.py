@@ -6,13 +6,13 @@ Handles variation tree operations (promote, demote, reorder).
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.domain.models.variation import (
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.domain.models.variation import (
     PromoteVariationCommand,
     DemoteVariationCommand,
     ReorderVariationsCommand,
 )
-from workspace.events.bus import EventBus
+from modules.workspace.events.bus import EventBus
 
 
 class VariationServiceError(Exception):

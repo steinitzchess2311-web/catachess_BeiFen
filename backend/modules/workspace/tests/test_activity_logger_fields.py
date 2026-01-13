@@ -4,10 +4,10 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import select
 
-from workspace.db.repos.activity_log_repo import ActivityLogRepository
-from workspace.db.tables.activity_log import ActivityLog
-from workspace.events.subscribers.activity_logger import ActivityLogger
-from workspace.events.types import EventType
+from modules.workspace.db.repos.activity_log_repo import ActivityLogRepository
+from modules.workspace.db.tables.activity_log import ActivityLog
+from modules.workspace.events.subscribers.activity_logger import ActivityLogger
+from modules.workspace.events.types import EventType
 
 
 def _event(target_id: str, target_type: str):

@@ -3,12 +3,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.events.subscribers.notification_creator import NotificationCreator
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.events.subscribers.notification_creator import NotificationCreator
+from modules.workspace.events.types import EventType
 
 
 def _event(payload: dict):

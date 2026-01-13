@@ -1,15 +1,15 @@
 from ulid import ULID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.tables.discussion_reactions import DiscussionReaction
-from workspace.domain.models.discussion_reaction import AddReactionCommand, RemoveReactionCommand
-from workspace.domain.models.event import CreateEventCommand
-from workspace.domain.policies.limits import DiscussionLimits
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.tables.discussion_reactions import DiscussionReaction
+from modules.workspace.domain.models.discussion_reaction import AddReactionCommand, RemoveReactionCommand
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 class ReactionNotFoundError(Exception):
     pass
 class ReactionService:

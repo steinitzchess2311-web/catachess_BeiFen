@@ -5,7 +5,7 @@ This module takes a tree representation of moves and variations
 and generates standard PGN movetext format.
 """
 
-from workspace.pgn.serializer.to_tree import VariationNode
+from modules.workspace.pgn.serializer.to_tree import VariationNode
 
 
 def _format_move_with_number(

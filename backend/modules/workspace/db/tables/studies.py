@@ -10,7 +10,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class Study(Base, TimestampMixin):

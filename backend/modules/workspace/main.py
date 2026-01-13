@@ -17,8 +17,8 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from core.config import settings
-from workspace.api.router import api_router
-from workspace.db.session import engine, Base
+from modules.workspace.api.router import api_router
+from modules.workspace.db.session import engine, Base
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

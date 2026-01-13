@@ -4,7 +4,7 @@ Main API router.
 
 from fastapi import APIRouter
 
-from workspace.api.endpoints import discussions, nodes, search, shares, studies, notifications, versions, presence
+from modules.workspace.api.endpoints import discussions, nodes, search, shares, studies, notifications, versions, presence
 
 api_router = APIRouter()
 

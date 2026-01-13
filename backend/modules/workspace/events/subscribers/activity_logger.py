@@ -1,8 +1,8 @@
 from ulid import ULID
 
-from workspace.db.repos.activity_log_repo import ActivityLogRepository
-from workspace.db.tables.activity_log import ActivityLog
-from workspace.events.payloads import extract_event_payload
+from modules.workspace.db.repos.activity_log_repo import ActivityLogRepository
+from modules.workspace.db.tables.activity_log import ActivityLog
+from modules.workspace.events.payloads import extract_event_payload
 
 
 class ActivityLogger:

@@ -2,11 +2,11 @@
 Discussion thread event helpers.
 """
 
-from workspace.db.tables.discussion_threads import DiscussionThread
-from workspace.domain.models.event import CreateEventCommand
-from workspace.domain.services.discussion_mentions import extract_mentions
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.db.tables.discussion_threads import DiscussionThread
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.domain.services.discussion_mentions import extract_mentions
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 
 async def publish_thread_event(

@@ -4,21 +4,21 @@ Node endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.deps import get_current_user_id, get_node_service
-from workspace.api.schemas.node import (
+from modules.workspace.api.deps import get_current_user_id, get_node_service
+from modules.workspace.api.schemas.node import (
     NodeCreate,
     NodeListResponse,
     NodeMove,
     NodeResponse,
     NodeUpdate,
 )
-from workspace.domain.models.node import (
+from modules.workspace.domain.models.node import (
     CreateNodeCommand,
     DeleteNodeCommand,
     MoveNodeCommand,
     UpdateNodeCommand,
 )
-from workspace.domain.services.node_service import (
+from modules.workspace.domain.services.node_service import (
     InvalidOperationError,
     NodeNotFoundError,
     NodeService,

@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.study_versions import StudyVersionTable, VersionSnapshotTable
+from modules.workspace.db.tables.study_versions import StudyVersionTable, VersionSnapshotTable
 
 
 class VersionRepository:

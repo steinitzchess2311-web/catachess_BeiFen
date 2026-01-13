@@ -1,19 +1,19 @@
-from workspace.db.repos.activity_log_repo import ActivityLogRepository
-from workspace.db.repos.audit_log_repo import AuditLogRepository
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.user_repo import UserRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.events.subscribers.activity_logger import ActivityLogger
-from workspace.events.subscribers.audit_logger import AuditLogger
-from workspace.events.subscribers.mention_notifier import MentionNotifier
-from workspace.events.subscribers.notification_creator import NotificationCreator
-from workspace.events.subscribers.search_indexer import register_search_indexer
+from modules.workspace.db.repos.activity_log_repo import ActivityLogRepository
+from modules.workspace.db.repos.audit_log_repo import AuditLogRepository
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.user_repo import UserRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.events.subscribers.activity_logger import ActivityLogger
+from modules.workspace.events.subscribers.audit_logger import AuditLogger
+from modules.workspace.events.subscribers.mention_notifier import MentionNotifier
+from modules.workspace.events.subscribers.notification_creator import NotificationCreator
+from modules.workspace.events.subscribers.search_indexer import register_search_indexer
 
 
 def register_all_subscribers(bus, session) -> None:

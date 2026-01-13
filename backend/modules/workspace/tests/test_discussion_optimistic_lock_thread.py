@@ -4,9 +4,9 @@ Discussion thread optimistic locking tests.
 
 import pytest
 
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_thread import CreateThreadCommand, UpdateThreadCommand
-from workspace.domain.services.discussion.thread_service import OptimisticLockError, ThreadService
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand, UpdateThreadCommand
+from modules.workspace.domain.services.discussion.thread_service import OptimisticLockError, ThreadService
 
 
 @pytest.mark.asyncio

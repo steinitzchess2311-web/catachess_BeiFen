@@ -5,7 +5,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-from workspace.db.base import Base
+from modules.workspace.db.base import Base
 
 
 class SchemaAwareSession(AsyncSession):
@@ -16,7 +16,7 @@ class SchemaAwareSession(AsyncSession):
     async def __aenter__(self) -> "SchemaAwareSession":
         config = getattr(self, "_db_config", None)
         if config and config._auto_create_schema and (config._memory_db or not config._schema_ready):
-            import workspace.db.tables  # noqa: F401
+            import modules.workspace.db.tables  # noqa: F401
             async with config.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
             config._schema_ready = True
@@ -72,7 +72,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency injection helper for FastAPI."""
     config = get_db_config()
     if config._auto_create_schema and (config._memory_db or not config._schema_ready):
-        import workspace.db.tables  # noqa: F401
+        import modules.workspace.db.tables  # noqa: F401
         async with config.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         config._schema_ready = True

@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.notifications import Notification
+from modules.workspace.db.tables.notifications import Notification
 
 
 class NotificationRepository:

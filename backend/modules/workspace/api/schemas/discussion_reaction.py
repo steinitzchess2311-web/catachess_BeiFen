@@ -8,7 +8,7 @@ import emoji
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.domain.policies.limits import DiscussionLimits
 
 
 class ReactionCreate(BaseModel):

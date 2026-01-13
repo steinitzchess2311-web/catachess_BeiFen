@@ -9,7 +9,7 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from workspace.domain.services.presence_service import PresenceService
+from modules.workspace.domain.services.presence_service import PresenceService
 
 logger = logging.getLogger(__name__)
 
@@ -147,9 +147,9 @@ async def main():
     """
     # This is a placeholder - in production you'd properly initialize
     # the database session and services
-    from workspace.db.base import get_session
-    from workspace.db.repos.presence_repo import PresenceRepository
-    from workspace.events.bus import EventBus
+    from modules.workspace.db.base import get_session
+    from modules.workspace.db.repos.presence_repo import PresenceRepository
+    from modules.workspace.events.bus import EventBus
 
     async with get_session() as session:
         presence_repo = PresenceRepository(session)

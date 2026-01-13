@@ -11,7 +11,7 @@ Tests the key features:
 
 import pytest
 
-from workspace.pgn.cleaner.variation_pruner import (
+from modules.workspace.pgn.cleaner.variation_pruner import (
     MovePath,
     parse_move_path,
     format_move_path,
@@ -20,14 +20,14 @@ from workspace.pgn.cleaner.variation_pruner import (
     remove_comments,
     extract_mainline,
 )
-from workspace.pgn.cleaner.pgn_cleaner import (
+from modules.workspace.pgn.cleaner.pgn_cleaner import (
     clip_pgn_from_move,
     get_clip_preview,
 )
-from workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
-from workspace.pgn.cleaner.raw_pgn import export_raw_pgn, export_clean_mainline
-from workspace.pgn.serializer.to_tree import pgn_to_tree, VariationNode
-from workspace.pgn.serializer.to_pgn import tree_to_movetext
+from modules.workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
+from modules.workspace.pgn.cleaner.raw_pgn import export_raw_pgn, export_clean_mainline
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree, VariationNode
+from modules.workspace.pgn.serializer.to_pgn import tree_to_movetext
 
 
 # ===== Test Fixtures =====

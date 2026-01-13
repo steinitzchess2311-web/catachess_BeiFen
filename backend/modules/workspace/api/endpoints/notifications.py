@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.deps import get_current_user_id, get_session
-from workspace.api.schemas.notification import (
+from modules.workspace.api.deps import get_current_user_id, get_session
+from modules.workspace.api.schemas.notification import (
     NotificationBulkReadRequest,
     NotificationListResponse,
     NotificationPreferencesResponse,
@@ -15,11 +15,11 @@ from workspace.api.schemas.notification import (
     NotificationTypeInfo,
     NotificationTypesResponse,
 )
-from workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.tables.notification_preferences import NotificationPreference
-from workspace.db.tables.notifications import Notification
-from workspace.domain.policies.notification_rules import get_all_notification_types
+from modules.workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.tables.notification_preferences import NotificationPreference
+from modules.workspace.db.tables.notifications import Notification
+from modules.workspace.domain.policies.notification_rules import get_all_notification_types
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 

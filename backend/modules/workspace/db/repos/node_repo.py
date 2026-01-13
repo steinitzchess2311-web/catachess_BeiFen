@@ -8,8 +8,8 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from workspace.db.tables.nodes import Node
-from workspace.domain.models.types import NodeType
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.domain.models.types import NodeType
 
 
 class NodeRepository:

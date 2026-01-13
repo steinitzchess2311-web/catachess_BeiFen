@@ -3,14 +3,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.tables.discussion_reactions import DiscussionReaction
-from workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
-from workspace.events.subscribers.notification_creator import NotificationCreator
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.tables.discussion_reactions import DiscussionReaction
+from modules.workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
+from modules.workspace.events.subscribers.notification_creator import NotificationCreator
+from modules.workspace.events.types import EventType
 
 
 def _thread(author_id: str, thread_id: str):

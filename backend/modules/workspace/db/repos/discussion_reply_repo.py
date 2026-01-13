@@ -7,7 +7,7 @@ from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.discussion_replies import DiscussionReply
+from modules.workspace.db.tables.discussion_replies import DiscussionReply
 
 
 class DiscussionReplyRepository:

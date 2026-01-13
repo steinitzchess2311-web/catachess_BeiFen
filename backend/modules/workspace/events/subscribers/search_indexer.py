@@ -10,13 +10,13 @@ Indexes:
 
 from ulid import ULID
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.events.types import EventType
 
 
 class SearchIndexer:

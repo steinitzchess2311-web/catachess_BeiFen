@@ -12,11 +12,11 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.events import Event as EventTable
-from workspace.domain.models.event import CreateEventCommand
-from workspace.domain.models.types import NodeType
-from workspace.events.payloads import build_event_envelope
-from workspace.events.types import EventType
+from modules.workspace.db.tables.events import Event as EventTable
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.domain.models.types import NodeType
+from modules.workspace.events.payloads import build_event_envelope
+from modules.workspace.events.types import EventType
 
 
 class EventBus:

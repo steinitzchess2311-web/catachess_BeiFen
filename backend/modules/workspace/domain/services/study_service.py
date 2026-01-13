@@ -9,22 +9,22 @@ from typing import TYPE_CHECKING
 from ulid import ULID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.tables.variations import MoveAnnotation
-from workspace.db.tables.variations import Variation
-from workspace.domain.models.variation import (
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.tables.variations import MoveAnnotation
+from modules.workspace.db.tables.variations import Variation
+from modules.workspace.domain.models.variation import (
     AddMoveCommand,
     DeleteMoveCommand,
 )
-from workspace.domain.models.move_annotation import (
+from modules.workspace.domain.models.move_annotation import (
     AddMoveAnnotationCommand,
     UpdateMoveAnnotationCommand,
     SetNAGCommand,
 )
-from workspace.events.bus import EventBus
+from modules.workspace.events.bus import EventBus
 
 if TYPE_CHECKING:
-    from workspace.domain.services.version_service import VersionService
+    from modules.workspace.domain.services.version_service import VersionService
 
 
 class StudyServiceError(Exception):
@@ -376,7 +376,7 @@ class StudyService:
                 # Note: This requires capturing full study state
                 # For now, we'll create a minimal snapshot
                 # TODO: Implement full study state capture
-                from workspace.domain.models.version import (
+                from modules.workspace.domain.models.version import (
                     CreateVersionCommand,
                     SnapshotContent,
                 )

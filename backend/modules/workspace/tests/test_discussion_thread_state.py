@@ -4,14 +4,14 @@ Discussion thread state tests.
 
 import pytest
 
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_thread import (
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_thread import (
     CreateThreadCommand,
     ResolveThreadCommand,
     PinThreadCommand,
 )
-from workspace.domain.services.discussion.thread_service import ThreadService
-from workspace.domain.services.discussion.thread_state_service import ThreadStateService
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.domain.services.discussion.thread_state_service import ThreadStateService
 
 
 @pytest.mark.asyncio

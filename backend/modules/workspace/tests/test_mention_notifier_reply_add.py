@@ -1,17 +1,17 @@
 """Mention notifier reply add tests."""
 from types import SimpleNamespace
 import pytest
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.user_repo import UserRepository
-from workspace.db.tables.discussion_replies import DiscussionReply
-from workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
-from workspace.db.tables.users import User
-from workspace.domain.models.event import EventQuery
-from workspace.events.bus import EventBus
-from workspace.events.subscribers.mention_notifier import MentionNotifier
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.user_repo import UserRepository
+from modules.workspace.db.tables.discussion_replies import DiscussionReply
+from modules.workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
+from modules.workspace.db.tables.users import User
+from modules.workspace.domain.models.event import EventQuery
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.subscribers.mention_notifier import MentionNotifier
+from modules.workspace.events.types import EventType
 
 
 def _event(reply_id: str, actor_id: str):

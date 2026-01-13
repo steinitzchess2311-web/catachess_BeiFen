@@ -3,8 +3,8 @@ from datetime import UTC, datetime
 
 from ulid import ULID
 
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.tables.notifications import Notification
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.tables.notifications import Notification
 
 
 class InAppChannel:

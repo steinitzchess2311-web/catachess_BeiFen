@@ -7,7 +7,7 @@ from typing import Sequence
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.variations import MoveAnnotation, Variation
+from modules.workspace.db.tables.variations import MoveAnnotation, Variation
 
 
 class VariationRepository:

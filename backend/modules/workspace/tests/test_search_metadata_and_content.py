@@ -9,16 +9,16 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.router import api_router
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.tables.acls import ACL
-from workspace.db.tables.discussions import DiscussionThread
-from workspace.db.tables.nodes import Node
-from workspace.db.tables.studies import Chapter, Study
+from modules.workspace.api.router import api_router
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.tables.acls import ACL
+from modules.workspace.db.tables.discussions import DiscussionThread
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.db.tables.studies import Chapter, Study
 
 
 @pytest.fixture

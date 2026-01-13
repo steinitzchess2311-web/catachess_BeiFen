@@ -2,7 +2,7 @@
 Reaction model exports.
 """
 
-from workspace.domain.models.discussion_reaction import (
+from modules.workspace.domain.models.discussion_reaction import (
     AddReactionCommand,
     RemoveReactionCommand,
 )

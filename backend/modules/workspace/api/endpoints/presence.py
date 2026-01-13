@@ -6,14 +6,14 @@ Provides REST API for managing user presence in studies.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.schemas.presence import (
+from modules.workspace.api.schemas.presence import (
     HeartbeatRequest,
     PresenceSessionResponse,
     OnlineUsersResponse,
     OnlineUserResponse,
     CursorPositionResponse,
 )
-from workspace.domain.services.presence_service import (
+from modules.workspace.domain.services.presence_service import (
     PresenceService,
     SessionNotFoundError,
 )

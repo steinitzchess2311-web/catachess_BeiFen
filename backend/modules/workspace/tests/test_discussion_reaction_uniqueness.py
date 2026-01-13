@@ -4,16 +4,16 @@ Discussion reaction uniqueness tests.
 
 import pytest
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_reaction import (
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_reaction import (
     AddReactionCommand,
     RemoveReactionCommand,
 )
-from workspace.domain.models.discussion_thread import CreateThreadCommand
-from workspace.domain.services.discussion.reaction_service import ReactionService
-from workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand
+from modules.workspace.domain.services.discussion.reaction_service import ReactionService
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
 
 
 @pytest.mark.asyncio

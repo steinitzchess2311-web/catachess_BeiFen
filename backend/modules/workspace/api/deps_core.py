@@ -1,24 +1,24 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.audit_log_repo import AuditLogRepository
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.presence_repo import PresenceRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.session import get_session
-from workspace.domain.services.discussion_service import DiscussionService
-from workspace.domain.services.node_service import NodeService
-from workspace.domain.services.presence_service import PresenceService
-from workspace.domain.services.search_service import SearchService
-from workspace.domain.services.share_service import ShareService
-from workspace.events.bus import EventBus
-from workspace.events.subscribers.registry import register_all_subscribers
-from workspace.api.rate_limit import RateLimiter
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.audit_log_repo import AuditLogRepository
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.presence_repo import PresenceRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.session import get_session
+from modules.workspace.domain.services.discussion_service import DiscussionService
+from modules.workspace.domain.services.node_service import NodeService
+from modules.workspace.domain.services.presence_service import PresenceService
+from modules.workspace.domain.services.search_service import SearchService
+from modules.workspace.domain.services.share_service import ShareService
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.subscribers.registry import register_all_subscribers
+from modules.workspace.api.rate_limit import RateLimiter
 
 _rate_limiter = RateLimiter()
 

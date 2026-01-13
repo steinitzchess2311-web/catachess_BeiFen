@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from ulid import ULID
 
-from workspace.db.tables.notification_preferences import NotificationPreference
+from modules.workspace.db.tables.notification_preferences import NotificationPreference
 
 
 class NotificationPreferenceRepository:

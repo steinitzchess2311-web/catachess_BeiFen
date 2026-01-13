@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.audit_helpers import log_permission_denial
-from workspace.api.deps import (
+from modules.workspace.api.audit_helpers import log_permission_denial
+from modules.workspace.api.deps import (
     get_acl_repo,
     get_audit_repo,
     get_current_user_id,
@@ -10,21 +10,21 @@ from workspace.api.deps import (
     get_thread_repo,
     get_thread_service,
 )
-from workspace.api.rate_limit import RateLimiter
-from workspace.api.schemas.discussion_thread import ThreadCreate, ThreadResponse, ThreadUpdate
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.domain.models.discussion_thread import CreateThreadCommand, UpdateThreadCommand
-from workspace.domain.policies.discussion_permissions import (
+from modules.workspace.api.rate_limit import RateLimiter
+from modules.workspace.api.schemas.discussion_thread import ThreadCreate, ThreadResponse, ThreadUpdate
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand, UpdateThreadCommand
+from modules.workspace.domain.policies.discussion_permissions import (
     DiscussionPermissionError,
     require_admin_access,
     require_commenter_access,
     require_editor_access,
     require_viewer_access,
 )
-from workspace.domain.policies.limits import DiscussionLimits
-from workspace.domain.services.discussion.thread_service import (
+from modules.workspace.domain.policies.limits import DiscussionLimits
+from modules.workspace.domain.services.discussion.thread_service import (
     OptimisticLockError,
     ThreadNotFoundError,
     ThreadService,

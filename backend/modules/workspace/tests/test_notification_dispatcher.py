@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
-from workspace.db.tables.notification_preferences import NotificationPreference
-from workspace.notifications.channels.in_app import InAppChannel
-from workspace.notifications.dispatcher import NotificationDispatcher
+from modules.workspace.db.repos.notification_preference_repo import NotificationPreferenceRepository
+from modules.workspace.db.tables.notification_preferences import NotificationPreference
+from modules.workspace.notifications.channels.in_app import InAppChannel
+from modules.workspace.notifications.dispatcher import NotificationDispatcher
 
 
 @pytest.fixture

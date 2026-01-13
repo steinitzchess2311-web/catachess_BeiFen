@@ -6,17 +6,17 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import workspace.db.tables  # noqa: F401
-from workspace.db.base import Base
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.session import get_db_config, init_db
-from workspace.domain.services.node_service import NodeService
-from workspace.domain.services.share_service import ShareService
-from workspace.events.bus import EventBus
-from workspace.events.subscribers.registry import register_all_subscribers
+import modules.workspace.db.tables  # noqa: F401
+from modules.workspace.db.base import Base
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.session import get_db_config, init_db
+from modules.workspace.domain.services.node_service import NodeService
+from modules.workspace.domain.services.share_service import ShareService
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.subscribers.registry import register_all_subscribers
 
 os.environ.setdefault("WORKSPACE_TEST_AUTH", "1")
 os.environ.setdefault("DISABLE_RATE_LIMIT", "1")

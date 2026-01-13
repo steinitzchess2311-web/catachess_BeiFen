@@ -4,7 +4,7 @@ Discussion endpoints router.
 
 from fastapi import APIRouter
 
-from workspace.api.endpoints import (
+from modules.workspace.api.endpoints import (
     discussions_threads,
     discussions_thread_state,
     discussions_replies,

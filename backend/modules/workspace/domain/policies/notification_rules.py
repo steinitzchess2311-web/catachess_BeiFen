@@ -1,5 +1,5 @@
 """Notification rules defining which events trigger notifications."""
-from workspace.events.types import EventType
+from modules.workspace.events.types import EventType
 
 # Map event types to notification settings
 NOTIFICATION_RULES = {

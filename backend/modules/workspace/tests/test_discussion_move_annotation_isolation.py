@@ -4,13 +4,13 @@ Discussion vs move annotation isolation test.
 
 import pytest
 
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.tables.nodes import Node
-from workspace.db.tables.studies import Chapter, Study
-from workspace.db.tables.variations import MoveAnnotation, Variation, VariationPriority, VariationVisibility
-from workspace.domain.models.discussion_thread import CreateThreadCommand
-from workspace.domain.models.types import NodeType, Visibility
-from workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.db.tables.studies import Chapter, Study
+from modules.workspace.db.tables.variations import MoveAnnotation, Variation, VariationPriority, VariationVisibility
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand
+from modules.workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
 
 
 @pytest.mark.asyncio

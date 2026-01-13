@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.audit_log import AuditLog
+from modules.workspace.db.tables.audit_log import AuditLog
 
 
 class AuditLogRepository:

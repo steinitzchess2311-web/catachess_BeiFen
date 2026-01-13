@@ -1,8 +1,8 @@
 """Edge-case export tests."""
 from pathlib import Path
 
-from workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
-from workspace.pgn.serializer.to_tree import pgn_to_tree
+from modules.workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree
 
 ROOT = Path(__file__).resolve().parents[1]
 VECTORS = ROOT / "pgn" / "tests_vectors"

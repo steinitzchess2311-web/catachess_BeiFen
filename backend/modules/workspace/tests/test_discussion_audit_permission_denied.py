@@ -4,13 +4,13 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
-from workspace.api.router import api_router
-from workspace.db.session import get_db_config
-from workspace.db.base import Base
-from workspace.db.tables.audit_log import AuditLog
-from workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
-from workspace.domain.models.types import Permission
-from workspace.tests.helpers.discussion_setup import init_test_db, create_study_node, grant_acl
+from modules.workspace.api.router import api_router
+from modules.workspace.db.session import get_db_config
+from modules.workspace.db.base import Base
+from modules.workspace.db.tables.audit_log import AuditLog
+from modules.workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
+from modules.workspace.domain.models.types import Permission
+from modules.workspace.tests.helpers.discussion_setup import init_test_db, create_study_node, grant_acl
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def app() -> FastAPI:
 
 async def _seed(permission: Permission, with_thread: bool) -> None:
     config = get_db_config()
-    import workspace.db.tables  # noqa: F401
+    import modules.workspace.db.tables  # noqa: F401
     async with config.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     config._schema_ready = True

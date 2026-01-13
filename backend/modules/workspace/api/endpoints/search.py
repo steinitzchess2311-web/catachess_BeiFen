@@ -2,15 +2,15 @@
 
 from fastapi import APIRouter, Depends, Query
 
-from workspace.api.deps import get_current_user_id, get_search_service
-from workspace.api.schemas.search import (
+from modules.workspace.api.deps import get_current_user_id, get_search_service
+from modules.workspace.api.schemas.search import (
     ContentSearchResponse,
     MetadataSearchResponse,
     SearchQuery,
     SearchResponse,
     SearchResultItem,
 )
-from workspace.domain.services.search_service import SearchService
+from modules.workspace.domain.services.search_service import SearchService
 
 router = APIRouter(prefix="/search", tags=["search"])
 

@@ -4,10 +4,10 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.tables.nodes import Node
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 
 @pytest.fixture

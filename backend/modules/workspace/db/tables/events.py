@@ -15,9 +15,9 @@ from typing import Any
 from sqlalchemy import JSON, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from workspace.db.base import Base, TimestampMixin
-from workspace.domain.models.types import NodeType
-from workspace.events.types import EventType
+from modules.workspace.db.base import Base, TimestampMixin
+from modules.workspace.domain.models.types import NodeType
+from modules.workspace.events.types import EventType
 
 
 class Event(Base, TimestampMixin):

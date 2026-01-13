@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.models.types import NodeType, Visibility
 
 
 class NodeCreate(BaseModel):

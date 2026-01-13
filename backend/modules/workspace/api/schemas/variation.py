@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workspace.db.tables.variations import VariationPriority, VariationVisibility
+from modules.workspace.db.tables.variations import VariationPriority, VariationVisibility
 
 
 class MoveCreate(BaseModel):

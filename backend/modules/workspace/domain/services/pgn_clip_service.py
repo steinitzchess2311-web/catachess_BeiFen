@@ -20,28 +20,28 @@ from botocore.exceptions import (
     EndpointConnectionError,
 )
 
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.events.bus import EventBus
-from workspace.domain.models.event import CreateEventCommand
-from workspace.events.types import EventType
-from workspace.pgn.cleaner.pgn_cleaner import (
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.events.bus import EventBus
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.events.types import EventType
+from modules.workspace.pgn.cleaner.pgn_cleaner import (
     clip_pgn_from_move,
     clip_pgn_from_move_to_clipboard,
     get_clip_preview,
 )
-from workspace.pgn.cleaner.no_comment_pgn import (
+from modules.workspace.pgn.cleaner.no_comment_pgn import (
     export_no_comment_pgn,
     export_no_comment_pgn_to_clipboard,
 )
-from workspace.pgn.cleaner.raw_pgn import (
+from modules.workspace.pgn.cleaner.raw_pgn import (
     export_raw_pgn,
     export_raw_pgn_to_clipboard,
     export_clean_mainline,
 )
-from workspace.pgn.serializer.to_tree import VariationNode, pgn_to_tree
-from workspace.storage.r2_client import R2Client
+from modules.workspace.pgn.serializer.to_tree import VariationNode, pgn_to_tree
+from modules.workspace.storage.r2_client import R2Client
 
 
 @dataclass

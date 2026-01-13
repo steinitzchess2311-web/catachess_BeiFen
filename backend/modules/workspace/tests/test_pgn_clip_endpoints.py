@@ -6,17 +6,17 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from workspace.api.endpoints.studies import get_pgn_clip_service
-from workspace.api.router import api_router
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.session import get_db_config, init_db
-from workspace.db.tables.nodes import Node
-from workspace.db.tables.studies import Chapter, Study
-from workspace.domain.models.types import NodeType, Visibility
-from workspace.domain.services.pgn_clip_service import PgnClipService
-from workspace.events.bus import EventBus
+from modules.workspace.api.endpoints.studies import get_pgn_clip_service
+from modules.workspace.api.router import api_router
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.session import get_db_config, init_db
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.db.tables.studies import Chapter, Study
+from modules.workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.services.pgn_clip_service import PgnClipService
+from modules.workspace.events.bus import EventBus
 
 
 PGN_SAMPLE = """

@@ -8,10 +8,10 @@ This module provides functionality for:
 - Pruning variations according to various rules
 """
 
-from workspace.pgn.cleaner.pgn_cleaner import clip_pgn_from_move
-from workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
-from workspace.pgn.cleaner.raw_pgn import export_raw_pgn
-from workspace.pgn.cleaner.variation_pruner import (
+from modules.workspace.pgn.cleaner.pgn_cleaner import clip_pgn_from_move
+from modules.workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
+from modules.workspace.pgn.cleaner.raw_pgn import export_raw_pgn
+from modules.workspace.pgn.cleaner.variation_pruner import (
     MovePath,
     find_node_by_path,
     parse_move_path,

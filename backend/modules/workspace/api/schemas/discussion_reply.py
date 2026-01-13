@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from workspace.api.schemas.markdown_validator import validate_markdown
+from modules.workspace.api.schemas.markdown_validator import validate_markdown
 
 
 class ReplyCreate(BaseModel):

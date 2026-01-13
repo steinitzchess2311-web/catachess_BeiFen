@@ -7,7 +7,7 @@ A Study is a special type of Node that contains chapters (games).
 from dataclasses import dataclass
 from datetime import datetime
 
-from workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.models.types import NodeType, Visibility
 
 
 @dataclass

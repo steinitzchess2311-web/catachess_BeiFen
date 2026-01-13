@@ -14,8 +14,8 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from ulid import ULID
 
-from workspace.api.router import api_router
-from workspace.db.tables.variations import VariationPriority, VariationVisibility
+from modules.workspace.api.router import api_router
+from modules.workspace.db.tables.variations import VariationPriority, VariationVisibility
 
 
 @pytest.fixture

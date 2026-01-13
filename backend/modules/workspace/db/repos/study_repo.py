@@ -7,7 +7,7 @@ from typing import Sequence
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.studies import Chapter, Study
+from modules.workspace.db.tables.studies import Chapter, Study
 
 
 class StudyRepository:

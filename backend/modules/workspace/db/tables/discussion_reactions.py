@@ -5,7 +5,7 @@ Discussion reaction table.
 from sqlalchemy import Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from workspace.db.base import Base, TimestampMixin
+from modules.workspace.db.base import Base, TimestampMixin
 
 
 class DiscussionReaction(Base, TimestampMixin):

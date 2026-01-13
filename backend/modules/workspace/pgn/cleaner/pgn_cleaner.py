@@ -18,13 +18,13 @@ Example:
     - All variations after Nf3 (Bc4) are preserved
 """
 
-from workspace.pgn.cleaner.variation_pruner import (
+from modules.workspace.pgn.cleaner.variation_pruner import (
     MovePath,
     find_node_by_path,
     prune_before_node,
 )
-from workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
-from workspace.pgn.serializer.to_tree import VariationNode
+from modules.workspace.pgn.serializer.to_pgn import tree_to_pgn, tree_to_movetext
+from modules.workspace.pgn.serializer.to_tree import VariationNode
 
 
 def clip_pgn_from_move(

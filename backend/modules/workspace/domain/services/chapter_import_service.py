@@ -7,22 +7,22 @@ Handles PGN import, chapter detection, auto-splitting, and R2 storage.
 from datetime import datetime, timezone
 from ulid import ULID
 
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.tables.nodes import Node as NodeTable
-from workspace.db.tables.studies import Chapter as ChapterTable
-from workspace.db.tables.studies import Study as StudyTable
-from workspace.domain.models.node import CreateNodeCommand, NodeModel
-from workspace.domain.models.study import CreateStudyCommand, ImportPGNCommand, ImportResult
-from workspace.domain.models.types import NodeType, Visibility
-from workspace.domain.services.node_service import NodeNotFoundError, NodeService
-from workspace.events.bus import EventBus, publish_study_created, publish_chapter_imported
-from workspace.pgn.chapter_detector import detect_chapters, split_games_into_studies, suggest_study_names
-from workspace.pgn.parser.normalize import normalize_pgn
-from workspace.pgn.parser.split_games import PGNGame, split_games
-from workspace.storage.integrity import calculate_sha256, calculate_size
-from workspace.storage.keys import R2Keys
-from workspace.storage.r2_client import R2Client
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.tables.nodes import Node as NodeTable
+from modules.workspace.db.tables.studies import Chapter as ChapterTable
+from modules.workspace.db.tables.studies import Study as StudyTable
+from modules.workspace.domain.models.node import CreateNodeCommand, NodeModel
+from modules.workspace.domain.models.study import CreateStudyCommand, ImportPGNCommand, ImportResult
+from modules.workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.services.node_service import NodeNotFoundError, NodeService
+from modules.workspace.events.bus import EventBus, publish_study_created, publish_chapter_imported
+from modules.workspace.pgn.chapter_detector import detect_chapters, split_games_into_studies, suggest_study_names
+from modules.workspace.pgn.parser.normalize import normalize_pgn
+from modules.workspace.pgn.parser.split_games import PGNGame, split_games
+from modules.workspace.storage.integrity import calculate_sha256, calculate_size
+from modules.workspace.storage.keys import R2Keys
+from modules.workspace.storage.r2_client import R2Client
 
 
 class ChapterImportError(Exception):

@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.schemas.version import (
+from modules.workspace.api.schemas.version import (
     CreateSnapshotRequest,
     RollbackRequest,
     SnapshotContentResponse,
@@ -13,15 +13,15 @@ from workspace.api.schemas.version import (
     VersionHistoryResponse,
     VersionSnapshotResponse,
 )
-from workspace.db.base import get_session
-from workspace.domain.models.version import (
+from modules.workspace.db.session import get_session
+from modules.workspace.domain.models.version import (
     CreateVersionCommand,
     RollbackCommand,
     SnapshotContent,
 )
-from workspace.domain.services.version_service import VersionService
-from workspace.events.bus import EventBus
-from workspace.storage.r2_client import create_r2_client_from_env
+from modules.workspace.domain.services.version_service import VersionService
+from modules.workspace.events.bus import EventBus
+from modules.workspace.storage.r2_client import create_r2_client_from_env
 
 router = APIRouter(prefix="/studies", tags=["versions"])
 
@@ -38,9 +38,9 @@ async def get_version_service(
 @router.get("/{study_id}/versions", response_model=VersionHistoryResponse)
 async def get_version_history(
     study_id: str,
+    version_service: Annotated[VersionService, Depends(get_version_service)],
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    version_service: Annotated[VersionService, Depends(get_version_service)],
 ) -> VersionHistoryResponse:
     """
     Get version history for a study.
@@ -75,7 +75,7 @@ async def get_version_history(
                 r2_key=version.snapshot.r2_key,
                 size_bytes=version.snapshot.size_bytes,
                 content_hash=version.snapshot.content_hash,
-                metadata=version.snapshot.metadata,
+                metadata=version.snapshot.meta_data,
                 created_at=version.snapshot.created_at,
             )
 
@@ -135,7 +135,7 @@ async def get_version(
             r2_key=version.snapshot.r2_key,
             size_bytes=version.snapshot.size_bytes,
             content_hash=version.snapshot.content_hash,
-            metadata=version.snapshot.metadata,
+            metadata=version.snapshot.meta_data,
             created_at=version.snapshot.created_at,
         )
 
@@ -194,8 +194,8 @@ async def get_snapshot_content(
 async def compare_versions(
     study_id: str,
     version_number: int,
-    compare_with: int = Query(..., description="Version to compare with"),
     version_service: Annotated[VersionService, Depends(get_version_service)],
+    compare_with: int = Query(..., description="Version to compare with"),
 ) -> VersionComparisonResponse:
     """
     Compare two versions.
@@ -288,7 +288,7 @@ async def create_manual_snapshot(
                 r2_key=version.snapshot.r2_key,
                 size_bytes=version.snapshot.size_bytes,
                 content_hash=version.snapshot.content_hash,
-                metadata=version.snapshot.metadata,
+                metadata=version.snapshot.meta_data,
                 created_at=version.snapshot.created_at,
             )
 
@@ -351,7 +351,7 @@ async def rollback_to_version(
                 r2_key=version.snapshot.r2_key,
                 size_bytes=version.snapshot.size_bytes,
                 content_hash=version.snapshot.content_hash,
-                metadata=version.snapshot.metadata,
+                metadata=version.snapshot.meta_data,
                 created_at=version.snapshot.created_at,
             )
 

@@ -4,8 +4,8 @@ Event payload schema tests.
 
 import pytest
 
-from workspace.domain.models.event import CreateEventCommand
-from workspace.events.types import EventType
+from modules.workspace.domain.models.event import CreateEventCommand
+from modules.workspace.events.types import EventType
 
 
 @pytest.mark.asyncio

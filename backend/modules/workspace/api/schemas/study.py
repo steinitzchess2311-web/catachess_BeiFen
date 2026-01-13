@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workspace.domain.models.types import Visibility
+from modules.workspace.domain.models.types import Visibility
 
 
 class StudyCreate(BaseModel):

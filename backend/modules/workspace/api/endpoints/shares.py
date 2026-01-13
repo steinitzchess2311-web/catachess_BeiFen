@@ -4,8 +4,8 @@ Share endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.deps import get_current_user_id, get_share_service
-from workspace.api.schemas.share import (
+from modules.workspace.api.deps import get_current_user_id, get_share_service
+from modules.workspace.api.schemas.share import (
     ACLResponse,
     ChangeRole,
     CreateShareLink,
@@ -13,19 +13,19 @@ from workspace.api.schemas.share import (
     ShareLinkResponse,
     ShareWithUser,
 )
-from workspace.domain.models.acl import (
+from modules.workspace.domain.models.acl import (
     ChangeRoleCommand,
     CreateShareLinkCommand,
     RevokeShareCommand,
     RevokeShareLinkCommand,
     ShareCommand,
 )
-from workspace.domain.services.node_service import (
+from modules.workspace.domain.services.node_service import (
     NodeNotFoundError,
     NodeServiceError,
     PermissionDeniedError,
 )
-from workspace.domain.services.share_service import ShareService
+from modules.workspace.domain.services.share_service import ShareService
 
 router = APIRouter(prefix="/share", tags=["share"])
 
@@ -153,7 +153,7 @@ async def get_shared_with_me(
     share_service: ShareService = Depends(get_share_service),
 ) -> list:
     """Get all nodes shared with the current user."""
-    from workspace.api.schemas.node import NodeResponse
+    from modules.workspace.api.schemas.node import NodeResponse
 
     shared = await share_service.get_shared_with_user(user_id)
 

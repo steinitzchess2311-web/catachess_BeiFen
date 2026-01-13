@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from workspace.api.audit_helpers import log_permission_denial
-from workspace.api.deps import (
+from modules.workspace.api.audit_helpers import log_permission_denial
+from modules.workspace.api.deps import (
     get_audit_repo,
     get_current_user_id,
     get_reply_repo,
     get_reply_service,
 )
-from workspace.api.schemas.discussion_reply import ReplyResponse, ReplyUpdate
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.domain.models.discussion_reply import EditReplyCommand
-from workspace.domain.policies.discussion_permissions import DiscussionPermissionError
-from workspace.domain.services.discussion.reply_service import (
+from modules.workspace.api.schemas.discussion_reply import ReplyResponse, ReplyUpdate
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.domain.models.discussion_reply import EditReplyCommand
+from modules.workspace.domain.policies.discussion_permissions import DiscussionPermissionError
+from modules.workspace.domain.services.discussion.reply_service import (
     OptimisticLockError,
     ReplyNotFoundError,
     ReplyService,

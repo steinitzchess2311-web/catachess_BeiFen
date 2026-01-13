@@ -10,7 +10,7 @@ from typing import List
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.presence_sessions import PresenceSessionTable
+from modules.workspace.db.tables.presence_sessions import PresenceSessionTable
 
 
 class PresenceRepository:

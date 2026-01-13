@@ -1,7 +1,7 @@
 """No-comment and raw export tests (core)."""
-from workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
-from workspace.pgn.cleaner.raw_pgn import export_clean_mainline, export_raw_pgn
-from workspace.pgn.serializer.to_tree import pgn_to_tree
+from modules.workspace.pgn.cleaner.no_comment_pgn import export_no_comment_pgn
+from modules.workspace.pgn.cleaner.raw_pgn import export_clean_mainline, export_raw_pgn
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree
 
 
 def _tree(pgn: str):

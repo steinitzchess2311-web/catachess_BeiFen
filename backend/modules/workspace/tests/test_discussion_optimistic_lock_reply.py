@@ -4,12 +4,12 @@ Discussion reply optimistic locking tests.
 
 import pytest
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.domain.models.discussion_reply import AddReplyCommand, EditReplyCommand
-from workspace.domain.models.discussion_thread import CreateThreadCommand
-from workspace.domain.services.discussion.reply_service import OptimisticLockError, ReplyService
-from workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.domain.models.discussion_reply import AddReplyCommand, EditReplyCommand
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand
+from modules.workspace.domain.services.discussion.reply_service import OptimisticLockError, ReplyService
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
 
 
 @pytest.mark.asyncio

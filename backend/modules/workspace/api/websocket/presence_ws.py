@@ -13,8 +13,8 @@ from typing import Dict, Set
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from fastapi.websockets import WebSocketState
 
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 logger = logging.getLogger(__name__)
 

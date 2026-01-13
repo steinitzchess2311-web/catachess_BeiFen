@@ -2,19 +2,19 @@
 Discussion schema exports.
 """
 
-from workspace.api.schemas.discussion_thread import (
+from modules.workspace.api.schemas.discussion_thread import (
     ThreadCreate,
     ThreadUpdate,
     ThreadResolve,
     ThreadPin,
     ThreadResponse,
 )
-from workspace.api.schemas.discussion_reply import (
+from modules.workspace.api.schemas.discussion_reply import (
     ReplyCreate,
     ReplyUpdate,
     ReplyResponse,
 )
-from workspace.api.schemas.discussion_reaction import (
+from modules.workspace.api.schemas.discussion_reaction import (
     ReactionCreate,
     ReactionResponse,
 )

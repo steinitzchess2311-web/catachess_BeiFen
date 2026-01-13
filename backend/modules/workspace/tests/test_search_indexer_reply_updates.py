@@ -3,13 +3,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.search_index_repo import SearchIndexRepository
-from workspace.db.tables.discussion_replies import DiscussionReply
-from workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
-from workspace.events.subscribers.search_indexer import SearchIndexer
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.search_index_repo import SearchIndexRepository
+from modules.workspace.db.tables.discussion_replies import DiscussionReply
+from modules.workspace.db.tables.discussion_threads import DiscussionThread, ThreadType
+from modules.workspace.events.subscribers.search_indexer import SearchIndexer
+from modules.workspace.events.types import EventType
 
 
 def _event(event_type: EventType, target_id: str):

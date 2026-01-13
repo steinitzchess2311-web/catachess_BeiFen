@@ -4,12 +4,12 @@ Discussion thread state service.
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.tables.discussion_threads import DiscussionThread
-from workspace.domain.models.discussion_thread import ResolveThreadCommand, PinThreadCommand
-from workspace.domain.services.discussion.thread_events import publish_thread_event
-from workspace.events.bus import EventBus
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.tables.discussion_threads import DiscussionThread
+from modules.workspace.domain.models.discussion_thread import ResolveThreadCommand, PinThreadCommand
+from modules.workspace.domain.services.discussion.thread_events import publish_thread_event
+from modules.workspace.events.bus import EventBus
+from modules.workspace.events.types import EventType
 
 
 class ThreadNotFoundError(Exception):

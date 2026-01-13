@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Debug script to understand tree structure."""
 
-from workspace.pgn.serializer.to_tree import pgn_to_tree
+from modules.workspace.pgn.serializer.to_tree import pgn_to_tree
 
 
 def print_tree(node, depth=0, label=""):

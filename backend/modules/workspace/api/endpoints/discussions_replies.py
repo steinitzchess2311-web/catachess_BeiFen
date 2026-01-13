@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from workspace.api.endpoints import (
+from modules.workspace.api.endpoints import (
     discussions_replies_add,
     discussions_replies_edit,
     discussions_replies_delete,

@@ -4,13 +4,13 @@ Discussion mention event tests.
 
 import pytest
 
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.tables.users import User
-from workspace.domain.models.discussion_thread import CreateThreadCommand
-from workspace.domain.models.event import EventQuery
-from workspace.domain.services.discussion.thread_service import ThreadService
-from workspace.events.types import EventType
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.tables.users import User
+from modules.workspace.domain.models.discussion_thread import CreateThreadCommand
+from modules.workspace.domain.models.event import EventQuery
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.events.types import EventType
 
 
 @pytest.mark.asyncio

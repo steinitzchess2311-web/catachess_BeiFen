@@ -7,12 +7,12 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.base import get_async_session_maker
-from workspace.db.tables.studies import StudyTable
-from workspace.domain.models.version import CreateVersionCommand, SnapshotContent
-from workspace.domain.services.version_service import VersionService
-from workspace.events.bus import EventBus
-from workspace.storage.r2_client import create_r2_client_from_env
+from modules.workspace.db.base import get_async_session_maker
+from modules.workspace.db.tables.studies import StudyTable
+from modules.workspace.domain.models.version import CreateVersionCommand, SnapshotContent
+from modules.workspace.domain.services.version_service import VersionService
+from modules.workspace.events.bus import EventBus
+from modules.workspace.storage.r2_client import create_r2_client_from_env
 
 logger = logging.getLogger(__name__)
 

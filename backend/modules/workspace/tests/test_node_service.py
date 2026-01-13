@@ -4,9 +4,9 @@ Tests for NodeService.
 
 import pytest
 
-from workspace.domain.models.node import CreateNodeCommand, DeleteNodeCommand, MoveNodeCommand, UpdateNodeCommand
-from workspace.domain.models.types import NodeType, Permission, Visibility
-from workspace.domain.services.node_service import (
+from modules.workspace.domain.models.node import CreateNodeCommand, DeleteNodeCommand, MoveNodeCommand, UpdateNodeCommand
+from modules.workspace.domain.models.types import NodeType, Permission, Visibility
+from modules.workspace.domain.services.node_service import (
     InvalidOperationError,
     NodeNotFoundError,
     NodeService,

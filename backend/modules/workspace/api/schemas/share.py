@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workspace.domain.models.types import Permission
+from modules.workspace.domain.models.types import Permission
 
 
 class ShareWithUser(BaseModel):

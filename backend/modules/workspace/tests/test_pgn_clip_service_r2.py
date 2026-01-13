@@ -7,13 +7,13 @@ import asyncio
 import pytest
 from botocore.exceptions import ClientError, EndpointConnectionError
 
-from workspace.db.repos.event_repo import EventRepository
-from workspace.db.repos.study_repo import StudyRepository
-from workspace.db.repos.variation_repo import VariationRepository
-from workspace.db.tables.nodes import Node
-from workspace.db.tables.studies import Chapter, Study
-from workspace.domain.models.types import NodeType, Visibility
-from workspace.domain.services.pgn_clip_service import PgnClipService
+from modules.workspace.db.repos.event_repo import EventRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.repos.variation_repo import VariationRepository
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.db.tables.studies import Chapter, Study
+from modules.workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.domain.services.pgn_clip_service import PgnClipService
 
 
 def _build_entities(node_id: str, chapter_id: str, r2_key: str) -> list:

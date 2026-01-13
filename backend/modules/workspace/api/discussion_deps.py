@@ -1,16 +1,16 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.api.deps import get_event_bus
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.session import get_session
-from workspace.domain.services.discussion.reaction_service import ReactionService
-from workspace.domain.services.discussion.reply_service import ReplyService
-from workspace.domain.services.discussion.thread_service import ThreadService
-from workspace.domain.services.discussion.thread_state_service import ThreadStateService
-from workspace.events.bus import EventBus
+from modules.workspace.api.deps import get_event_bus
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.session import get_session
+from modules.workspace.domain.services.discussion.reaction_service import ReactionService
+from modules.workspace.domain.services.discussion.reply_service import ReplyService
+from modules.workspace.domain.services.discussion.thread_service import ThreadService
+from modules.workspace.domain.services.discussion.thread_state_service import ThreadStateService
+from modules.workspace.events.bus import EventBus
 
 
 async def get_thread_repo(

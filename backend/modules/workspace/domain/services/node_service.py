@@ -10,19 +10,19 @@ from typing import Sequence
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.repos.acl_repo import ACLRepository
-from workspace.db.repos.node_repo import NodeRepository
-from workspace.db.tables.acl import ACL
-from workspace.db.tables.nodes import Node
-from workspace.domain.models.node import (
+from modules.workspace.db.repos.acl_repo import ACLRepository
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.tables.acl import ACL
+from modules.workspace.db.tables.nodes import Node
+from modules.workspace.domain.models.node import (
     CreateNodeCommand,
     DeleteNodeCommand,
     MoveNodeCommand,
     UpdateNodeCommand,
 )
-from workspace.domain.models.types import NodeType, Permission, Visibility
-from workspace.domain.policies.permissions import PermissionPolicy
-from workspace.events.bus import EventBus, publish_node_created, publish_node_deleted, publish_node_moved, publish_node_updated
+from modules.workspace.domain.models.types import NodeType, Permission, Visibility
+from modules.workspace.domain.policies.permissions import PermissionPolicy
+from modules.workspace.events.bus import EventBus, publish_node_created, publish_node_deleted, publish_node_moved, publish_node_updated
 
 
 class NodeServiceError(Exception):
@@ -461,7 +461,7 @@ class NodeService:
 
     def _node_to_model(self, node: Node):
         """Convert ORM node to domain model."""
-        from workspace.domain.models.node import NodeModel
+        from modules.workspace.domain.models.node import NodeModel
         return NodeModel(
             id=node.id,
             node_type=node.node_type,
@@ -486,7 +486,7 @@ class NodeService:
             if isinstance(acl.permission, Permission)
             else Permission(str(acl.permission))
         )
-        from workspace.domain.models.acl import ACLModel
+        from modules.workspace.domain.models.acl import ACLModel
         return ACLModel(
             id=acl.id,
             object_id=acl.object_id,

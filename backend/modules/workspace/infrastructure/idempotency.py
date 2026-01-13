@@ -14,7 +14,7 @@ import logging
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from workspace.db.tables.idempotency_cache import IdempotencyCache
+from modules.workspace.db.tables.idempotency_cache import IdempotencyCache
 
 logger = logging.getLogger(__name__)
 

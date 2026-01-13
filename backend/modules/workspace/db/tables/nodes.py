@@ -9,8 +9,8 @@ from typing import Any
 from sqlalchemy import JSON, Boolean, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, synonym
 
-from workspace.db.base import Base, SoftDeleteMixin, TimestampMixin
-from workspace.domain.models.types import NodeType, Visibility
+from modules.workspace.db.base import Base, SoftDeleteMixin, TimestampMixin
+from modules.workspace.domain.models.types import NodeType, Visibility
 
 
 class Node(Base, TimestampMixin, SoftDeleteMixin):

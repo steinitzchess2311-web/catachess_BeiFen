@@ -1,14 +1,14 @@
 import logging
 from ulid import ULID
 
-from workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
-from workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
-from workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
-from workspace.db.repos.notification_repo import NotificationRepository
-from workspace.db.tables.notifications import Notification
-from workspace.events.payloads import extract_event_payload
-from workspace.events.types import EventType
-from workspace.notifications.dispatcher import NotificationDispatcher
+from modules.workspace.db.repos.discussion_reaction_repo import DiscussionReactionRepository
+from modules.workspace.db.repos.discussion_reply_repo import DiscussionReplyRepository
+from modules.workspace.db.repos.discussion_thread_repo import DiscussionThreadRepository
+from modules.workspace.db.repos.notification_repo import NotificationRepository
+from modules.workspace.db.tables.notifications import Notification
+from modules.workspace.events.payloads import extract_event_payload
+from modules.workspace.events.types import EventType
+from modules.workspace.notifications.dispatcher import NotificationDispatcher
 
 logger = logging.getLogger(__name__)
 

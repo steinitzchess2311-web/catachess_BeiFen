@@ -18,8 +18,8 @@ for path_dir in [modules_dir, workspace_dir]:
         sys.path.insert(0, str(path_dir))
 
 # Import all table models so Alembic can detect them
-from workspace.db.base import Base
-from workspace.db.tables import *  # Import all tables
+from modules.workspace.db.base import Base
+from modules.workspace.db.tables import *  # Import all tables
 
 # Alembic Config object
 config = context.config
