@@ -1,0 +1,30 @@
+<template id="discussion-template">
+    <div class="discussion-container">
+        <div id="thread-list" class="thread-list">
+            <!-- Threads will be rendered here -->
+        </div>
+        <div class="discussion-input-area">
+            <textarea id="discussion-input" placeholder="Add a comment..."></textarea>
+            <div class="input-controls">
+                <button id="post-comment-btn" class="btn-primary btn-sm">Post</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="thread-item-template">
+    <div class="thread-item">
+        <div class="thread-header">
+            <span class="thread-author">{{author}}</span>
+            <span class="thread-date">{{date}}</span>
+        </div>
+        <div class="thread-content">{{content}}</div>
+        <div class="thread-actions">
+            <button class="btn-text btn-xs reply-link">Reply</button>
+            <div class="reactions">
+                <!-- Reactions -->
+            </div>
+        </div>
+        <div class="replies-container"></div>
+    </div>
+</template>

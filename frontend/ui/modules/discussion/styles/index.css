@@ -1,0 +1,76 @@
+.discussion-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.thread-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding-bottom: var(--space-md);
+}
+
+.thread-item {
+    border-bottom: 1px solid var(--bg-app);
+    padding-bottom: var(--space-sm);
+}
+
+.thread-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-xs);
+    margin-bottom: var(--space-xs);
+}
+
+.thread-author {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.thread-date {
+    color: var(--text-secondary);
+}
+
+.thread-content {
+    font-size: var(--font-sm);
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.thread-actions {
+    margin-top: var(--space-xs);
+    display: flex;
+    gap: var(--space-md);
+}
+
+.discussion-input-area {
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+#discussion-input {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--space-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family);
+    font-size: var(--font-sm);
+    resize: vertical;
+}
+
+.input-controls {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-xs {
+    padding: 2px 4px;
+    font-size: 11px;
+}

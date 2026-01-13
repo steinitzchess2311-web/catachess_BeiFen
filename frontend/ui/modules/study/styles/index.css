@@ -1,0 +1,142 @@
+.study-container {
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    height: 100vh;
+    background-color: var(--bg-app);
+    font-family: var(--font-family);
+    overflow: hidden;
+}
+
+/* Panels */
+.study-sidebar, .study-right-panel {
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+}
+
+.study-right-panel {
+    border-right: none;
+    border-left: 1px solid var(--border);
+}
+
+.panel-header {
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: var(--font-sm);
+    margin: 0;
+}
+
+/* Chapter List */
+.chapter-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chapter-item {
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    display: flex;
+    gap: var(--space-sm);
+    font-size: var(--font-sm);
+    border-bottom: 1px solid var(--bg-app);
+}
+
+.chapter-item:hover {
+    background-color: var(--primary-bg);
+}
+
+.chapter-item.active {
+    background-color: var(--primary-bg);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.chapter-order {
+    color: var(--text-secondary);
+    min-width: 20px;
+}
+
+/* Center Panel (Board) */
+.study-center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-lg);
+    background-color: var(--bg-app);
+}
+
+.board-mount {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
+    background-color: #eee;
+    box-shadow: var(--shadow-2);
+}
+
+.board-controls {
+    margin-top: var(--space-lg);
+    display: flex;
+    gap: var(--space-md);
+}
+
+/* Right Panel Tabs */
+.panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: var(--space-sm);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: var(--font-xs);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Move Tree */
+.move-tree {
+    font-size: var(--font-sm);
+    line-height: 1.6;
+}
+
+/* Utility */
+.btn-icon {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+}
+
+.btn-icon:hover {
+    background-color: var(--bg-app);
+}

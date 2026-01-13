@@ -1,0 +1,56 @@
+<template id="study-template">
+    <div class="study-container">
+        <aside class="study-sidebar study-left-panel">
+            <div class="panel-header">
+                <h3>Chapters</h3>
+                <button id="add-chapter-btn" class="btn-icon">+</button>
+            </div>
+            <div id="chapter-list" class="chapter-list">
+                <!-- Chapters will be listed here -->
+            </div>
+        </aside>
+        
+        <main class="study-center-panel">
+            <div id="board-mount" class="board-mount">
+                <!-- Chessboard will be mounted here -->
+            </div>
+            <div class="board-controls">
+                <button id="first-move" class="btn-icon">|&lt;</button>
+                <button id="prev-move" class="btn-icon">&lt;</button>
+                <button id="flip-board" class="btn-icon">Flip</button>
+                <button id="next-move" class="btn-icon">&gt;</button>
+                <button id="last-move" class="btn-icon">&gt;|</button>
+            </div>
+        </main>
+
+        <aside class="study-right-panel">
+            <div class="panel-tabs">
+                <button class="tab-btn active" data-tab="pgn">PGN</button>
+                <button class="tab-btn" data-tab="analysis">Analysis</button>
+                <button class="tab-btn" data-tab="discussion">Discussions</button>
+            </div>
+            <div class="tab-content active" id="tab-pgn">
+                <div id="move-tree" class="move-tree">
+                    <!-- PGN move tree will be rendered here -->
+                </div>
+            </div>
+            <div class="tab-content" id="tab-analysis">
+                <div id="engine-mount">
+                    <!-- Engine analysis will be mounted here -->
+                </div>
+            </div>
+            <div class="tab-content" id="tab-discussion">
+                <div id="discussion-mount">
+                    <!-- Discussion module will be mounted here -->
+                </div>
+            </div>
+        </aside>
+    </div>
+</template>
+
+<template id="chapter-item-template">
+    <div class="chapter-item" data-id="{{id}}">
+        <span class="chapter-order">{{order}}</span>
+        <span class="chapter-title">{{title}}</span>
+    </div>
+</template>
