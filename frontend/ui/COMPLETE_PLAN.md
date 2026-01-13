@@ -161,3 +161,20 @@ frontend/
 1.  **Strict Layout Separation:** No HTML strings in `events/index.ts`. Use `<template>` elements from `layout/index.html`.
 2.  **Core Usage:** When building the "New Folder" popup, **MUST** use `ui/core/drag` and `ui/core/focus` to make it a proper draggable window.
 3.  **Styles:** All sizing **MUST** use variables from `assets/css/variables.css`. No hardcoded hex codes.
+
+---
+
+## 8. 🛠️ IMPLEMENTATION ADDENDUM (Post-Audit)
+
+### A. Cleanup & Purge
+*   **Remove Legacy:** Delete `frontend/ui/modules/games/`. It is non-standard and deprecated by the Vertical Slice mandate.
+*   **Audit Check:** Any file in `ui/modules/` not listed in Section 1 must be removed.
+
+### B. Initialization Tasks
+1.  **Scaffold New Modules:** Create `study/` and `discussion/` folders in `ui/modules/` with the standard `layout/`, `events/`, and `styles/` sub-directories.
+2.  **Asset Creation:** Initialize `frontend/ui/assets/` directory. Create `variables.css` using the specifications in Section 2.
+
+### C. Verification Checklist
+- [ ] **Backend:** Verify `GET /nodes/.../versions` and `POST /presence` are reachable via `/docs`.
+- [ ] **Structure:** Ensure `ui/modules/games` is removed.
+- [ ] **Styles:** Confirm `variables.css` is correctly linked in `index.html`.
