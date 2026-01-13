@@ -38,3 +38,4 @@
     2.  Enter email. Check backend logs for "sent" code.
     3.  Enter code. Verify redirect to login.
     4.  Login. Verify token is in LocalStorage.
+- [x] **Fix Critical Bug**: Implemented dynamic layout loader (`loadLayout`) to ensure templates are present in DOM before module initialization.

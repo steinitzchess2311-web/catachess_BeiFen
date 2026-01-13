@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catachess</title>
-    <link rel="stylesheet" href="ui/assets/variables.css">
+    <link rel="stylesheet" href="./ui/assets/variables.css">
     <!-- Dynamic styles will be injected here -->
     <style id="module-styles"></style>
 </head>
 <body>
     <div id="app"></div>
+
+    <!-- Templates Container (Dynamic) -->
+    <div id="templates-container" style="display: none;"></div>
 
     <!-- Router Logic -->
     <script type="module">
@@ -18,11 +21,13 @@
 
         const app = document.getElementById('app');
         const styleTag = document.getElementById('module-styles');
+        const templatesContainer = document.getElementById('templates-container');
 
         // Function to load CSS dynamically
         async function loadCSS(path) {
             try {
                 const response = await fetch(path);
+                if (!response.ok) throw new Error(`Style not found: ${path}`);
                 const css = await response.text();
                 styleTag.textContent = css;
             } catch (error) {
@@ -30,32 +35,60 @@
             }
         }
 
+        // Function to load Layout (Templates) dynamically
+        async function loadLayout(path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`Layout not found: ${path}`);
+                const html = await response.text();
+                
+                // Add to templates container if not already there
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                const templates = tempDiv.querySelectorAll('template');
+                templates.forEach(tpl => {
+                    if (!document.getElementById(tpl.id)) {
+                        templatesContainer.appendChild(tpl);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load Layout:', error);
+            }
+        }
+
         // Router
         async function handleRoute() {
-            const hash = window.location.hash || '/';
+            const hash = window.location.hash || '#/';
             app.innerHTML = ''; // Clear app container
 
-            if (hash === '/login') {
-                await loadCSS('/ui/modules/auth/login/styles/login.css');
+            if (hash === '#/login') {
+                await loadLayout('./ui/modules/auth/login/layout/index.html');
+                await loadCSS('./ui/modules/auth/login/styles/login.css');
                 initLogin(app);
-            } else if (hash === '/signup') {
-                await loadCSS('/ui/modules/auth/signup/styles/signup.css');
+            } else if (hash === '#/signup') {
+                await loadLayout('./ui/modules/auth/signup/layout/index.html');
+                await loadCSS('./ui/modules/auth/signup/styles/signup.css');
                 initSignup(app);
-            } else if (hash === '/workspace') {
+            } else if (hash === '#/workspace') {
                 // Check auth
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    window.location.hash = '/login';
+                    window.location.hash = '#/login';
                     return;
                 }
-                app.innerHTML = '<h1>Workspace (Coming Soon)</h1>';
+                app.innerHTML = '<div style="padding: 20px;"><h1>Workspace</h1><p>Welcome! You are logged in.</p><button id="logout-btn">Logout</button></div>';
+                document.getElementById('logout-btn')?.addEventListener('click', () => {
+                    localStorage.removeItem('token');
+                    window.location.hash = '#/login';
+                });
             } else {
                 // Default redirect
                 const token = localStorage.getItem('token');
                 if (token) {
-                    window.location.hash = '/workspace';
+                    window.location.hash = '#/workspace';
                 } else {
-                    window.location.hash = '/login';
+                    window.location.hash = '#/login';
                 }
             }
         }
