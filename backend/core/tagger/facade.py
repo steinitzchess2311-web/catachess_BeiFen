@@ -2,12 +2,17 @@
 Main facade for the tagger system.
 This is the primary entry point for tagging chess positions.
 """
-from typing import Optional
+from typing import Optional, Literal
+import os
 import chess
 from .models import TagContext, Candidate
 from .tag_result import TagResult
 from .engine.stockfish_client import StockfishClient
+from .engine.http_client import HTTPStockfishClient
 from .config.engine import DEFAULT_DEPTH, DEFAULT_MULTIPV, DEFAULT_STOCKFISH_PATH
+
+# Default HTTP engine URL (Cloudflare LB)
+DEFAULT_ENGINE_URL = os.environ.get("ENGINE_URL", "https://sf.cloudflare.com")
 
 # Import shared modules
 from .detectors.helpers.metrics import evaluation_and_metrics, metrics_delta
@@ -104,11 +109,13 @@ from .versioning import CURRENT_VERSION, get_version_info
 
 
 def tag_position(
-    engine_path: Optional[str],
-    fen: str,
-    played_move_uci: str,
+    engine_path: Optional[str] = None,
+    fen: str = "",
+    played_move_uci: str = "",
     depth: int = DEFAULT_DEPTH,
     multipv: int = DEFAULT_MULTIPV,
+    engine_mode: Literal["local", "http"] = "http",
+    engine_url: Optional[str] = None,
 ) -> TagResult:
     """
     Tag a chess position and move.
@@ -116,18 +123,24 @@ def tag_position(
     This is the main entry point matching the legacy interface.
 
     Args:
-        engine_path: Path to Stockfish engine
+        engine_path: Path to Stockfish engine (for local mode)
         fen: FEN string of position before the move
         played_move_uci: UCI notation of the played move
         depth: Engine analysis depth
         multipv: Number of principal variations to analyze
+        engine_mode: "local" for local Stockfish, "http" for remote service
+        engine_url: Remote engine URL (for http mode, defaults to ENGINE_URL env var)
 
     Returns:
         TagResult with all detected tags and analysis
     """
-    # Use default engine path if not specified
-    if engine_path is None:
-        engine_path = DEFAULT_STOCKFISH_PATH
+    # Select engine client based on mode
+    if engine_mode == "http":
+        url = engine_url or DEFAULT_ENGINE_URL
+        engine_client = HTTPStockfishClient(base_url=url)
+    else:
+        path = engine_path or DEFAULT_STOCKFISH_PATH
+        engine_client = StockfishClient(engine_path=path)
 
     # Parse position and move
     board = chess.Board(fen)
@@ -138,7 +151,7 @@ def tag_position(
         raise ValueError(f"Illegal move {played_move_uci} in position {fen}")
 
     # Run engine analysis
-    with StockfishClient(engine_path) as engine:
+    with engine_client as engine:
         # Analyze candidates in the position before the move
         candidates, eval_before_cp, engine_meta = engine.analyse_candidates(
             board, depth, multipv

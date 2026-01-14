@@ -3,14 +3,18 @@ Main analysis pipeline for processing PGN files and calculating tag statistics.
 """
 
 import json
+import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Literal
 
 from ..config.engine import DEFAULT_DEPTH, DEFAULT_MULTIPV, DEFAULT_STOCKFISH_PATH
 from ..facade import tag_position
 from .pgn_processor import PGNProcessor
 from .tag_statistics import TagStatistics
+
+# Default HTTP engine URL
+DEFAULT_ENGINE_URL = os.environ.get("ENGINE_URL", "https://sf.cloudflare.com")
 
 
 class AnalysisPipeline:
@@ -30,6 +34,8 @@ class AnalysisPipeline:
         pgn_path: str | Path,
         output_dir: str | Path,
         engine_path: Optional[str] = None,
+        engine_url: Optional[str] = None,
+        engine_mode: Literal["local", "http"] = "http",
         depth: int = DEFAULT_DEPTH,
         multipv: int = DEFAULT_MULTIPV,
         skip_opening_moves: int = 0,
@@ -40,7 +46,9 @@ class AnalysisPipeline:
         Args:
             pgn_path: Path to input PGN file
             output_dir: Directory for output files
-            engine_path: Path to Stockfish engine (default: /usr/games/stockfish)
+            engine_path: Path to Stockfish engine (for local mode)
+            engine_url: Remote engine URL (for http mode)
+            engine_mode: "local" for local Stockfish, "http" for remote service
             depth: Engine analysis depth (default: 14)
             multipv: Number of principal variations (default: 6)
             skip_opening_moves: Number of opening moves to skip (default: 0)
@@ -48,6 +56,8 @@ class AnalysisPipeline:
         self.pgn_path = Path(pgn_path)
         self.output_dir = Path(output_dir)
         self.engine_path = engine_path or DEFAULT_STOCKFISH_PATH
+        self.engine_url = engine_url or DEFAULT_ENGINE_URL
+        self.engine_mode = engine_mode
         self.depth = depth
         self.multipv = multipv
         self.skip_opening_moves = skip_opening_moves
@@ -68,7 +78,10 @@ class AnalysisPipeline:
         """
         if verbose:
             print(f"Starting analysis of {self.pgn_path}")
-            print(f"Engine: {self.engine_path}")
+            if self.engine_mode == "http":
+                print(f"Engine: {self.engine_url} (HTTP)")
+            else:
+                print(f"Engine: {self.engine_path} (local)")
             print(f"Depth: {self.depth}, MultiPV: {self.multipv}")
             print(f"Skip opening moves: {self.skip_opening_moves}")
             print()
@@ -109,6 +122,8 @@ class AnalysisPipeline:
                     played_move_uci=position.played_move_uci,
                     depth=self.depth,
                     multipv=self.multipv,
+                    engine_mode=self.engine_mode,
+                    engine_url=self.engine_url,
                 )
 
                 # Add to statistics

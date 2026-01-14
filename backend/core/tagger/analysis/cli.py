@@ -6,14 +6,18 @@ Usage:
     python -m backend.core.tagger.analysis.cli input.pgn
     python -m backend.core.tagger.analysis.cli input.pgn --output-dir custom_output
     python -m backend.core.tagger.analysis.cli input.pgn --max-positions 100
+    python -m backend.core.tagger.analysis.cli input.pgn --engine-mode http
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 from .pipeline import AnalysisPipeline
 from ..config.engine import DEFAULT_DEPTH, DEFAULT_MULTIPV, DEFAULT_STOCKFISH_PATH
+
+DEFAULT_ENGINE_URL = os.environ.get("ENGINE_URL", "https://sf.cloudflare.com")
 
 
 def main():
@@ -39,10 +43,25 @@ def main():
     )
 
     parser.add_argument(
+        "--engine-mode",
+        type=str,
+        choices=["local", "http"],
+        default="http",
+        help="Engine mode: 'local' for local Stockfish, 'http' for remote service (default: http)"
+    )
+
+    parser.add_argument(
         "--engine-path",
         type=str,
         default=DEFAULT_STOCKFISH_PATH,
-        help=f"Path to Stockfish engine (default: {DEFAULT_STOCKFISH_PATH})"
+        help=f"Path to Stockfish engine for local mode (default: {DEFAULT_STOCKFISH_PATH})"
+    )
+
+    parser.add_argument(
+        "--engine-url",
+        type=str,
+        default=DEFAULT_ENGINE_URL,
+        help=f"Remote engine URL for http mode (default: {DEFAULT_ENGINE_URL})"
     )
 
     parser.add_argument(
@@ -99,18 +118,22 @@ def main():
         print(f"Error: PGN file not found: {pgn_path}", file=sys.stderr)
         sys.exit(1)
 
-    # Check if engine exists
-    engine_path = Path(args.engine_path)
-    if not engine_path.exists():
-        print(f"Error: Stockfish engine not found: {engine_path}", file=sys.stderr)
-        print(f"Please install stockfish or specify path with --engine-path", file=sys.stderr)
-        sys.exit(1)
+    # Check if local engine exists (only in local mode)
+    if args.engine_mode == "local":
+        engine_path = Path(args.engine_path)
+        if not engine_path.exists():
+            print(f"Error: Stockfish engine not found: {engine_path}", file=sys.stderr)
+            print(f"Please install stockfish or specify path with --engine-path", file=sys.stderr)
+            print(f"Or use --engine-mode http to use remote engine", file=sys.stderr)
+            sys.exit(1)
 
     # Create pipeline
     pipeline = AnalysisPipeline(
         pgn_path=pgn_path,
         output_dir=args.output_dir,
-        engine_path=str(engine_path),
+        engine_path=args.engine_path,
+        engine_url=args.engine_url,
+        engine_mode=args.engine_mode,
         depth=args.depth,
         multipv=args.multipv,
         skip_opening_moves=args.skip_opening_moves,

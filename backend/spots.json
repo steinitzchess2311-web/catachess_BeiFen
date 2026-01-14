@@ -1,17 +1,10 @@
 {
   "spots": [
     {
-      "id": "cn-shanghai",
-      "url": "http://192.168.40.33:8001",
-      "region": "cn-east",
+      "id": "cloudflare-lb",
+      "url": "https://sf.cloudflare.com",
+      "region": "cloudflare",
       "priority": 100,
-      "enabled": true
-    },
-    {
-      "id": "cn-local",
-      "url": "http://192.168.40.41:5000",
-      "region": "cn-local",
-      "priority": 90,
       "enabled": true
     }
   ],

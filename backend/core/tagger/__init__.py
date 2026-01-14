@@ -12,15 +12,23 @@ Data models:
     TagEvidence - Detection result with confidence and evidence
     TagResult - Complete tagging result with all detected tags
 
-Example usage:
+Example usage (HTTP remote engine - default):
     from .facade import tag_position
 
     result = tag_position(
-        engine_path="/usr/games/stockfish",
         fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
         played_move_uci="e7e5",
         depth=14,
-        multipv=6
+        multipv=6,
+        engine_mode="http",  # Uses https://sf.cloudflare.com by default
+    )
+
+Example usage (local Stockfish):
+    result = tag_position(
+        fen="...",
+        played_move_uci="e7e5",
+        engine_mode="local",
+        engine_path="/usr/games/stockfish",
     )
 
     print(f"First choice: {result.first_choice}")
