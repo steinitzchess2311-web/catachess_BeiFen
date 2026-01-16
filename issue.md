@@ -58,3 +58,5 @@ Scope: backend + frontend code scan with emphasis on correctness, security, and 
 - ❓ `frontend/ui/modules/games/modules/ui/events.ts`: core gameplay interactions are placeholders (takeback, extra menu, square selection, move making, chat input), leaving the game UI functionally incomplete.
 - ❓ `frontend/ui/modules/games/README.md`: lists key gameplay features as placeholders, matching the incomplete UI implementation.
 - ❓ `frontend/ui/modules/games/modules/core/config.ts`: game API/WS endpoints are hard-coded to a production host; local/dev runs will silently target production unless `VITE_API_BASE`/`VITE_WS_BASE` are set.
+
+ 1
