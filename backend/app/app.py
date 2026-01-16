@@ -57,3 +57,8 @@ async def analyze_stream(fen: str, depth: int = 15, multipv: int = 3):
         return StreamingResponse(generate(), media_type="application/x-ndjson")
     except EngineError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+async def health():
+    return {"ok": True}
+
