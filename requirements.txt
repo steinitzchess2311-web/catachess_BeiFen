@@ -31,3 +31,7 @@ resend>=0.8.0
 
 # ---- storage ----
 boto3>=1.34  # Cloudflare R2 / S3-compatible storage
+
+python-ulid>=2.7.0
+emoji>=2.0
+
