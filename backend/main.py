@@ -35,7 +35,9 @@ async def startup_event():
     """Initialize database tables on startup"""
     try:
         workspace_db_url = settings.DATABASE_URL
-        if workspace_db_url:
+        if not workspace_db_url:
+            logger.warning("Workspace DATABASE_URL not set. Skipping workspace database initialization.")
+        else:
             redacted_url = workspace_db_url
             if "://" in redacted_url and "@" in redacted_url:
                 scheme, rest = redacted_url.split("://", 1)
@@ -45,24 +47,23 @@ async def startup_event():
                     credentials = f"{user}:***"
                 redacted_url = f"{scheme}://{credentials}@{host}"
             logger.info(f"Workspace DATABASE_URL resolved: {redacted_url}")
-        else:
-            logger.warning("Workspace DATABASE_URL resolved to a falsy value")
-        if workspace_db_url.startswith("postgresql://"):
-            workspace_db_url = workspace_db_url.replace(
-                "postgresql://",
-                "postgresql+asyncpg://",
-                1,
-            )
-        elif workspace_db_url.startswith("sqlite://"):
-            workspace_db_url = workspace_db_url.replace(
-                "sqlite://",
-                "sqlite+aiosqlite://",
-                1,
-            )
-        init_workspace_db(workspace_db_url, echo=settings.DEBUG)
-        logger.info("Workspace database initialized")
+
+            if workspace_db_url.startswith("postgresql://"):
+                workspace_db_url = workspace_db_url.replace(
+                    "postgresql://",
+                    "postgresql+asyncpg://",
+                    1,
+                )
+            elif workspace_db_url.startswith("sqlite://"):
+                workspace_db_url = workspace_db_url.replace(
+                    "sqlite://",
+                    "sqlite+aiosqlite://",
+                    1,
+                )
+            init_workspace_db(workspace_db_url, echo=settings.DEBUG)
+            logger.info("Workspace database initialized")
     except Exception as e:
-        logger.warning(f"Workspace database init failed: {e}")
+        logger.error(f"Workspace database init failed: {e}", exc_info=True)
 
     try:
         from init_verification_table import init_verification_table
