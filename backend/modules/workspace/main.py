@@ -37,15 +37,19 @@ app = FastAPI(
 # SECURITY FIX: Cannot use allow_origins=["*"] with allow_credentials=True
 # This is both insecure and incompatible with browsers
 origins = settings.cors_origins_list
+origin_regex = settings.CORS_ORIGIN_REGEX or None
 allow_credentials = True
 if "*" in origins:
+    origins = ["*"]
+    allow_credentials = False
+if not origins and not origin_regex:
     origins = ["*"]
     allow_credentials = False
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Specific origins from config
-    allow_origin_regex=settings.CORS_ORIGIN_REGEX or None,
+    allow_origin_regex=origin_regex,
     allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
