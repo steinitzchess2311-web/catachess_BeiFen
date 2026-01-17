@@ -9,11 +9,11 @@ from pathlib import Path
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Add parent directory to Python path so "workspace" package can be found
-# Structure: backend/modules/workspace/ needs backend/modules/ in path
-modules_dir = Path(__file__).parent.parent.parent.parent.resolve()
-workspace_dir = Path(__file__).parent.parent.parent.resolve()
-for path_dir in [modules_dir, workspace_dir]:
+# Add backend root and module paths so "modules.*" namespace imports resolve.
+backend_dir = Path(__file__).parent.parent.parent.parent.parent.resolve()
+modules_dir = backend_dir / "modules"
+workspace_dir = modules_dir / "workspace"
+for path_dir in [backend_dir, modules_dir, workspace_dir]:
     if str(path_dir) not in sys.path:
         sys.path.insert(0, str(path_dir))
 
