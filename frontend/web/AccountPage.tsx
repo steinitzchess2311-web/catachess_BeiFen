@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { api } from '@ui/assets/api';
 
 interface UserProfile {
   lichess_username: string;
@@ -29,11 +30,7 @@ const AccountPage: React.FC = () => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/user/profile'); // Correct API endpoint
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        const data = await response.json();
+        const data = await api.get('/user/profile');
         setProfile({
           lichess_username: data.lichess_username || '',
           chesscom_username: data.chesscom_username || '',
@@ -74,17 +71,7 @@ const AccountPage: React.FC = () => {
         ecf_rating: profile.ecf_rating ? Number(profile.ecf_rating) : null,
       };
 
-      const response = await fetch('/user/profile', { // Correct API endpoint
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileToSave),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save profile');
-      }
+      await api.put('/user/profile', profileToSave);
 
       // Optionally show a success notification
       console.log('Profile saved successfully!');
