@@ -75,9 +75,7 @@ export class ChessboardV2 {
   private render(): void {
     this.container.innerHTML = '';
     this.container.style.position = 'relative';
-    this.container.style.aspectRatio = '1 / 1';
-    this.container.style.maxWidth = '100%';
-    this.container.style.maxHeight = '100%';
+    this.container.style.width = '100%';
 
     const changePiecesButton = document.createElement('button');
     changePiecesButton.textContent = `Pieces: ${getCurrentPieceSet().name}`;
@@ -222,6 +220,8 @@ export class ChessboardV2 {
         width: 100%;
         height: 100%;
         user-select: none;
+        background-color: #b58863;
+        gap: 0;
       }
       .chessboard-v2 .square {
         position: relative;
@@ -265,40 +265,14 @@ export class ChessboardV2 {
   }
 
   private syncSquareSize(): void {
-    const parent = this.container.parentElement;
-    const target = parent || this.container;
-    const bounds = target.getBoundingClientRect();
+    const bounds = this.container.getBoundingClientRect();
+    const maxSize = Math.min(bounds.width, bounds.height) * 0.9;
+    const clampedSize = Math.min(maxSize, 560);
+    const pixelSize = Math.floor(clampedSize / 8) * 8;
 
-    let availableWidth = bounds.width;
-    let availableHeight = bounds.height;
-
-    if (parent) {
-      const styles = getComputedStyle(parent);
-      const paddingX =
-        parseFloat(styles.paddingLeft || '0') + parseFloat(styles.paddingRight || '0');
-      const paddingY =
-        parseFloat(styles.paddingTop || '0') + parseFloat(styles.paddingBottom || '0');
-      const gapValue = styles.rowGap || styles.gap || '0';
-      const gap = parseFloat(gapValue || '0') || 0;
-      const controls = parent.querySelector('.board-controls') as HTMLElement | null;
-      let controlsHeight = 0;
-      if (controls) {
-        const controlsStyles = getComputedStyle(controls);
-        const margins =
-          parseFloat(controlsStyles.marginTop || '0') +
-          parseFloat(controlsStyles.marginBottom || '0');
-        controlsHeight = controls.getBoundingClientRect().height + margins;
-      }
-
-      availableWidth = Math.max(0, availableWidth - paddingX);
-      availableHeight = Math.max(0, availableHeight - paddingY - controlsHeight - gap);
-    }
-
-    const maxSize = Math.min(availableWidth, availableHeight) * 0.9;
-    const clampedSize = Math.min(maxSize, 520);
-    if (clampedSize > 0) {
-      this.container.style.width = `${clampedSize}px`;
-      this.container.style.height = `${clampedSize}px`;
+    if (pixelSize > 0) {
+      this.boardElement.style.width = `${pixelSize}px`;
+      this.boardElement.style.height = `${pixelSize}px`;
     }
   }
 
