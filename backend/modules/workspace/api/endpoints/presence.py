@@ -17,25 +17,10 @@ from modules.workspace.domain.services.presence_service import (
     PresenceService,
     SessionNotFoundError,
 )
+from modules.workspace.api.deps import get_current_user_id, get_presence_service
 
 
 router = APIRouter(prefix="/presence", tags=["presence"])
-
-
-# Dependency injection function (to be implemented in api/deps.py)
-async def get_presence_service() -> PresenceService:
-    """Get presence service instance."""
-    # This will be implemented properly in api/deps.py
-    # For now, this is a placeholder
-    raise NotImplementedError("Presence service dependency not configured")
-
-
-# Dependency for getting current user (to be implemented in api/deps.py)
-async def get_current_user_id() -> str:
-    """Get current user ID from auth context."""
-    # This will be implemented properly in api/deps.py
-    # For now, this is a placeholder
-    raise NotImplementedError("Auth dependency not configured")
 
 
 @router.post("/heartbeat", response_model=PresenceSessionResponse)

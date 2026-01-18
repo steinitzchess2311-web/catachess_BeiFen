@@ -252,10 +252,12 @@ export async function initStudy(container: HTMLElement, studyId: string) {
 
     const updateBoardForPly = async (ply: number) => {
         if (!currentPgn || !board) return;
+        const maxPly = currentMoves.length;
+        const safePly = Math.max(0, Math.min(ply, maxPly));
         try {
             const result = await api.post('/api/games/pgn/fen', {
                 pgn: currentPgn,
-                ply,
+                ply: safePly,
             });
             const position = fenToBoardPosition(result.fen);
             board.setPosition(position);
