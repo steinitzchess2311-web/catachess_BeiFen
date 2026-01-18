@@ -76,6 +76,8 @@ export class ChessboardV2 {
     this.container.innerHTML = '';
     this.container.style.position = 'relative';
     this.container.style.aspectRatio = '1 / 1';
+    this.container.style.maxWidth = '100%';
+    this.container.style.maxHeight = '100%';
 
     const changePiecesButton = document.createElement('button');
     changePiecesButton.textContent = `Pieces: ${getCurrentPieceSet().name}`;
@@ -292,10 +294,11 @@ export class ChessboardV2 {
       availableHeight = Math.max(0, availableHeight - paddingY - controlsHeight - gap);
     }
 
-    const maxSize = Math.min(availableWidth, availableHeight);
-    if (maxSize > 0) {
-      this.container.style.width = `${maxSize}px`;
-      this.container.style.height = `${maxSize}px`;
+    const maxSize = Math.min(availableWidth, availableHeight) * 0.9;
+    const clampedSize = Math.min(maxSize, 520);
+    if (clampedSize > 0) {
+      this.container.style.width = `${clampedSize}px`;
+      this.container.style.height = `${clampedSize}px`;
     }
   }
 
