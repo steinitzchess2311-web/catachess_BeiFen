@@ -29,6 +29,8 @@ export class ChessboardV2 {
   private options: Required<ChessboardOptions>;
   private state: ChessboardState;
   private handleClickBound: ((event: MouseEvent) => void) | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private resizeHandler: (() => void) | null = null;
 
   constructor(container: HTMLElement, options: ChessboardOptions = {}) {
     this.container = container;
@@ -67,13 +69,13 @@ export class ChessboardV2 {
     this.render();
     this.applyStyles();
     this.setupEventListeners();
+    this.setupResizeHandling();
   }
 
   private render(): void {
     this.container.innerHTML = '';
     this.container.style.position = 'relative';
-    this.container.style.width = '100%';
-    this.container.style.aspectRatio = '1';
+    this.container.style.aspectRatio = '1 / 1';
 
     const changePiecesButton = document.createElement('button');
     changePiecesButton.textContent = `Pieces: ${getCurrentPieceSet().name}`;
@@ -95,6 +97,7 @@ export class ChessboardV2 {
       }
     }
     this.container.appendChild(this.boardElement);
+    this.syncSquareSize();
   }
 
   private createSquareElement(square: Square): HTMLElement {
@@ -119,6 +122,7 @@ export class ChessboardV2 {
     const pieceElement = document.createElement('img');
     pieceElement.className = `piece ${piece.color} ${piece.type}`;
     pieceElement.src = getPieceImageUrl(piece);
+    pieceElement.draggable = false;
     pieceElement.dataset.color = piece.color;
     pieceElement.dataset.type = piece.type;
     pieceElement.dataset.square = squareToAlgebraic(square);
@@ -131,6 +135,9 @@ export class ChessboardV2 {
   private setupEventListeners(): void {
     this.handleClickBound = this.handleSquareClick.bind(this);
     this.boardElement.addEventListener('click', this.handleClickBound);
+    this.boardElement.addEventListener('dragstart', (event) => {
+      event.preventDefault();
+    });
   }
 
   private async handleSquareClick(event: MouseEvent): Promise<void> {
@@ -212,6 +219,7 @@ export class ChessboardV2 {
         height: 100%;
         object-fit: contain;
         cursor: default;
+        -webkit-user-drag: none;
       }
       .change-pieces-btn {
         position: absolute;
@@ -221,6 +229,32 @@ export class ChessboardV2 {
       }
     `;
     document.head.appendChild(style);
+  }
+
+  private setupResizeHandling(): void {
+    const target = this.container.parentElement || this.container;
+    this.syncSquareSize();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.syncSquareSize();
+      });
+      this.resizeObserver.observe(target);
+      return;
+    }
+
+    this.resizeHandler = () => this.syncSquareSize();
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  private syncSquareSize(): void {
+    const target = this.container.parentElement || this.container;
+    const bounds = target.getBoundingClientRect();
+    const maxSize = Math.min(bounds.width, bounds.height);
+    if (maxSize > 0) {
+      this.container.style.width = `${maxSize}px`;
+      this.container.style.height = `${maxSize}px`;
+    }
   }
 
   public flip(): void {
@@ -245,6 +279,14 @@ export class ChessboardV2 {
   public destroy(): void {
     if (this.handleClickBound) {
       this.boardElement.removeEventListener('click', this.handleClickBound);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = null;
     }
     this.container.innerHTML = '';
   }

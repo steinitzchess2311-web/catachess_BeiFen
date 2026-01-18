@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
       </nav>
       <div className="header-right">
         {username ? (
-          <span className="username">{username}</span>
+          <Link to="/account" className="username">{username}</Link>
         ) : (
           <Link to="/login" className="nav-link">Login</Link>
         )}

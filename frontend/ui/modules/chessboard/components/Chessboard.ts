@@ -201,6 +201,7 @@ export class Chessboard {
     const pieceElement = document.createElement('img');
     pieceElement.className = `piece ${piece.color} ${piece.type}`;
     pieceElement.src = getPieceImageUrl(piece);
+    pieceElement.draggable = false;
     
     // Accessibility
     pieceElement.alt = `${piece.color} ${piece.type}`;
@@ -257,6 +258,10 @@ export class Chessboard {
       onSquareClick: this.options.onSquareClick,
       makeMove: this.makeMove.bind(this),
       showLegalMoves: () => this.options.showLegalMoves,
+    });
+
+    this.boardElement.addEventListener('dragstart', (event) => {
+      event.preventDefault();
     });
   }
 
@@ -469,6 +474,7 @@ export class Chessboard {
         user-select: none;
         pointer-events: auto;
         transition: opacity 0.1s;
+        -webkit-user-drag: none;
       }
 
       .rank-label, .file-label {

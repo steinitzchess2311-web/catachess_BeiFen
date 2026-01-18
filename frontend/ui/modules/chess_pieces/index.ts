@@ -16,7 +16,7 @@ export const pieceSets: PieceSet[] = [
 
 let currentSetIndex = 0;
 
-const assetsBase = '/assets/pieces';
+const assetsBase = `${import.meta.env.BASE_URL || '/'}assets/pieces`;
 
 const pieceImageUrls: Record<string, Record<string, string>> = {
   normal: {

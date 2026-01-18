@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -13,14 +12,19 @@ import {
   CircularProgress
 } from '@mui/material';
 
-// Mock user data, in a real app this would come from an auth context or API call
-const currentUser = {
-  email: 'user@example.com',
-  username: 'catadragon',
-};
+interface UserProfile {
+  lichess_username: string;
+  chesscom_username: string;
+  fide_rating: string | number;
+  cfc_rating: string | number;
+  ecf_rating: string | number;
+  chinese_athlete_title: string;
+  fide_title: string;
+  self_intro: string;
+}
 
-const AccountPage = () => {
-  const [profile, setProfile] = useState({
+const AccountPage: React.FC = () => {
+  const [profile, setProfile] = useState<UserProfile>({
     lichess_username: '',
     chesscom_username: '',
     fide_rating: '',
@@ -63,7 +67,7 @@ const AccountPage = () => {
     fetchProfile();
   }, []);
 
-  const handleChange = (event) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     setProfile(prevProfile => ({
       ...prevProfile,
@@ -74,12 +78,20 @@ const AccountPage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Convert rating fields to numbers before saving, if they are not empty
+      const profileToSave = {
+        ...profile,
+        fide_rating: profile.fide_rating ? Number(profile.fide_rating) : null,
+        cfc_rating: profile.cfc_rating ? Number(profile.cfc_rating) : null,
+        ecf_rating: profile.ecf_rating ? Number(profile.ecf_rating) : null,
+      };
+
       const response = await fetch('/user/profile', { // Correct API endpoint
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(profileToSave),
       });
 
       if (!response.ok) {
@@ -108,14 +120,8 @@ const AccountPage = () => {
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Card sx={{ borderRadius: 3, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Account Profile
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            {currentUser.email}
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
-            Username: {currentUser.username}
+          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
+            Edit Your Profile
           </Typography>
 
           <Grid container spacing={3}>

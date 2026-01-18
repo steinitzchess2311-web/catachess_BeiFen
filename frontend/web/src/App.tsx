@@ -25,6 +25,7 @@ import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/Header";
 import AboutPage from "./components/AboutPage";
+import AccountPage from "../AccountPage";
 
 const TOKEN_KEY = "catachess_token";
 const USER_ID_KEY = "catachess_user_id";
@@ -281,6 +282,14 @@ function Layout() {
             element={
               <Protected>
                 <WorkspacePage />
+              </Protected>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <Protected>
+                <AccountPage />
               </Protected>
             }
           />
