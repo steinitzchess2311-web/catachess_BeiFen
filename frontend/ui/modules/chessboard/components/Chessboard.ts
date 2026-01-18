@@ -27,6 +27,7 @@ import {
   getCurrentPieceSet,
 } from '../../chess_pieces';
 import { chessAPI } from '../utils/api';
+import { ClickToMoveController } from './ClickToMoveController';
 import { PieceDragger } from './PieceDragger';
 import { GameStorage, GameStorageOptions } from '../storage';
 
@@ -39,6 +40,7 @@ export class Chessboard {
   private options: Required<ChessboardOptions>;
   private state: ChessboardState;
   private pieceDragger: PieceDragger | null = null;
+  private clickToMove: ClickToMoveController | null = null;
   private storage: GameStorage | null = null;
   private unsubscribers: (() => void)[] = [];
 
@@ -306,28 +308,21 @@ export class Chessboard {
   private setupEventListeners(): void {
     if (!this.options.selectable) return;
 
-    // Square click handler for click-to-move
-    this.boardElement.addEventListener('click', this.handleSquareClick.bind(this));
-  }
-
-  /**
-   * Handle square click (for click-to-move)
-   */
-  private handleSquareClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    const squareElement = target.closest('.square') as HTMLElement;
-
-    if (!squareElement) return;
-
-    const file = parseInt(squareElement.dataset.file || '0');
-    const rank = parseInt(squareElement.dataset.rank || '0');
-    const square: Square = { file, rank };
-
-    // Call callback
-    this.options.onSquareClick(square);
-
-    // Handle piece selection
-    this.handlePieceSelection(square);
+    this.clickToMove = new ClickToMoveController({
+      boardElement: this.boardElement,
+      getPosition: () => this.state.position,
+      getSelectedSquare: () => this.state.selectedSquare,
+      getLegalMoves: () => this.state.legalMoves,
+      setSelection: (selectedSquare, legalMoves) => {
+        this.state.selectedSquare = selectedSquare;
+        this.state.legalMoves = legalMoves;
+        this.updateSelectionUI();
+      },
+      onPieceSelect: this.options.onPieceSelect,
+      onSquareClick: this.options.onSquareClick,
+      makeMove: this.makeMove.bind(this),
+      showLegalMoves: () => this.options.showLegalMoves,
+    });
   }
 
   private getSquareElement(square: Square): HTMLElement | null {
@@ -402,42 +397,6 @@ export class Chessboard {
     }
   }
 
-  /**
-   * Handle piece selection (click-to-move mode)
-   */
-  private async handlePieceSelection(square: Square): Promise<void> {
-    const piece = this.state.position.squares[square.rank][square.file];
-
-    // If clicking on own piece, select it
-    if (piece && piece.color === this.state.position.turn) {
-      this.state.selectedSquare = square;
-
-      // Get legal moves for this piece from backend
-      this.state.legalMoves = await chessAPI.getLegalMoves(this.state.position, square);
-
-      this.options.onPieceSelect(square, piece);
-      this.updateSelectionUI(); // <-- Replaced render()
-      return;
-    }
-
-    // If a piece is selected, try to move to clicked square
-    if (this.state.selectedSquare) {
-      const move: Move = {
-        from: this.state.selectedSquare,
-        to: square,
-      };
-
-      const success = await this.makeMove(move);
-
-      // Clear selection
-      this.state.selectedSquare = null;
-      this.state.legalMoves = [];
-      
-      if(success) {
-        this.updateSelectionUI();
-      }
-    }
-  }
 
   /**
    * Make a move (validates via backend)
@@ -736,6 +695,9 @@ export class Chessboard {
   public destroy(): void {
     if (this.pieceDragger) {
       this.pieceDragger.destroy();
+    }
+    if (this.clickToMove) {
+      this.clickToMove.destroy();
     }
     this.unsubscribers.forEach((unsub) => unsub());
     this.container.innerHTML = '';
