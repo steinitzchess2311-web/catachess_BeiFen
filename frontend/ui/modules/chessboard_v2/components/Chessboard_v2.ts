@@ -15,6 +15,7 @@ import type {
 import {
   createInitialPosition,
   squareToAlgebraic,
+  squaresEqual,
 } from '../../chessboard/types';
 import {
   getPieceImageUrl,
@@ -76,6 +77,13 @@ export class ChessboardV2 {
     this.container.innerHTML = '';
     this.container.style.position = 'relative';
     this.container.style.width = '100%';
+    this.container.style.height = '100%';
+    this.container.style.display = 'flex';
+    this.container.style.flexDirection = 'column';
+    this.container.style.alignItems = 'center';
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'pieces-toolbar';
 
     const changePiecesButton = document.createElement('button');
     changePiecesButton.textContent = `Pieces: ${getCurrentPieceSet().name}`;
@@ -84,7 +92,8 @@ export class ChessboardV2 {
       nextPieceSet();
       this.render();
     });
-    this.container.appendChild(changePiecesButton);
+    toolbar.appendChild(changePiecesButton);
+    this.container.appendChild(toolbar);
 
     this.boardElement.className = 'chessboard-v2';
     this.boardElement.innerHTML = '';
@@ -113,6 +122,10 @@ export class ChessboardV2 {
     if (piece) {
       const pieceElement = this.createPieceElement(piece, square);
       squareElement.appendChild(pieceElement);
+    }
+
+    if (this.state.selectedSquare && squaresEqual(this.state.selectedSquare, square)) {
+      squareElement.classList.add('selected');
     }
 
     return squareElement;
@@ -168,6 +181,7 @@ export class ChessboardV2 {
 
     if (piece && piece.color === this.state.position.turn) {
       this.state.selectedSquare = square;
+      this.render();
       this.state.legalMoves = await chessAPI.getLegalMoves(this.state.position, square);
       this.options.onPieceSelect(square, piece);
       return;
@@ -226,6 +240,9 @@ export class ChessboardV2 {
       .chessboard-v2 .square {
         position: relative;
       }
+      .chessboard-v2 .square.selected {
+        box-shadow: inset 0 0 0 3px #173a7a;
+      }
       .chessboard-v2 .square.light { background-color: #f0d9b5; }
       .chessboard-v2 .square.dark { background-color: #b58863; }
       .chessboard-v2 .piece {
@@ -238,11 +255,23 @@ export class ChessboardV2 {
         pointer-events: none;
         touch-action: none;
       }
+      .pieces-toolbar {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+      }
       .change-pieces-btn {
-        position: absolute;
-        top: -30px;
-        right: 0;
-        z-index: 10;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        background: #f8f6f2;
+        color: #3a2f26;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .change-pieces-btn:hover {
+        background: #efeae1;
       }
     `;
     document.head.appendChild(style);
@@ -266,8 +295,15 @@ export class ChessboardV2 {
 
   private syncSquareSize(): void {
     const bounds = this.container.getBoundingClientRect();
-    const maxSize = Math.min(bounds.width, bounds.height) * 0.9;
-    const clampedSize = Math.min(maxSize, 560);
+    const toolbar = this.container.querySelector('.pieces-toolbar') as HTMLElement | null;
+    const toolbarHeight = toolbar ? toolbar.getBoundingClientRect().height : 0;
+    const styles = getComputedStyle(this.container);
+    const gapValue = styles.rowGap || styles.gap || '0';
+    const gap = parseFloat(gapValue || '0') || 0;
+    const availableHeight = Math.max(0, bounds.height - toolbarHeight - gap);
+
+    const maxSize = Math.min(bounds.width, availableHeight) * 0.82;
+    const clampedSize = Math.min(maxSize, 520);
     const pixelSize = Math.floor(clampedSize / 8) * 8;
 
     if (pixelSize > 0) {

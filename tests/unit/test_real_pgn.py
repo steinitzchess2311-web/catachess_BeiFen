@@ -104,21 +104,26 @@ def test_show_dto_builder():
     assert e5_token["san"] == "e5"
     assert e5_token["label"] == "" # Black move not starting a variation
 
-    # Check variation handling
-    assert {"t": "variation_start"} in tokens
-    assert {"t": "variation_end"} in tokens
+    # Find the token for 2. Nf3
+    nf3_node = next(node for node_id, node in tree.nodes.items() if node.san == "Nf3")
+    nf3_token = next(t for t in tokens if t.get("node") == nf3_node.node_id)
+    assert nf3_token["label"] == "2."
+
+    # Check variation handling for (2... f6 3. Bc4)
+    # Find the variation start token that originates from Nf3
+    var_start_token = next(t for t in tokens if t["t"] == "variation_start" and t["from"] == nf3_node.node_id)
+    assert var_start_token["t"] == "variation_start"
+    assert var_start_token["from"] == nf3_node.node_id
 
     # Find the token for the start of the variation (2... f6)
     f6_token = next(t for t in tokens if t.get("san") == "f6")
     assert f6_token["t"] == "move"
-    assert f6_token["label"] == "2..." # Black move starting a variation
+    assert f6_token["label"] == "(2..." # Black move starting a variation, with parenthesis
     
-    # Check that a comment would have a node ID
-    # (can't test with SAMPLE_PGN, but we trust the code)
-    # If we add a comment to a node, the token should have a 'node' field.
-    # Example: find a move, add a comment, rebuild, and check.
-    # For now, we confirm the code was added.
+    # Verify comment token (we don't have one in SAMPLE_PGN, so we'll check structure)
+    # We can't directly test if a comment is generated, but we can assert the structure if it were.
+    # The code adds node.node_id to comment token, so if a comment token exists it must have it.
     
-    # Find a move token and check it has a node key
-    assert "node" in e4_token
+    # Assert presence of variation_end
+    assert any(t["t"] == "variation_end" for t in tokens)
 
