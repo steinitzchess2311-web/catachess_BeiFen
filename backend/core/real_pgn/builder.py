@@ -29,23 +29,28 @@ def build_pgn(tree: NodeTree) -> str:
     # 2. Movetext
     movetext = ""
     if tree.root_id:
-        movetext = _build_movetext_recursive(tree, tree.root_id)
+        movetext = _build_movetext_recursive(tree, tree.root_id, is_variation_start=False)
 
-    lines.append(movetext)
-    
-    # 3. Result
+    # Append the result at the end of the movetext
     if tree.meta.result:
-        if not movetext.endswith(tree.meta.result):
-             lines.append(f" {tree.meta.result}")
+        movetext += f" {tree.meta.result}"
+    
+    lines.append(movetext)
     
     return "\n".join(lines)
 
-def _build_movetext_recursive(tree: NodeTree, node_id: str) -> str:
+def _build_movetext_recursive(tree: NodeTree, node_id: str, is_variation_start: bool) -> str:
     """
     Recursively builds the movetext for a given node and its children.
     """
     node = tree.nodes.get(node_id)
     if not node:
+        return ""
+
+    # Skip printing the root node itself, just start with its main line
+    if node.san == "<root>":
+        if node.variations:
+            return _build_movetext_recursive(tree, node.variations[0], is_variation_start=False)
         return ""
 
     parts = []
@@ -54,10 +59,11 @@ def _build_movetext_recursive(tree: NodeTree, node_id: str) -> str:
     if node.comment_before:
         parts.append(f"{{{node.comment_before}}} ")
 
-    # Move number for white or first move for black
-    if node.ply % 2 == 1:
+    # Move number logic
+    is_black_move = node.ply % 2 == 0
+    if node.ply % 2 == 1:  # White's move
         parts.append(f"{node.move_number}. ")
-    elif node.ply == 0: # Black's first move from a FEN setup
+    elif is_variation_start:  # Black's move starting a variation
         parts.append(f"{node.move_number}... ")
 
     parts.append(node.san)
@@ -69,13 +75,14 @@ def _build_movetext_recursive(tree: NodeTree, node_id: str) -> str:
     # Comment after move
     if node.comment_after:
         parts.append(f" {{{node.comment_after}}}")
+    
+    # Side variations are rendered after the move they are alternatives to.
+    if len(node.variations) > 1:
+        for var_node_id in node.variations[1:]:
+            parts.append(f" ({_build_movetext_recursive(tree, var_node_id, is_variation_start=True)})")
 
-    # Main child (next move in the main line)
-    if node.main_child:
-        parts.append(" " + _build_movetext_recursive(tree, node.main_child))
-
-    # Variations
-    for var_node_id in node.variations:
-        parts.append(f" ( {_build_movetext_recursive(tree, var_node_id)} )")
+    # Main line continues after the current move and its side variations.
+    if node.variations:
+        parts.append(" " + _build_movetext_recursive(tree, node.variations[0], is_variation_start=False))
 
     return "".join(parts)

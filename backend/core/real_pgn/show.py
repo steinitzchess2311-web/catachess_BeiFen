@@ -25,15 +25,18 @@ def build_show(tree: NodeTree) -> Dict[str, Any]:
         "render_tokens": render_tokens
     }
 
-def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str, Any]], is_mainline: bool):
+    def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str, Any]], is_mainline: bool):
     """
     Recursively builds the render token stream.
     """
     node = tree.nodes.get(node_id)
-    if not node or node.san == "<root>":
-        # Start recursion from the first actual move
-        if node and node.main_child:
-            _build_tokens_recursive(tree, node.main_child, tokens, is_mainline=True)
+    if not node:
+        return
+
+    # Skip printing the root node itself, just start with its main line
+    if node.san == "<root>":
+        if node.variations:
+            _build_tokens_recursive(tree, node.variations[0], tokens, is_mainline=True)
         return
 
     # Add move token
@@ -43,14 +46,13 @@ def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str,
     if node.comment_after:
         tokens.append({"type": "comment", "text": node.comment_after})
 
-    # Variations
-    if node.variations:
-        for i, var_node_id in enumerate(node.variations):
+    # Process side variations first
+    if len(node.variations) > 1:
+        for var_node_id in node.variations[1:]:
             tokens.append({"type": "variation_start"})
             _build_tokens_recursive(tree, var_node_id, tokens, is_mainline=False)
             tokens.append({"type": "variation_end"})
     
-    # Continue with the mainline
-    if node.main_child:
-        _build_tokens_recursive(tree, node.main_child, tokens, is_mainline)
-
+    # Then continue with the main line
+    if node.variations:
+        _build_tokens_recursive(tree, node.variations[0], tokens, is_mainline)

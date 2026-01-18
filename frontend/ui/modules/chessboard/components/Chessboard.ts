@@ -204,7 +204,8 @@ export class Chessboard {
     pieceElement.draggable = false;
     
     // Accessibility
-    pieceElement.alt = `${piece.color} ${piece.type}`;
+    pieceElement.alt = '';
+    pieceElement.setAttribute('aria-label', `${piece.color} ${piece.type}`);
     
     // Set data attributes
     pieceElement.dataset.color = piece.color;
@@ -262,6 +263,13 @@ export class Chessboard {
 
     this.boardElement.addEventListener('dragstart', (event) => {
       event.preventDefault();
+    });
+
+    this.boardElement.addEventListener('pointerdown', (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.piece')) {
+        event.preventDefault();
+      }
     });
   }
 

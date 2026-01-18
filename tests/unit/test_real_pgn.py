@@ -31,15 +31,15 @@ def test_parse_and_build_cycle():
     assert len(tree.nodes) > 5 # root + 5 moves + 1 variation move
 
     # Find specific nodes to check relationships
-    e4_node = tree.nodes[tree.nodes[tree.root_id].main_child]
+    e4_node = tree.nodes[tree.nodes[tree.root_id].variations[0]]
     assert e4_node.san == "e4"
     
-    e5_node = tree.nodes[e4_node.main_child]
+    e5_node = tree.nodes[e4_node.variations[0]]
     assert e5_node.san == "e5"
 
-    nf3_node = tree.nodes[e5_node.main_child]
+    nf3_node = tree.nodes[e5_node.variations[0]]
     assert nf3_node.san == "Nf3"
-    assert len(nf3_node.variations) == 1
+    assert len(nf3_node.variations) == 2 # Nc6 and f6
 
     # 2. Build the PGN back
     rebuilt_pgn = build_pgn(tree)
@@ -60,16 +60,16 @@ def test_fen_indexer():
     
     assert len(fen_index) == len(tree.nodes)
     
-    # Get FEN for a specific position (after 2. Nf3)
-    e5_node = tree.nodes[tree.nodes[tree.nodes[tree.root_id].main_child].main_child]
-    nf3_node_id = e5_node.main_child
+    # Get FEN for a specific position (after 3. Bb5)
+    root_node = tree.nodes[tree.root_id]
+    e4_node = tree.nodes[root_node.variations[0]]
+    e5_node = tree.nodes[e4_node.variations[0]]
+    nf3_node = tree.nodes[e5_node.variations[0]]
+    nc6_node = tree.nodes[nf3_node.variations[0]]
+    bb5_node_id = nc6_node.variations[0] # This is 3. Bb5
     
-    expected_fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4"
-    # This is fen after 3.Bb5, let's find that node
-    bb5_node_id = tree.nodes[nf3_node_id].main_child
-    
+    expected_fen = "r1bqkbnr/1ppp1ppp/p1n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"
     assert fen_index[bb5_node_id] == expected_fen
-
 def test_show_dto_builder():
     """
     Tests the build_show function.

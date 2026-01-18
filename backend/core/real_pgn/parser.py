@@ -60,9 +60,10 @@ def _traverse_and_build(game_node: chess.pgn.GameNode, parent_pgn_node: PgnNode,
     and build our custom NodeTree.
     """
     
-    # Mainline move
-    if not game_node.is_end():
-        next_game_node = game_node.variation(0)
+    # All variations from the current node
+    for i, next_game_node in enumerate(game_node.variations):
+        # Apply move and create node
+        san = board.san(next_game_node.move)
         board.push(next_game_node.move)
         
         node_id = str(ULID())
@@ -71,7 +72,7 @@ def _traverse_and_build(game_node: chess.pgn.GameNode, parent_pgn_node: PgnNode,
         pgn_node = PgnNode(
             node_id=node_id,
             parent_id=parent_pgn_node.node_id,
-            san=board.san(next_game_node.move),
+            san=san,
             uci=next_game_node.move.uci(),
             ply=board.ply(),
             move_number=move_number,
@@ -81,41 +82,13 @@ def _traverse_and_build(game_node: chess.pgn.GameNode, parent_pgn_node: PgnNode,
             fen=board.fen()
         )
         
-        parent_pgn_node.main_child = node_id
+        parent_pgn_node.variations.append(node_id)
         tree.nodes[node_id] = pgn_node
         
-        # Recurse for the next move in the mainline
+        # Recurse for the next move
         _traverse_and_build(next_game_node, pgn_node, tree, board)
         
-        # Pop the move to backtrack for variations
+        # Pop the move to backtrack
         board.pop()
 
-    # Variations
-    for i in range(1, game_node.num_variations):
-        variation_node = game_node.variation(i)
-        board.push(variation_node.move)
-        
-        var_node_id = str(ULID())
-        move_number = (board.ply() + 1) // 2
-
-        var_pgn_node = PgnNode(
-            node_id=var_node_id,
-            parent_id=parent_pgn_node.node_id,
-            san=board.san(variation_node.move),
-            uci=variation_node.move.uci(),
-            ply=board.ply(),
-            move_number=move_number,
-            comment_before=game_node.comment, # Variation comment is on parent
-            comment_after=variation_node.comment,
-            nags=[int(nag) for nag in variation_node.nags],
-            fen=board.fen()
-        )
-        
-        parent_pgn_node.variations.append(var_node_id)
-        tree.nodes[var_node_id] = var_pgn_node
-
-        # Recurse for the variation
-        _traverse_and_build(variation_node, var_pgn_node, tree, board)
-        
-        board.pop()
 

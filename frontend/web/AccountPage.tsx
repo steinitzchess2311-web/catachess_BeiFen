@@ -1,16 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Container,
-  Grid,
-  TextField,
-  Typography,
-  CircularProgress
-} from '@mui/material';
+import React, { useEffect, useState } from 'react';
 
 interface UserProfile {
   lichess_username: string;
@@ -110,138 +98,132 @@ const AccountPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-        <CircularProgress />
-      </Container>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 64 }}>
+        Loading...
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Card sx={{ borderRadius: 3, boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
-            Edit Your Profile
-          </Typography>
+    <div style={{ margin: '32px auto', maxWidth: 900, padding: '0 16px' }}>
+      <div
+        style={{
+          borderRadius: 12,
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+          background: '#ffffff',
+          padding: 24,
+        }}
+      >
+        <h1 style={{ margin: '0 0 24px', fontSize: 28 }}>Edit Your Profile</h1>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Lichess Username"
-                name="lichess_username"
-                value={profile.lichess_username}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Chess.com Username"
-                name="chesscom_username"
-                value={profile.chesscom_username}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4} md={3}>
-              <TextField
-                fullWidth
-                label="FIDE Rating"
-                name="fide_rating"
-                type="number"
-                value={profile.fide_rating}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4} md={3}>
-              <TextField
-                fullWidth
-                label="CFC Rating"
-                name="cfc_rating"
-                type="number"
-                value={profile.cfc_rating}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} sm={4} md={3}>
-              <TextField
-                fullWidth
-                label="ECF Rating"
-                name="ecf_rating"
-                type="number"
-                value={profile.ecf_rating}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
-             <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label="FIDE Title"
-                name="fide_title"
-                value={profile.fide_title}
-                onChange={handleChange}
-                variant="outlined"
-                helperText="e.g., GM, IM, FM"
-              />
-            </Grid>
-             <Grid item xs={12} sm={6} md={6}>
-              <TextField
-                fullWidth
-                label="Chinese Athlete Title"
-                name="chinese_athlete_title"
-                value={profile.chinese_athlete_title}
-                onChange={handleChange}
-                variant="outlined"
-              />
-            </Grid>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 16,
+          }}
+        >
+          <label>
+            Lichess Username
+            <input
+              name="lichess_username"
+              value={profile.lichess_username}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            Chess.com Username
+            <input
+              name="chesscom_username"
+              value={profile.chesscom_username}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            FIDE Rating
+            <input
+              name="fide_rating"
+              type="number"
+              value={profile.fide_rating}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            CFC Rating
+            <input
+              name="cfc_rating"
+              type="number"
+              value={profile.cfc_rating}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            ECF Rating
+            <input
+              name="ecf_rating"
+              type="number"
+              value={profile.ecf_rating}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            FIDE Title
+            <input
+              name="fide_title"
+              value={profile.fide_title}
+              onChange={handleChange}
+              placeholder="e.g., GM, IM, FM"
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label>
+            Chinese Athlete Title
+            <input
+              name="chinese_athlete_title"
+              value={profile.chinese_athlete_title}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+          </label>
+          <label style={{ gridColumn: '1 / -1' }}>
+            Self Introduction
+            <textarea
+              name="self_intro"
+              rows={4}
+              value={profile.self_intro}
+              onChange={handleChange}
+              style={{ width: '100%', marginTop: 6 }}
+            />
+            <div style={{ fontSize: 12, color: '#666' }}>
+              A brief introduction about yourself.
+            </div>
+          </label>
+        </div>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Self Introduction"
-                name="self_intro"
-                multiline
-                rows={4}
-                value={profile.self_intro}
-                onChange={handleChange}
-                variant="outlined"
-                helperText="A brief introduction about yourself."
-              />
-            </Grid>
-          </Grid>
-        </CardContent>
-        <CardActions sx={{ justifyContent: 'flex-end', p: 2, pr: 4, pb: 3 }}>
-          <Box sx={{ position: 'relative' }}>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={saving}
-              onClick={handleSave}
-              size="large"
-            >
-              Save Changes
-            </Button>
-            {saving && (
-              <CircularProgress
-                size={24}
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  marginTop: '-12px',
-                  marginLeft: '-12px',
-                }}
-              />
-            )}
-          </Box>
-        </CardActions>
-      </Card>
-    </Container>
+        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 8,
+              border: 'none',
+              background: '#2f6fed',
+              color: '#fff',
+              cursor: saving ? 'default' : 'pointer',
+            }}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

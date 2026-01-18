@@ -11,17 +11,17 @@ import type {
   Piece,
   Move,
   BoardPosition,
-} from '../types'; // Assuming types are in the parent directory for now
+} from '../../chessboard/types';
 import {
   createInitialPosition,
   squareToAlgebraic,
-} from '../types';
+} from '../../chessboard/types';
 import {
   getPieceImageUrl,
   nextPieceSet,
   getCurrentPieceSet,
 } from '../../chess_pieces';
-import { chessAPI } from '../utils/api';
+import { chessAPI } from '../../chessboard/utils/api';
 
 export class ChessboardV2 {
   private container: HTMLElement;
@@ -123,6 +123,8 @@ export class ChessboardV2 {
     pieceElement.className = `piece ${piece.color} ${piece.type}`;
     pieceElement.src = getPieceImageUrl(piece);
     pieceElement.draggable = false;
+    pieceElement.alt = '';
+    pieceElement.setAttribute('aria-label', `${piece.color} ${piece.type}`);
     pieceElement.dataset.color = piece.color;
     pieceElement.dataset.type = piece.type;
     pieceElement.dataset.square = squareToAlgebraic(square);
@@ -137,6 +139,12 @@ export class ChessboardV2 {
     this.boardElement.addEventListener('click', this.handleClickBound);
     this.boardElement.addEventListener('dragstart', (event) => {
       event.preventDefault();
+    });
+    this.boardElement.addEventListener('pointerdown', (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.piece')) {
+        event.preventDefault();
+      }
     });
   }
 
