@@ -34,6 +34,30 @@ class StudyRepository:
         await self.session.flush()
         return study
 
+    async def ensure_study(
+        self,
+        study_id: str,
+        *,
+        description: str | None = None,
+        is_public: bool = False,
+        tags: str | None = None,
+    ) -> Study:
+        """Ensure a study row exists for the given node ID."""
+        study = await self.get_study_by_id(study_id)
+        if study:
+            return study
+
+        study = Study(
+            id=study_id,
+            description=description,
+            chapter_count=0,
+            is_public=is_public,
+            tags=tags,
+        )
+        self.session.add(study)
+        await self.session.flush()
+        return study
+
     async def get_study_by_id(self, study_id: str) -> Study | None:
         """Get study by ID."""
         stmt = select(Study).where(Study.id == study_id)

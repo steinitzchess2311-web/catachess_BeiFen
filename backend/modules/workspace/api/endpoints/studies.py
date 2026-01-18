@@ -49,7 +49,7 @@ from modules.workspace.domain.models.move_annotation import (
 )
 from modules.workspace.domain.models.node import CreateNodeCommand
 from modules.workspace.domain.models.study import CreateStudyCommand, ImportPGNCommand, UpdateStudyCommand
-from modules.workspace.domain.models.types import NodeType
+from modules.workspace.domain.models.types import NodeType, Visibility
 from modules.workspace.domain.models.variation import (
     AddMoveCommand,
     DeleteMoveCommand,
@@ -147,6 +147,7 @@ async def create_study(
     data: StudyCreate,
     user_id: str = Depends(get_current_user_id),
     node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
 ) -> StudyResponse:
     """
     Create a new study.
@@ -165,9 +166,12 @@ async def create_study(
 
         node = await node_service.create_node(command, actor_id=user_id)
 
-        # TODO: Create study entity in database
-        # For now, just return node info
-        # This would need study_service integration
+        await study_repo.ensure_study(
+            node.id,
+            description=data.description,
+            is_public=data.visibility == Visibility.PUBLIC,
+            tags=data.tags,
+        )
 
         return StudyResponse(
             id=node.id,
@@ -244,6 +248,7 @@ async def import_pgn_into_study(
     data: ChapterImportPGN,
     user_id: str = Depends(get_current_user_id),
     node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
     import_service: ChapterImportService = Depends(get_chapter_import_service),
 ) -> dict:
     """Import PGN content into an existing study as new chapters."""
@@ -254,6 +259,13 @@ async def import_pgn_into_study(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Node is not a study",
             )
+
+        await study_repo.ensure_study(
+            study_id,
+            description=None,
+            is_public=node.visibility == Visibility.PUBLIC,
+            tags=None,
+        )
 
         added = await import_service.import_pgn_into_study(
             study_id, data.pgn_content, actor_id=user_id
@@ -289,12 +301,12 @@ async def get_study(
             )
 
         # Get study entity
-        study = await study_repo.get_study_by_id(study_id)
-        if not study:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Study {study_id} not found"
-            )
+        study = await study_repo.ensure_study(
+            study_id,
+            description=None,
+            is_public=node.visibility == Visibility.PUBLIC,
+            tags=None,
+        )
 
         # Get chapters for study
         chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)

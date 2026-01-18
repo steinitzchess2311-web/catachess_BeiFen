@@ -4,7 +4,11 @@ Node endpoints.
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from modules.workspace.api.deps import get_current_user_id, get_node_service
+from modules.workspace.api.deps import (
+    get_current_user_id,
+    get_node_service,
+    get_study_repository,
+)
 from modules.workspace.api.schemas.node import (
     NodeCreate,
     NodeListResponse,
@@ -25,6 +29,8 @@ from modules.workspace.domain.services.node_service import (
     OptimisticLockError,
     PermissionDeniedError,
 )
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.domain.models.types import NodeType, Visibility
 
 router = APIRouter(prefix="/nodes", tags=["nodes"])
 
@@ -57,6 +63,7 @@ async def create_node(
     data: NodeCreate,
     user_id: str = Depends(get_current_user_id),
     node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
 ) -> NodeResponse:
     """Create a new node."""
     try:
@@ -71,6 +78,13 @@ async def create_node(
         )
 
         node = await node_service.create_node(command, actor_id=user_id)
+        if node.node_type == NodeType.STUDY:
+            await study_repo.ensure_study(
+                node.id,
+                description=data.description,
+                is_public=data.visibility == Visibility.PUBLIC,
+                tags=None,
+            )
         return NodeResponse.model_validate(node)
 
     except NodeNotFoundError as e:
