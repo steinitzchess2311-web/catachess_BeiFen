@@ -2,6 +2,7 @@
     display: grid;
     grid-template-columns: 240px 1fr 320px;
     height: 100vh;
+    min-height: 100vh;
     background-color: var(--bg-app);
     font-family: var(--font-family);
     overflow: hidden;
@@ -13,6 +14,7 @@
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    min-height: 0;
 }
 
 .study-right-panel {
@@ -42,6 +44,7 @@
 .chapter-list {
     flex: 1;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .chapter-empty {
@@ -81,11 +84,13 @@
     justify-content: center;
     padding: var(--space-lg);
     background-color: var(--bg-app);
+    min-height: 0;
 }
 
 .board-mount {
     width: 100%;
     max-width: 600px;
+    min-height: 320px;
     aspect-ratio: 1 / 1;
     background-color: var(--bg-secondary);
     box-shadow: var(--shadow-2);
@@ -128,6 +133,7 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--space-md);
+    min-height: 0;
 }
 
 .tab-content.active {
@@ -139,6 +145,24 @@
 .move-tree {
     font-size: var(--font-sm);
     line-height: 1.6;
+}
+
+.pgn-comment {
+    margin-top: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+#pgn-comment-input {
+    width: 100%;
+    min-height: 70px;
+    padding: var(--space-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family);
+    font-size: var(--font-sm);
+    resize: vertical;
 }
 
 .move-tree-empty,

@@ -241,6 +241,7 @@ async def import_pgn(
 
 @router.post(
     "/{study_id}/chapters/import-pgn",
+    response_model=ImportResultResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def import_pgn_into_study(
@@ -250,7 +251,7 @@ async def import_pgn_into_study(
     node_service: NodeService = Depends(get_node_service),
     study_repo: StudyRepository = Depends(get_study_repository),
     import_service: ChapterImportService = Depends(get_chapter_import_service),
-) -> dict:
+) -> ImportResultResponse:
     """Import PGN content into an existing study as new chapters."""
     try:
         node = await node_service.get_node(study_id, actor_id=user_id)
@@ -267,10 +268,16 @@ async def import_pgn_into_study(
             tags=None,
         )
 
-        added = await import_service.import_pgn_into_study(
+        result = await import_service.import_pgn_into_study(
             study_id, data.pgn_content, actor_id=user_id
         )
-        return {"added": added}
+        return ImportResultResponse(
+            total_chapters=result.total_chapters,
+            studies_created=result.studies_created,
+            folder_id=result.folder_id,
+            was_split=result.was_split,
+            single_study=result.single_study,
+        )
 
     except NodeNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

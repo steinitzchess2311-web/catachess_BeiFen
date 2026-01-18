@@ -45,9 +45,9 @@ export function initDiscussion(container: HTMLElement, options: { targetType: st
             await api.post('/api/v1/workspace/discussions', {
                 target_type: targetType,
                 target_id: targetId,
-                title: 'Comment', // Required by schema
+                title: 'Note',
                 content: content,
-                thread_type: 'comment'
+                thread_type: 'note'
             });
             input.value = '';
             refreshThreads();

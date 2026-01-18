@@ -17,6 +17,8 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     const discussionMount = container.querySelector('#discussion-mount') as HTMLElement;
     const addChapterBtn = container.querySelector('#add-chapter-btn') as HTMLButtonElement;
     const importPgnBtn = container.querySelector('#import-pgn-btn') as HTMLButtonElement;
+    const pgnCommentInput = container.querySelector('#pgn-comment-input') as HTMLTextAreaElement;
+    const pgnCommentBtn = container.querySelector('#pgn-comment-btn') as HTMLButtonElement;
     const tabBtns = container.querySelectorAll('.tab-btn');
     const tabContents = container.querySelectorAll('.tab-content');
 
@@ -27,6 +29,7 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     let discussion: any = null;
     let currentPgn: string | null = null;
     let chapters: any[] = [];
+    let lastMoveId: string | null = null;
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -187,21 +190,21 @@ export async function initStudy(container: HTMLElement, studyId: string) {
 
         loadChapterPgn(ch.id);
 
-        // Initialize Discussion
+        // Initialize Discussion (use study node for permissions)
         if (!discussion) {
             discussion = initDiscussion(discussionMount, {
-                targetType: 'chapter',
-                targetId: ch.id
+                targetType: 'study',
+                targetId: studyId
             });
         } else {
-            discussion.updateContext('chapter', ch.id);
+            discussion.updateContext('study', studyId);
         }
     };
 
     const handleMove = async (move: any) => {
         try {
             // POST /api/v1/workspace/studies/{id}/chapters/{id}/moves
-            await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
+            const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
                 parent_id: move.parentId,
                 san: move.san,
                 uci: move.uci,
@@ -209,8 +212,30 @@ export async function initStudy(container: HTMLElement, studyId: string) {
                 move_number: move.number,
                 color: move.color
             });
+            if (response?.id) {
+                lastMoveId = response.id;
+            }
         } catch (error) {
             console.error('Failed to save move:', error);
+        }
+    };
+
+    const addPgnComment = async () => {
+        const text = pgnCommentInput.value.trim();
+        if (!text) return;
+        if (!currentChapter || !lastMoveId) {
+            alert('Make a move first, then add a comment.');
+            return;
+        }
+        try {
+            await api.post(
+                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/${lastMoveId}/annotations`,
+                { text }
+            );
+            pgnCommentInput.value = '';
+        } catch (error) {
+            console.error('Failed to add PGN comment:', error);
+            alert('Failed to add PGN comment');
         }
     };
 
@@ -240,9 +265,14 @@ export async function initStudy(container: HTMLElement, studyId: string) {
             if (!file) return;
             try {
                 const pgnContent = await file.text();
-                await api.post(`/api/v1/workspace/studies/${studyId}/chapters/import-pgn`, {
+                const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/import-pgn`, {
                     pgn_content: pgnContent,
                 });
+                if (response?.was_split) {
+                    alert('PGN exceeded 64 chapters and was split into a new folder. Check workspace list.');
+                    window.location.assign('/workspace-select');
+                    return;
+                }
                 await loadStudyData();
             } catch (error) {
                 console.error('Failed to import PGN:', error);
@@ -265,6 +295,7 @@ export async function initStudy(container: HTMLElement, studyId: string) {
 
     addChapterBtn?.addEventListener('click', createChapter);
     importPgnBtn?.addEventListener('click', importPgn);
+    pgnCommentBtn?.addEventListener('click', addPgnComment);
 
     // Start
     loadStudyData();

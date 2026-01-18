@@ -126,18 +126,33 @@ class ChapterImportService:
 
     async def import_pgn_into_study(
         self, study_id: str, pgn_content: str, actor_id: str
-    ) -> int:
+    ) -> ImportResult:
         """
         Import PGN content into an existing study as new chapters.
 
         Returns:
-            Number of chapters added.
+            ImportResult with created studies.
         """
+        node = await self.node_repo.get_by_id(study_id, include_deleted=True)
+        if not node or node.node_type != NodeType.STUDY:
+            raise NodeNotFoundError(f"Study node {study_id} not found")
+
         normalized = normalize_pgn(pgn_content)
         detection = detect_chapters(normalized, fast=False)
         games = split_games(normalized)
 
-        # Enforce 64 chapter limit
+        if detection.requires_split:
+            command = ImportPGNCommand(
+                parent_id=node.parent_id,
+                owner_id=node.owner_id,
+                pgn_content=normalized,
+                base_title=node.title,
+                auto_split=True,
+                visibility=node.visibility,
+            )
+            return await self._import_multi_study(command, games, detection, actor_id)
+
+        # Enforce 64 chapter limit for single-study import
         existing = await self.study_repo.get_chapters_for_study(
             study_id, order_by_order=False
         )
@@ -149,7 +164,12 @@ class ChapterImportService:
             )
 
         await self._add_chapters_to_study(study_id, games, actor_id)
-        return detection.total_chapters
+        return ImportResult(
+            total_chapters=detection.total_chapters,
+            studies_created=[study_id],
+            folder_id=None,
+            was_split=False,
+        )
 
     async def _import_single_study(
         self,
