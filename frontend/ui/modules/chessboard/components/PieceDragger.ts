@@ -127,10 +127,6 @@ export class PieceDragger {
       this.state.legalSquares = legalMoves.map((move) => move.to);
     }
 
-    // Create drag element (ghost piece)
-    const dragElement = this.createDragElement(piece);
-    document.body.appendChild(dragElement);
-
     // Update state
     this.state.active = true;
     this.state.piece = piece;
@@ -138,11 +134,8 @@ export class PieceDragger {
     this.state.currentSquare = square;
     this.state.startX = e.clientX;
     this.state.startY = e.clientY;
-    this.state.dragElement = dragElement;
+    this.state.dragElement = null;
     this.state.originalElement = pieceElement;
-
-    // Position drag element at cursor
-    this.updateDragElementPosition(e.clientX, e.clientY);
 
     // Hide original piece
     pieceElement.style.opacity = '0.3';
@@ -158,11 +151,11 @@ export class PieceDragger {
    * Handle drag movement
    */
   private handleDrag(data: PointerEventData): void {
-    if (!this.state.active || !this.state.dragElement) return;
+    if (!this.state.active) return;
 
     const { position } = data;
 
-    // Update drag element position
+    // Update drag element position if present
     this.updateDragElementPosition(position.clientX, position.clientY);
 
     // Determine which square we're hovering over
@@ -256,37 +249,6 @@ export class PieceDragger {
 
     // Reset state
     this.resetState();
-  }
-
-  /**
-   * Create drag element (ghost piece)
-   */
-  private createDragElement(piece: Piece): HTMLElement {
-    const element = document.createElement('div');
-    element.className = 'piece-drag-ghost';
-    element.style.cssText = `
-      position: fixed;
-      pointer-events: none;
-      z-index: 10000;
-      font-size: 3em;
-      opacity: 0.8;
-      transform: translate(-50%, -50%);
-      user-select: none;
-    `;
-
-    // Use same piece symbol
-    const symbols: Record<string, string> = {
-      pawn: piece.color === 'white' ? '♙' : '♟',
-      knight: piece.color === 'white' ? '♘' : '♞',
-      bishop: piece.color === 'white' ? '♗' : '♝',
-      rook: piece.color === 'white' ? '♖' : '♜',
-      queen: piece.color === 'white' ? '♕' : '♛',
-      king: piece.color === 'white' ? '♔' : '♚',
-    };
-
-    element.textContent = symbols[piece.type] || '';
-
-    return element;
   }
 
   /**

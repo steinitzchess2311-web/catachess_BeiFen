@@ -577,15 +577,6 @@ export class Chessboard {
         right: 2px;
       }
 
-      .piece-drag-ghost {
-        position: fixed;
-        pointer-events: none;
-        z-index: 10000;
-        font-size: 3em;
-        opacity: 0.8;
-        transform: translate(-50%, -50%);
-        user-select: none;
-      }
     `;
     
     document.head.appendChild(style);
