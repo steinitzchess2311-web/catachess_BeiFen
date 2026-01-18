@@ -21,7 +21,7 @@ let currentSetIndex = 0;
  */
 export function getPieceImageUrl(piece: { type: string; color: string }): string {
   const set = pieceSets[currentSetIndex];
-  return `/assets/chess_pieces/${set.path}/${piece.color}_${piece.type}.svg`;
+  return `/assets/chess_pieces/${set.path}/${piece.color}_${piece.type}.png`;
 }
 
 /**

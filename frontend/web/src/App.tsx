@@ -23,6 +23,8 @@ import workspaceLayout from "@ui/modules/workspace/layout/index.html?raw";
 import studyLayout from "@ui/modules/study/layout/index.html?raw";
 import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
+import Header from "./components/Header";
+import AboutPage from "./components/AboutPage";
 
 const TOKEN_KEY = "catachess_token";
 const USER_ID_KEY = "catachess_user_id";
@@ -228,32 +230,66 @@ function WorkspacePage() {
   );
 }
 
+function Layout() {
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (isAuthed()) {
+        try {
+          const token = readStored(TOKEN_KEY);
+          const response = await api.request("/user/profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setUsername(response.username);
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      }
+    };
+    fetchUser();
+  }, []);
+
+  return (
+    <>
+      <Header username={username} />
+      <main>
+        <Routes>
+          <Route path="/" element={<Navigate to="/workspace-select" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route
+            path="/workspace-select"
+            element={
+              <Protected>
+                <WorkspaceSelect />
+              </Protected>
+            }
+          />
+          <Route
+            path="/workspace/:id"
+            element={
+              <Protected>
+                <WorkspacePage />
+              </Protected>
+            }
+          />
+          <Route path="/workspace" element={<Navigate to="/workspace-select" replace />} />
+          <Route path="*" element={<div>404</div>} />
+        </Routes>
+      </main>
+    </>
+  );
+}
+
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/workspace-select" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route
-          path="/workspace-select"
-          element={
-            <Protected>
-              <WorkspaceSelect />
-            </Protected>
-          }
-        />
-        <Route
-          path="/workspace/:id"
-          element={
-            <Protected>
-              <WorkspacePage />
-            </Protected>
-          }
-        />
-        <Route path="/workspace" element={<Navigate to="/workspace-select" replace />} />
-        <Route path="*" element={<div>404</div>} />
-      </Routes>
+      <Layout />
     </BrowserRouter>
   );
 }

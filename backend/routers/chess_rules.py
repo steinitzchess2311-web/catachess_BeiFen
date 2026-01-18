@@ -6,7 +6,7 @@ Provides minimal chess rule endpoints used by the frontend chessboard UI.
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
-from core.chess_basic.constants import PieceType as CorePieceType
+from core.chess_basic.constants import Color, PieceType as CorePieceType
 from core.chess_basic.rule.api import (
     apply_move,
     generate_legal_moves,
@@ -14,8 +14,10 @@ from core.chess_basic.rule.api import (
     is_checkmate,
     is_legal_move,
 )
+from core.chess_basic.rule.special_moves import get_captured_piece_square
 from core.chess_basic.types import Move, Square
 from core.chess_basic.utils.fen import parse_fen, board_to_fen
+from core.chess_basic.utils.san import move_to_san, needs_disambiguation
 
 
 router = APIRouter(prefix="/api/chess", tags=["chess"])
@@ -106,8 +108,41 @@ async def apply_move_endpoint(request: PositionRequest) -> dict:
     move = _move_from_request(request.move)
     if not is_legal_move(state, move):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Illegal move")
+    legal_moves = generate_legal_moves(state)
+    piece = state.get_piece(move.from_square)
+    disambiguation = None
+    if piece is not None:
+        disambiguation = needs_disambiguation(
+            piece,
+            move.from_square,
+            move.to_square,
+            state,
+            legal_moves,
+        )
+    is_capture = get_captured_piece_square(state, move) is not None
     new_state = apply_move(state, move)
-    return {"new_position": {"fen": board_to_fen(new_state)}}
+    is_check_after = is_check(new_state)
+    is_checkmate_after = is_checkmate(new_state)
+    san = move_to_san(
+        move,
+        state,
+        is_check=is_check_after,
+        is_checkmate=is_checkmate_after,
+        is_capture=is_capture,
+        disambiguation=disambiguation,
+    )
+    color = "white" if state.turn == Color.WHITE else "black"
+    fen = board_to_fen(new_state)
+    return {
+        "new_position": {"fen": fen},
+        "move": {
+            "san": san,
+            "uci": move.to_uci(),
+            "fen": fen,
+            "move_number": state.fullmove_number,
+            "color": color,
+        },
+    }
 
 
 @router.post("/is-check")

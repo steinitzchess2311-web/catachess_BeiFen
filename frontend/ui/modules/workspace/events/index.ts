@@ -53,7 +53,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             const date = new Date(node.updated_at).toLocaleDateString();
             itemDiv.querySelector('.item-meta')!.textContent = date;
 
-            itemDiv.addEventListener('click', () => {
+            itemDiv.addEventListener('click', (event) => {
+                if (event.button !== 0) {
+                    return;
+                }
                 if (node.node_type === 'folder') {
                     navigateToFolder(node.id, node.title);
                     return;
@@ -67,6 +70,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
 
             itemDiv.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
+                event.stopPropagation();
                 openNodeActions(node);
             });
 

@@ -28,6 +28,12 @@ export interface Move {
   isCheckmate?: boolean;
   isCastling?: boolean;
   isEnPassant?: boolean;
+  san?: string;
+  uci?: string;
+  fen?: string;
+  number?: number;
+  color?: Color;
+  parentId?: string | null;
 }
 
 export interface BoardPosition {

@@ -1,6 +1,14 @@
 .study-container {
     display: grid;
-    grid-template-columns: 240px 1fr 320px;
+    --splitter-width: 8px;
+    --study-left-width: 240px;
+    --study-right-width: 320px;
+    grid-template-columns:
+        var(--study-left-width)
+        var(--splitter-width)
+        1fr
+        var(--splitter-width)
+        var(--study-right-width);
     height: 100vh;
     min-height: 100vh;
     background-color: var(--bg-app);
@@ -11,15 +19,42 @@
 /* Panels */
 .study-sidebar, .study-right-panel {
     background-color: var(--surface);
-    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     min-height: 0;
 }
 
 .study-right-panel {
-    border-right: none;
-    border-left: 1px solid var(--border);
+    border-left: none;
+}
+
+.panel-splitter {
+    width: var(--splitter-width);
+    cursor: col-resize;
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(0, 0, 0, 0.08),
+        transparent
+    );
+    position: relative;
+    z-index: 2;
+}
+
+.panel-splitter:hover::after {
+    opacity: 1;
+}
+
+.panel-splitter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .panel-header {

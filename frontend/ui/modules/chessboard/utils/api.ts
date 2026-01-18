@@ -221,7 +221,10 @@ export class ChessAPI {
   /**
    * Apply move and get new position
    */
-  async applyMove(position: BoardPosition, move: Move): Promise<BoardPosition> {
+  async applyMove(
+    position: BoardPosition,
+    move: Move,
+  ): Promise<{ position: BoardPosition; moveMeta?: Record<string, unknown> }> {
     try {
       const response = await fetch(`${this.baseURL}/api/chess/apply-move`, {
         method: 'POST',
@@ -237,7 +240,10 @@ export class ChessAPI {
       }
 
       const data = await response.json();
-      return boardPositionFromBackend(data.new_position);
+      return {
+        position: boardPositionFromBackend(data.new_position),
+        moveMeta: data.move || undefined,
+      };
     } catch (error) {
       console.error('Failed to apply move:', error);
       throw error;

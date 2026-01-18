@@ -453,7 +453,15 @@ export class Chessboard {
 
     try {
       // Apply move via backend and get new position
-      const newPosition = await chessAPI.applyMove(this.state.position, move);
+      const result = await chessAPI.applyMove(this.state.position, move);
+      const newPosition = result.position;
+      if (result.moveMeta) {
+        move.san = result.moveMeta.san as string | undefined;
+        move.uci = result.moveMeta.uci as string | undefined;
+        move.fen = result.moveMeta.fen as string | undefined;
+        move.number = result.moveMeta.move_number as number | undefined;
+        move.color = result.moveMeta.color as 'white' | 'black' | undefined;
+      }
 
       // Update state
       this.state.position = newPosition;
@@ -535,7 +543,8 @@ export class Chessboard {
         display: flex;
         align-items: center;
         justify-content: center;
-        aspect-ratio: 1;
+        width: 100%;
+        height: 100%;
       }
 
       .square.light {

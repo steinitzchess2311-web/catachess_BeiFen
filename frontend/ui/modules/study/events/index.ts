@@ -30,6 +30,9 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     const tabContents = container.querySelectorAll('.tab-content');
     const engineMount = container.querySelector('#engine-mount') as HTMLElement;
     const imitatorMount = container.querySelector('#imitator-mount') as HTMLElement;
+    const studyContainer = container.querySelector('.study-container') as HTMLElement;
+    const leftSplitter = container.querySelector('[data-split="left"]') as HTMLElement;
+    const rightSplitter = container.querySelector('[data-split="right"]') as HTMLElement;
 
     // 3. State
     let currentStudy: any = null;
@@ -58,6 +61,64 @@ export async function initStudy(container: HTMLElement, studyId: string) {
 
     // 4. Initialization
     let heartbeatInterval: any = null;
+
+    const setupSplitters = () => {
+        if (!studyContainer || !leftSplitter || !rightSplitter) return;
+        const splitterWidth = 8;
+        const minLeft = 180;
+        const minRight = 240;
+        const minCenter = 360;
+
+        const applySizes = (left: number, right: number) => {
+            studyContainer.style.setProperty('--study-left-width', `${left}px`);
+            studyContainer.style.setProperty('--study-right-width', `${right}px`);
+        };
+
+        const getSizes = () => {
+            const styles = getComputedStyle(studyContainer);
+            const left = parseFloat(styles.getPropertyValue('--study-left-width')) ||
+                (container.querySelector('.study-left-panel') as HTMLElement).offsetWidth;
+            const right = parseFloat(styles.getPropertyValue('--study-right-width')) ||
+                (container.querySelector('.study-right-panel') as HTMLElement).offsetWidth;
+            const total = studyContainer.getBoundingClientRect().width;
+            return { left, right, total };
+        };
+
+        const clamp = (value: number, min: number, max: number) => {
+            return Math.max(min, Math.min(max, value));
+        };
+
+        const startDrag = (side: 'left' | 'right', event: PointerEvent) => {
+            const { left, right, total } = getSizes();
+            const startX = event.clientX;
+            const maxLeft = total - minRight - minCenter - splitterWidth * 2;
+            const maxRight = total - minLeft - minCenter - splitterWidth * 2;
+
+            const onMove = (moveEvent: PointerEvent) => {
+                const delta = moveEvent.clientX - startX;
+                if (side === 'left') {
+                    const nextLeft = clamp(left + delta, minLeft, maxLeft);
+                    applySizes(nextLeft, right);
+                    return;
+                }
+                const nextRight = clamp(right - delta, minRight, maxRight);
+                applySizes(left, nextRight);
+            };
+
+            const onStop = () => {
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onStop);
+                document.body.style.cursor = '';
+            };
+
+            document.body.style.cursor = 'col-resize';
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerup', onStop);
+        };
+
+        leftSplitter.addEventListener('pointerdown', (event) => startDrag('left', event));
+        rightSplitter.addEventListener('pointerdown', (event) => startDrag('right', event));
+    };
 
     const startHeartbeat = () => {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -282,6 +343,10 @@ export async function initStudy(container: HTMLElement, studyId: string) {
 
     const handleMove = async (move: any) => {
         try {
+            if (!move?.san || !move?.uci || !move?.fen || !move?.number || !move?.color) {
+                console.error('Move metadata missing, skipping save:', move);
+                return;
+            }
             // POST /api/v1/workspace/studies/{id}/chapters/{id}/moves
             const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
                 parent_id: move.parentId,
@@ -467,5 +532,6 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     });
 
     // Start
+    setupSplitters();
     loadStudyData();
 }

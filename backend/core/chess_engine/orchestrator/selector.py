@@ -26,12 +26,13 @@ class SpotSelector:
         if not enabled_spots:
             return None
 
-        # Filter by status priority: HEALTHY first, then DEGRADED
+        # Filter by status priority: HEALTHY first, then DEGRADED, then UNKNOWN
         healthy = [(cfg, m) for cfg, m in enabled_spots if m.status == SpotStatus.HEALTHY]
         degraded = [(cfg, m) for cfg, m in enabled_spots if m.status == SpotStatus.DEGRADED]
+        unknown = [(cfg, m) for cfg, m in enabled_spots if m.status == SpotStatus.UNKNOWN]
 
-        # Use healthy spots if available, otherwise degraded
-        candidates = healthy or degraded
+        # Use healthy spots if available, otherwise degraded, otherwise unknown
+        candidates = healthy or degraded or unknown
         if not candidates:
             return None
 
@@ -62,6 +63,13 @@ class SpotSelector:
             (cfg, m) for cfg, m in enabled_spots
             if m.status in (SpotStatus.HEALTHY, SpotStatus.DEGRADED)
         ]
+
+        if not usable:
+            # Fall back to UNKNOWN if no healthy/degraded spots exist yet
+            usable = [
+                (cfg, m) for cfg, m in enabled_spots
+                if m.status == SpotStatus.UNKNOWN
+            ]
 
         if not usable:
             return []
