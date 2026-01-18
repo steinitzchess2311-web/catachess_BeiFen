@@ -11,9 +11,10 @@ class PgnNode:
     uci: str
     ply: int
     move_number: int
-    comment_before: str = ""
-    comment_after: str = ""
+    comment_before: Optional[str] = None
+    comment_after: Optional[str] = None
     nags: List[int] = field(default_factory=list)
+    main_child: Optional[str] = None
     variations: List[str] = field(default_factory=list)
     fen: str = ""
 

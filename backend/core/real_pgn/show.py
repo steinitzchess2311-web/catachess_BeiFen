@@ -17,15 +17,20 @@ def build_show(tree: NodeTree) -> Dict[str, Any]:
     # 3. Render token stream
     render_tokens = []
     if tree.root_id:
-        _build_tokens_recursive(tree, tree.root_id, render_tokens, is_mainline=True)
+        _build_tokens_recursive(tree, tree.root_id, render_tokens)
         
+    # 4. Other metadata
+    root_fen = tree.nodes[tree.root_id].fen if tree.root_id else None
+
     return {
         "headers": headers,
         "nodes": nodes_dict,
-        "render_tokens": render_tokens
+        "render_tokens": render_tokens,
+        "root_fen": root_fen,
+        "result": tree.meta.result
     }
 
-def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str, Any]], is_mainline: bool):
+def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str, Any]]):
     """
     Recursively builds the render token stream.
     """
@@ -35,8 +40,8 @@ def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str,
 
     # Skip printing the root node itself, just start with its main line
     if node.san == "<root>":
-        if node.variations:
-            _build_tokens_recursive(tree, node.variations[0], tokens, is_mainline=True)
+        if node.main_child:
+            _build_tokens_recursive(tree, node.main_child, tokens)
         return
 
     # Add move token
@@ -47,12 +52,11 @@ def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str,
         tokens.append({"type": "comment", "text": node.comment_after})
 
     # Process side variations first
-    if len(node.variations) > 1:
-        for var_node_id in node.variations[1:]:
-            tokens.append({"type": "variation_start"})
-            _build_tokens_recursive(tree, var_node_id, tokens, is_mainline=False)
-            tokens.append({"type": "variation_end"})
+    for var_node_id in node.variations:
+        tokens.append({"type": "variation_start"})
+        _build_tokens_recursive(tree, var_node_id, tokens)
+        tokens.append({"type": "variation_end"})
     
     # Then continue with the main line
-    if node.variations:
-        _build_tokens_recursive(tree, node.variations[0], tokens, is_mainline)
+    if node.main_child:
+        _build_tokens_recursive(tree, node.main_child, tokens)

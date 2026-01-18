@@ -862,9 +862,28 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
             
+                if (!addChapterBtn) {
+                    console.warn('Add chapter button not found.');
+                }
+                if (!importPgnBtn) {
+                    console.warn('Import PGN button not found.');
+                }
+
                 addChapterBtn?.addEventListener('click', createChapter);
-            
+
                 importPgnBtn?.addEventListener('click', importPgn);
+
+                studyContainer?.addEventListener('click', (event) => {
+                    const target = event.target as HTMLElement | null;
+                    if (!target) return;
+                    if (target.closest('#add-chapter-btn')) {
+                        createChapter();
+                        return;
+                    }
+                    if (target.closest('#import-pgn-btn')) {
+                        importPgn();
+                    }
+                });
             
                 pgnCommentBtn?.addEventListener('click', addPgnComment);
             

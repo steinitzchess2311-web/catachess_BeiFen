@@ -32,8 +32,8 @@ def build_pgn(tree: NodeTree) -> str:
         movetext = _build_movetext_recursive(tree, tree.root_id, is_variation_start=False)
 
     # Append the result at the end of the movetext
-    if tree.meta.result:
-        movetext += f" {tree.meta.result}"
+    result = tree.meta.result or "*"
+    movetext += f" {result}"
     
     lines.append(movetext)
     
@@ -49,8 +49,8 @@ def _build_movetext_recursive(tree: NodeTree, node_id: str, is_variation_start: 
 
     # Skip printing the root node itself, just start with its main line
     if node.san == "<root>":
-        if node.variations:
-            return _build_movetext_recursive(tree, node.variations[0], is_variation_start=False)
+        if node.main_child:
+            return _build_movetext_recursive(tree, node.main_child, is_variation_start=False)
         return ""
 
     parts = []
@@ -77,12 +77,11 @@ def _build_movetext_recursive(tree: NodeTree, node_id: str, is_variation_start: 
         parts.append(f" {{{node.comment_after}}}")
     
     # Side variations are rendered after the move they are alternatives to.
-    if len(node.variations) > 1:
-        for var_node_id in node.variations[1:]:
-            parts.append(f" ({_build_movetext_recursive(tree, var_node_id, is_variation_start=True)})")
+    for var_node_id in node.variations:
+        parts.append(f" ({_build_movetext_recursive(tree, var_node_id, is_variation_start=True)})")
 
     # Main line continues after the current move and its side variations.
-    if node.variations:
-        parts.append(" " + _build_movetext_recursive(tree, node.variations[0], is_variation_start=False))
+    if node.main_child:
+        parts.append(" " + _build_movetext_recursive(tree, node.main_child, is_variation_start=False))
 
     return "".join(parts)

@@ -31,15 +31,15 @@ def test_parse_and_build_cycle():
     assert len(tree.nodes) > 5 # root + 5 moves + 1 variation move
 
     # Find specific nodes to check relationships
-    e4_node = tree.nodes[tree.nodes[tree.root_id].variations[0]]
+    e4_node = tree.nodes[tree.nodes[tree.root_id].main_child]
     assert e4_node.san == "e4"
     
-    e5_node = tree.nodes[e4_node.variations[0]]
+    e5_node = tree.nodes[e4_node.main_child]
     assert e5_node.san == "e5"
 
-    nf3_node = tree.nodes[e5_node.variations[0]]
+    nf3_node = tree.nodes[e5_node.main_child]
     assert nf3_node.san == "Nf3"
-    assert len(nf3_node.variations) == 2 # Nc6 and f6
+    assert len(nf3_node.variations) == 1
 
     # 2. Build the PGN back
     rebuilt_pgn = build_pgn(tree)
@@ -47,7 +47,7 @@ def test_parse_and_build_cycle():
     # Assertions for the builder
     assert '[Event "Sample Game"]' in rebuilt_pgn
     assert "1. e4 e5" in rebuilt_pgn
-    assert "(2... f6 3. Bc4)" in rebuilt_pgn # Note: builder adds spaces
+    assert "(2... f6 3. Bc4)" in rebuilt_pgn
     assert "3. Bb5 a6" in rebuilt_pgn
     assert rebuilt_pgn.strip().endswith("1-0")
 
@@ -62,11 +62,11 @@ def test_fen_indexer():
     
     # Get FEN for a specific position (after 3. Bb5)
     root_node = tree.nodes[tree.root_id]
-    e4_node = tree.nodes[root_node.variations[0]]
-    e5_node = tree.nodes[e4_node.variations[0]]
-    nf3_node = tree.nodes[e5_node.variations[0]]
-    nc6_node = tree.nodes[nf3_node.variations[0]]
-    bb5_node_id = nc6_node.variations[0] # This is 3. Bb5
+    e4_node = tree.nodes[root_node.main_child]
+    e5_node = tree.nodes[e4_node.main_child]
+    nf3_node = tree.nodes[e5_node.main_child]
+    nc6_node = tree.nodes[nf3_node.main_child]
+    bb5_node_id = nc6_node.main_child # This is 3. Bb5
     
     expected_fen = "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"
     assert fen_index[bb5_node_id] == expected_fen

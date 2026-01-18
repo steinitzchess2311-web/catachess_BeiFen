@@ -22,6 +22,8 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    position: relative;
+    z-index: 3;
 }
 
 .study-right-panel {
@@ -63,6 +65,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 4;
 }
 
 .panel-header-left {
@@ -84,6 +88,8 @@
 .panel-actions {
     display: flex;
     gap: var(--space-xs);
+    position: relative;
+    z-index: 5;
 }
 
 /* Chapter List */

@@ -11,11 +11,7 @@ from backend.core.real_pgn.models import NodeTree, PgnNode, GameMeta
 
 def parse_pgn(pgn_text: str) -> NodeTree:
     """
-    Parses a PGN string into a NodeTree structure.
-    
-    NOTE: This is a complex task. This implementation is a starting point
-    and handles headers and basic movetext. Full support for nested 
-    variations, comments, and NAGs requires a more robust parsing strategy.
+    Parses a PGN string into a NodeTree structure using the python-chess library.
     """
     tree = NodeTree()
     
@@ -60,9 +56,9 @@ def _traverse_and_build(game_node: chess.pgn.GameNode, parent_pgn_node: PgnNode,
     and build our custom NodeTree.
     """
     
-    # All variations from the current node
-    for i, next_game_node in enumerate(game_node.variations):
-        # Apply move and create node
+    # The first variation is the main line
+    if not game_node.is_end():
+        next_game_node = game_node.variation(0)
         san = board.san(next_game_node.move)
         board.push(next_game_node.move)
         
@@ -76,19 +72,47 @@ def _traverse_and_build(game_node: chess.pgn.GameNode, parent_pgn_node: PgnNode,
             uci=next_game_node.move.uci(),
             ply=board.ply(),
             move_number=move_number,
-            comment_before=game_node.comment,
-            comment_after=next_game_node.comment,
+            comment_before=game_node.comment or None,
+            comment_after=next_game_node.comment or None,
             nags=[int(nag) for nag in next_game_node.nags],
             fen=board.fen()
         )
         
-        parent_pgn_node.variations.append(node_id)
+        parent_pgn_node.main_child = node_id
         tree.nodes[node_id] = pgn_node
         
-        # Recurse for the next move
+        # Recurse for the next move in the mainline
         _traverse_and_build(next_game_node, pgn_node, tree, board)
         
-        # Pop the move to backtrack
+        board.pop()
+
+    # Subsequent variations are the side lines
+    for variation_node in game_node.variations[1:]:
+        var_san = board.san(variation_node.move)
+        board.push(variation_node.move)
+        
+        var_node_id = str(ULID())
+        move_number = (board.ply() + 1) // 2
+
+        var_pgn_node = PgnNode(
+            node_id=var_node_id,
+            parent_id=parent_pgn_node.node_id,
+            san=var_san,
+            uci=variation_node.move.uci(),
+            ply=board.ply(),
+            move_number=move_number,
+            comment_before=game_node.comment or None, 
+            comment_after=variation_node.comment or None,
+            nags=[int(nag) for nag in variation_node.nags],
+            fen=board.fen()
+        )
+        
+        parent_pgn_node.variations.append(var_node_id)
+        tree.nodes[var_node_id] = var_pgn_node
+
+        # Recurse for the variation
+        _traverse_and_build(variation_node, var_pgn_node, tree, board)
+        
         board.pop()
 
 
