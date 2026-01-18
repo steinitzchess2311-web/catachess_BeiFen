@@ -15,6 +15,8 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     const chapterList = container.querySelector('#chapter-list') as HTMLElement;
     const moveTree = container.querySelector('#move-tree') as HTMLElement;
     const discussionMount = container.querySelector('#discussion-mount') as HTMLElement;
+    const addChapterBtn = container.querySelector('#add-chapter-btn') as HTMLButtonElement;
+    const importPgnBtn = container.querySelector('#import-pgn-btn') as HTMLButtonElement;
     const tabBtns = container.querySelectorAll('.tab-btn');
     const tabContents = container.querySelectorAll('.tab-content');
 
@@ -24,6 +26,7 @@ export async function initStudy(container: HTMLElement, studyId: string) {
     let board: Chessboard | null = null;
     let discussion: any = null;
     let currentPgn: string | null = null;
+    let chapters: any[] = [];
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -51,11 +54,14 @@ export async function initStudy(container: HTMLElement, studyId: string) {
         try {
             const response = await api.get(`/api/v1/workspace/studies/${studyId}`);
             currentStudy = response.study;
-            renderChapters(response.chapters);
+            chapters = response.chapters || [];
+            renderChapters(chapters);
             
-            if (response.chapters.length > 0) {
-                selectChapter(response.chapters[0]);
+            if (chapters.length > 0) {
+                selectChapter(chapters[0]);
                 startHeartbeat();
+            } else {
+                renderEmptyState();
             }
         } catch (error) {
             console.error('Failed to load study:', error);
@@ -145,12 +151,20 @@ export async function initStudy(container: HTMLElement, studyId: string) {
         chapters.forEach(ch => {
             const item = document.importNode(tpl.content, true);
             const div = item.querySelector('.chapter-item') as HTMLElement;
+            div.dataset.id = ch.id;
             div.querySelector('.chapter-order')!.textContent = ch.order.toString();
             div.querySelector('.chapter-title')!.textContent = ch.title;
             
             div.addEventListener('click', () => selectChapter(ch));
             chapterList.appendChild(item);
         });
+    };
+
+    const renderEmptyState = () => {
+        chapterList.innerHTML = '<div class="chapter-empty">No chapters yet. Click + to add one.</div>';
+        moveTree.innerHTML = '<div class="move-tree-empty">No chapter selected</div>';
+        boardMount.innerHTML = '<div class="board-empty">Create a chapter to start</div>';
+        discussionMount.innerHTML = '<div class="discussion-empty">Select a chapter to view discussions.</div>';
     };
 
     const selectChapter = (ch: any) => {
@@ -200,6 +214,44 @@ export async function initStudy(container: HTMLElement, studyId: string) {
         }
     };
 
+    const createChapter = async () => {
+        const title = window.prompt('Chapter title');
+        if (!title) return;
+        try {
+            const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters`, {
+                title,
+            });
+            chapters = [...chapters, response].sort((a, b) => a.order - b.order);
+            renderChapters(chapters);
+            selectChapter(response);
+            startHeartbeat();
+        } catch (error) {
+            console.error('Failed to create chapter:', error);
+            alert('Failed to create chapter');
+        }
+    };
+
+    const importPgn = async () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.pgn';
+        input.addEventListener('change', async () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            try {
+                const pgnContent = await file.text();
+                await api.post(`/api/v1/workspace/studies/${studyId}/chapters/import-pgn`, {
+                    pgn_content: pgnContent,
+                });
+                await loadStudyData();
+            } catch (error) {
+                console.error('Failed to import PGN:', error);
+                alert('Failed to import PGN');
+            }
+        });
+        input.click();
+    };
+
     // Tabs
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -210,6 +262,9 @@ export async function initStudy(container: HTMLElement, studyId: string) {
             });
         });
     });
+
+    addChapterBtn?.addEventListener('click', createChapter);
+    importPgnBtn?.addEventListener('click', importPgn);
 
     // Start
     loadStudyData();

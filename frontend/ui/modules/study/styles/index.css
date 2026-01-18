@@ -33,12 +33,22 @@
     margin: 0;
 }
 
+.panel-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
 /* Chapter List */
 .chapter-list {
     flex: 1;
     overflow-y: auto;
 }
 
+.chapter-empty {
+    padding: var(--space-md);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+}
 .chapter-item {
     padding: var(--space-sm) var(--space-md);
     cursor: pointer;
@@ -79,6 +89,9 @@
     aspect-ratio: 1 / 1;
     background-color: var(--bg-secondary);
     box-shadow: var(--shadow-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .board-controls {
@@ -126,6 +139,13 @@
 .move-tree {
     font-size: var(--font-sm);
     line-height: 1.6;
+}
+
+.move-tree-empty,
+.board-empty,
+.discussion-empty {
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
 }
 
 /* Utility */

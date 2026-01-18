@@ -124,6 +124,33 @@ class ChapterImportService:
                 command, all_games, detection, actor_id
             )
 
+    async def import_pgn_into_study(
+        self, study_id: str, pgn_content: str, actor_id: str
+    ) -> int:
+        """
+        Import PGN content into an existing study as new chapters.
+
+        Returns:
+            Number of chapters added.
+        """
+        normalized = normalize_pgn(pgn_content)
+        detection = detect_chapters(normalized, fast=False)
+        games = split_games(normalized)
+
+        # Enforce 64 chapter limit
+        existing = await self.study_repo.get_chapters_for_study(
+            study_id, order_by_order=False
+        )
+        total = len(existing) + len(games)
+        if total > 64:
+            raise StudyFullError(
+                f"Study has {len(existing)} chapters. "
+                f"Import would exceed limit (64)."
+            )
+
+        await self._add_chapters_to_study(study_id, games, actor_id)
+        return detection.total_chapters
+
     async def _import_single_study(
         self,
         command: ImportPGNCommand,

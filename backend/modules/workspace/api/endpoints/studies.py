@@ -25,6 +25,8 @@ from modules.workspace.api.schemas.pgn_clip import (
     PgnExportRequest,
 )
 from modules.workspace.api.schemas.study import (
+    ChapterCreate,
+    ChapterImportPGN,
     ChapterResponse,
     ImportResultResponse,
     StudyCreate,
@@ -56,9 +58,10 @@ from modules.workspace.domain.models.variation import (
 from modules.workspace.db.repos.event_repo import EventRepository
 from modules.workspace.db.repos.node_repo import NodeRepository
 from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.db.tables.studies import Chapter as ChapterTable
 from modules.workspace.db.repos.variation_repo import VariationRepository
 from modules.workspace.db.session import get_session
-from modules.workspace.domain.services.chapter_import_service import ChapterImportError, ChapterImportService
+from modules.workspace.domain.services.chapter_import_service import ChapterImportError, ChapterImportService, StudyFullError
 from modules.workspace.domain.services.node_service import NodeNotFoundError, NodeService, NodeServiceError, PermissionDeniedError
 from modules.workspace.domain.services.pgn_clip_service import PgnClipService
 from modules.workspace.domain.services.study_service import (
@@ -73,8 +76,11 @@ from modules.workspace.domain.services.variation_service import (
     VariationNotFoundError,
     VariationService,
 )
-from modules.workspace.events.bus import EventBus
+from modules.workspace.events.bus import EventBus, publish_chapter_created
+from modules.workspace.storage.keys import R2Keys
 from modules.workspace.storage.r2_client import create_r2_client_from_env
+from ulid import ULID
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/studies", tags=["studies"])
 
@@ -229,6 +235,41 @@ async def import_pgn(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
+@router.post(
+    "/{study_id}/chapters/import-pgn",
+    status_code=status.HTTP_201_CREATED,
+)
+async def import_pgn_into_study(
+    study_id: str,
+    data: ChapterImportPGN,
+    user_id: str = Depends(get_current_user_id),
+    node_service: NodeService = Depends(get_node_service),
+    import_service: ChapterImportService = Depends(get_chapter_import_service),
+) -> dict:
+    """Import PGN content into an existing study as new chapters."""
+    try:
+        node = await node_service.get_node(study_id, actor_id=user_id)
+        if node.node_type != NodeType.STUDY:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Node is not a study",
+            )
+
+        added = await import_service.import_pgn_into_study(
+            study_id, data.pgn_content, actor_id=user_id
+        )
+        return {"added": added}
+
+    except NodeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PermissionDeniedError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except StudyFullError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ChapterImportError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
 @router.get("/{study_id}", response_model=StudyWithChaptersResponse)
 async def get_study(
     study_id: str,
@@ -285,6 +326,105 @@ async def get_study(
             study=study_response,
             chapters=chapter_responses,
         )
+
+    except NodeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PermissionDeniedError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.post(
+    "/{study_id}/chapters",
+    response_model=ChapterResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_chapter(
+    study_id: str,
+    data: ChapterCreate,
+    user_id: str = Depends(get_current_user_id),
+    node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
+    event_bus: EventBus = Depends(get_event_bus),
+) -> ChapterResponse:
+    """Create a new chapter with an empty PGN."""
+    try:
+        node = await node_service.get_node(study_id, actor_id=user_id)
+        if node.node_type != NodeType.STUDY:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Node is not a study",
+            )
+
+        study = await study_repo.get_study_by_id(study_id)
+        if not study:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Study {study_id} not found",
+            )
+
+        existing = await study_repo.get_chapters_for_study(
+            study_id, order_by_order=True
+        )
+        order = len(existing)
+
+        chapter_id = str(ULID())
+        r2_key = R2Keys.chapter_pgn(chapter_id)
+        pgn_content = (
+            f"[Event \"{data.title}\"]\n"
+            "[Site \"?\"]\n"
+            "[Date \"????.??.??\"]\n"
+            "[Round \"?\"]\n"
+            "[White \"?\"]\n"
+            "[Black \"?\"]\n"
+            "[Result \"*\"]\n"
+            "\n"
+            "*\n"
+        )
+
+        r2_client = create_r2_client_from_env()
+        upload_result = r2_client.upload_pgn(
+            key=r2_key,
+            content=pgn_content,
+            metadata={
+                "study_id": study_id,
+                "chapter_id": chapter_id,
+                "order": str(order),
+            },
+        )
+
+        chapter = ChapterTable(
+            id=chapter_id,
+            study_id=study_id,
+            title=data.title,
+            order=order,
+            white=None,
+            black=None,
+            event=data.title,
+            date=None,
+            result="*",
+            r2_key=r2_key,
+            pgn_hash=upload_result.content_hash,
+            pgn_size=upload_result.size,
+            r2_etag=upload_result.etag,
+            last_synced_at=datetime.now(timezone.utc),
+        )
+
+        await study_repo.create_chapter(chapter)
+        await study_repo.update_chapter_count(study_id)
+
+        workspace_id = node.path.strip("/").split("/")[0] if node.path else None
+        await publish_chapter_created(
+            event_bus,
+            actor_id=user_id,
+            study_id=study_id,
+            chapter_id=chapter_id,
+            title=chapter.title,
+            order=order,
+            r2_key=r2_key,
+            workspace_id=workspace_id,
+        )
+
+        return ChapterResponse.model_validate(chapter)
 
     except NodeNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

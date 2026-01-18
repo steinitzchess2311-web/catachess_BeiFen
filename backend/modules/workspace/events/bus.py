@@ -403,3 +403,32 @@ async def publish_chapter_imported(
     )
 
     return await bus.publish(command)
+
+
+async def publish_chapter_created(
+    bus: EventBus,
+    actor_id: str,
+    study_id: str,
+    chapter_id: str,
+    title: str,
+    order: int,
+    r2_key: str,
+    workspace_id: str | None,
+) -> EventTable:
+    """Publish chapter created event."""
+    command = CreateEventCommand(
+        type=EventType.STUDY_CHAPTER_CREATED,
+        actor_id=actor_id,
+        target_id=chapter_id,
+        target_type="chapter",
+        version=1,
+        payload={
+            "study_id": study_id,
+            "title": title,
+            "order": order,
+            "r2_key": r2_key,
+        },
+        workspace_id=workspace_id,
+    )
+
+    return await bus.publish(command)

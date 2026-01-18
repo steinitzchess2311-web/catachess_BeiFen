@@ -39,6 +39,18 @@ class StudyImportPGN(BaseModel):
     visibility: Visibility = Visibility.PRIVATE
 
 
+class ChapterCreate(BaseModel):
+    """Schema for creating a chapter."""
+
+    title: str = Field(..., min_length=1, max_length=200)
+
+
+class ChapterImportPGN(BaseModel):
+    """Schema for importing PGN into an existing study."""
+
+    pgn_content: str = Field(..., min_length=1)
+
+
 class ChapterResponse(BaseModel):
     """Schema for chapter response."""
 
