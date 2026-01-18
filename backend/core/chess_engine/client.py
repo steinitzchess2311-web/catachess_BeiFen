@@ -2,6 +2,7 @@
 import requests
 from core.config import settings
 from core.chess_engine.schemas import EngineResult
+from core.chess_engine.fallback import analyze_legal_moves
 from core.chess_engine.exceptions import EngineError
 from core.log.log_chess_engine import logger
 from core.errors import ChessEngineError, ChessEngineTimeoutError
@@ -24,6 +25,8 @@ class EngineClient:
         multipv: int = 3,
     ) -> EngineResult:
         logger.info(f"Analyzing position: fen={fen[:50]}..., depth={depth}, multipv={multipv}")
+        if not self.base_url:
+            return analyze_legal_moves(fen, depth, multipv)
         try:
             resp = requests.get(
                 f"{self.base_url}/analyze/stream",
@@ -93,10 +96,13 @@ class EngineClient:
                 raise ChessEngineError("No analysis data received from stream")
         except requests.exceptions.Timeout:
             logger.error(f"Engine timeout after {self.timeout}s")
+            if settings.ENGINE_FALLBACK_MODE != "off":
+                return analyze_legal_moves(fen, depth, multipv)
             raise ChessEngineTimeoutError(self.timeout)
         except ChessEngineError:
             raise
         except Exception as e:
             logger.error(f"Engine call failed: {e}")
+            if settings.ENGINE_FALLBACK_MODE != "off":
+                return analyze_legal_moves(fen, depth, multipv)
             raise ChessEngineError(f"Engine call failed: {str(e)}")
-

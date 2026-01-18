@@ -41,6 +41,7 @@ from modules.workspace.pgn.cleaner.raw_pgn import (
     export_clean_mainline,
 )
 from modules.workspace.pgn.serializer.to_tree import VariationNode, pgn_to_tree
+from modules.workspace.pgn.serializer.from_variations import variations_to_tree
 from modules.workspace.storage.r2_client import R2Client
 
 
@@ -387,9 +388,19 @@ class PgnClipService:
                 )
 
         if pgn_text is None:
-            raise ValueError("Failed to load PGN from storage")
+            tree = await self._build_tree_from_db(chapter_id)
+            if tree is None:
+                raise ValueError("Failed to load PGN from storage")
+            if self._cache_ttl_seconds > 0:
+                self._tree_cache[chapter_id] = (
+                    time.monotonic() + self._cache_ttl_seconds,
+                    tree,
+                )
+            return tree
 
         tree = pgn_to_tree(pgn_text)
+        if tree is None:
+            tree = await self._build_tree_from_db(chapter_id)
         if tree is None:
             raise ValueError("Invalid PGN content")
 
@@ -400,6 +411,13 @@ class PgnClipService:
             )
 
         return tree
+
+    async def _build_tree_from_db(self, chapter_id: str) -> VariationNode | None:
+        variations = await self.variation_repo.get_variations_for_chapter(chapter_id)
+        if not variations:
+            return None
+        annotations = await self.variation_repo.get_annotations_for_chapter(chapter_id)
+        return variations_to_tree(variations, annotations)
 
     def _build_headers(self, chapter: any) -> dict[str, str]:
         """

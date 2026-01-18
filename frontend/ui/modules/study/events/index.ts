@@ -4,10 +4,10 @@ import { initDiscussion } from '../../discussion/events';
 import { fenToBoardPosition } from '../../chessboard/utils/api';
 import { detectPGN } from '../api/pgn';
 
-export async function initStudy(container: HTMLElement, studyId: string) {
+export async function initStudy(container: HTMLElement, studyId: string): Promise<Chessboard> {
     // 1. Load Template
     const template = document.getElementById('study-template') as HTMLTemplateElement;
-    if (!template) return;
+    if (!template) throw new Error('Study template not found');
     const content = document.importNode(template.content, true);
     container.appendChild(content);
 
@@ -146,392 +146,792 @@ export async function initStudy(container: HTMLElement, studyId: string) {
             chapters = response.chapters || [];
             renderChapters(chapters);
             
-            if (chapters.length > 0) {
-                selectChapter(chapters[0]);
-                startHeartbeat();
-            } else {
-                renderEmptyState();
-            }
-        } catch (error) {
-            console.error('Failed to load study:', error);
-        }
-    };
-
-    const loadChapterPgn = async (chapterId: string) => {
-        try {
-            const response = await api.post(`/api/v1/workspace/studies/${studyId}/pgn/export/raw`, {
-                chapter_id: chapterId,
-                for_clipboard: true,
-            });
-            currentPgn = response.pgn_text || '';
-            await loadMainlineMoves();
-            currentPly = 0;
-            await updateBoardForPly(currentPly);
-        } catch (error) {
-            console.error('Failed to load PGN:', error);
-            currentPgn = null;
-            currentMoves = [];
-            moveTree.innerHTML = '<div class="move-tree-empty">PGN unavailable</div>';
-        }
-    };
-
-    const loadMainlineMoves = async (moveIdToSelect?: string) => {
-        if (!currentChapter) return;
-        try {
-            const response = await api.get(
-                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/mainline`
-            );
-            currentMoves = (response?.moves || []).map((move: any) => ({
-                id: move.id,
-                moveNumber: move.move_number,
-                color: move.color,
-                san: move.san,
-                fen: move.fen,
-                annotationId: move.annotation_id,
-                annotationText: move.annotation_text,
-                annotationVersion: move.annotation_version,
-            }));
-            renderMoveTree();
-            if (moveIdToSelect) {
-                const index = currentMoves.findIndex((item) => item.id === moveIdToSelect);
-                if (index >= 0) {
-                    selectMove(currentMoves[index], index);
-                }
-            }
-        } catch (error) {
-            console.error('Failed to load move list:', error);
-            currentMoves = [];
-            renderMoveTree();
-        }
-    };
-
-    const selectMove = (move: typeof currentMoves[number], index: number) => {
-        if (!board) return;
-        selectedMoveId = move.id;
-        selectedAnnotationId = move.annotationId;
-        selectedAnnotationVersion = move.annotationVersion;
-        pgnCommentInput.value = move.annotationText || '';
-        currentPly = index + 1;
-        board.setPosition(fenToBoardPosition(move.fen));
-        updateAnalysisPanels();
-    };
-
-    const renderMoveTree = () => {
-        moveTree.innerHTML = '';
-        if (!currentMoves.length) {
-            moveTree.innerHTML = '<div class="move-tree-empty">No moves yet</div>';
-            return;
-        }
-
-        const rows = new Map<number, { white?: typeof currentMoves[number]; black?: typeof currentMoves[number] }>();
-        currentMoves.forEach((move) => {
-            const row = rows.get(move.moveNumber) || {};
-            if (move.color === 'white') {
-                row.white = move;
-            } else {
-                row.black = move;
-            }
-            rows.set(move.moveNumber, row);
-        });
-
-        const orderedNumbers = Array.from(rows.keys()).sort((a, b) => a - b);
-        orderedNumbers.forEach((moveNumber) => {
-            const row = rows.get(moveNumber);
-            const rowEl = document.createElement('div');
-            rowEl.className = 'move-tree-row';
-
-            const numberEl = document.createElement('div');
-            numberEl.className = 'move-tree-number';
-            numberEl.textContent = `${moveNumber}.`;
-            rowEl.appendChild(numberEl);
-
-            const renderMoveButton = (move?: typeof currentMoves[number]) => {
-                const btn = document.createElement('button');
-                btn.className = 'move-tree-move';
-                btn.type = 'button';
-                btn.textContent = move ? move.san : '';
-                btn.disabled = !move;
-                if (move) {
-                    btn.addEventListener('click', () => {
-                        const index = currentMoves.findIndex((item) => item.id === move.id);
-                        if (index >= 0) {
-                            selectMove(move, index);
-                        }
-                    });
-                }
-                return btn;
-            };
-
-            rowEl.appendChild(renderMoveButton(row?.white));
-            rowEl.appendChild(renderMoveButton(row?.black));
-            moveTree.appendChild(rowEl);
-        });
-    };
-
-    const renderChapters = (chapters: any[]) => {
-        chapterList.innerHTML = '';
-        const tpl = document.getElementById('chapter-item-template') as HTMLTemplateElement;
-        
-        chapters.forEach(ch => {
-            const item = document.importNode(tpl.content, true);
-            const div = item.querySelector('.chapter-item') as HTMLElement;
-            div.dataset.id = ch.id;
-            div.querySelector('.chapter-order')!.textContent = ch.order.toString();
-            div.querySelector('.chapter-title')!.textContent = ch.title;
+                        if (chapters.length > 0) {
             
-            div.addEventListener('click', () => selectChapter(ch));
-            chapterList.appendChild(item);
-        });
-    };
-
-    const renderEmptyState = () => {
-        chapterList.innerHTML = '<div class="chapter-empty">No chapters yet. Click + to add one.</div>';
-        moveTree.innerHTML = '<div class="move-tree-empty">No chapter selected</div>';
-        boardMount.innerHTML = '<div class="board-empty">Create a chapter to start</div>';
-        discussionMount.innerHTML = '<div class="discussion-empty">Select a chapter to view discussions.</div>';
-    };
-
-    const updateAnalysisPanels = () => {
-        if (!board) return;
-        const position = board.getPosition();
-        if (engineAnalysis) {
-            engineAnalysis.setPosition(position);
-            engineAnalysis.setMultipv(5);
-            engineAnalysis.analyze();
-        }
-        if (imitatorPanel) {
-            imitatorPanel.setPosition(position);
-        }
-    };
-
-    const selectChapter = (ch: any) => {
-        currentChapter = ch;
-        selectedMoveId = null;
-        selectedAnnotationId = null;
-        selectedAnnotationVersion = null;
-        pgnCommentInput.value = '';
-        // Update UI
-        container.querySelectorAll('.chapter-item').forEach(el => {
-            el.classList.toggle('active', (el as HTMLElement).dataset.id === ch.id);
-        });
-
-        // Initialize/Update Board
-        if (!board) {
-            board = new Chessboard(boardMount, {
-                gameId: ch.id,
-                onMove: (move) => handleMove(move)
-            });
-            engineAnalysis = createEngineAnalysis(engineMount);
-            imitatorPanel = createImitatorPanel(imitatorMount);
-        } else {
-            // Update board position if needed
-            // board.loadPGN(ch.pgn); // Assuming board has this
-        }
-
-        loadChapterPgn(ch.id);
-
-        // Initialize Discussion (use study node for permissions)
-        if (!discussion) {
-            discussion = initDiscussion(discussionMount, {
-                targetType: 'study',
-                targetId: studyId
-            });
-        } else {
-            discussion.updateContext('study', studyId);
-        }
-    };
-
-    const handleMove = async (move: any) => {
-        try {
-            if (!move?.san || !move?.uci || !move?.fen || !move?.number || !move?.color) {
-                console.error('Move metadata missing, skipping save:', move);
-                return;
-            }
-            // POST /api/v1/workspace/studies/{id}/chapters/{id}/moves
-            const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
-                parent_id: move.parentId,
-                san: move.san,
-                uci: move.uci,
-                fen: move.fen,
-                move_number: move.number,
-                color: move.color
-            });
-            if (response?.id) {
-                lastMoveId = response.id;
-                selectedMoveId = response.id;
-                selectedAnnotationId = null;
-                selectedAnnotationVersion = null;
-                pgnCommentInput.value = '';
-            }
-            await loadMainlineMoves(response?.id);
-            updateAnalysisPanels();
-        } catch (error) {
-            console.error('Failed to save move:', error);
-        }
-    };
-
-    const addPgnComment = async () => {
-        const text = pgnCommentInput.value.trim();
-        if (!text) return;
-        const targetMoveId = selectedMoveId || lastMoveId;
-        if (!currentChapter || !targetMoveId) {
-            alert('Select a move first, then add a comment.');
-            return;
-        }
-        try {
-            if (selectedAnnotationId && selectedAnnotationVersion !== null) {
-                const updated = await api.put(
-                    `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/annotations/${selectedAnnotationId}`,
-                    { text, version: selectedAnnotationVersion }
-                );
-                selectedAnnotationVersion = updated?.version ?? selectedAnnotationVersion;
-            } else if (selectedAnnotationId) {
-                const updated = await api.put(
-                    `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/annotations/${selectedAnnotationId}`,
-                    { text, version: 1 }
-                );
-                selectedAnnotationVersion = updated?.version ?? selectedAnnotationVersion;
-            } else {
-                const created = await api.post(
-                    `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/${targetMoveId}/annotations`,
-                    { text }
-                );
-                selectedAnnotationId = created?.id || selectedAnnotationId;
-                selectedAnnotationVersion = created?.version ?? selectedAnnotationVersion;
-            }
-            await loadMainlineMoves(targetMoveId);
-        } catch (error) {
-            console.error('Failed to add PGN comment:', error);
-            alert('Failed to add PGN comment');
-        }
-    };
-
-    const updateBoardForPly = async (ply: number) => {
-        if (!board) return;
-        const maxPly = currentMoves.length;
-        const safePly = Math.max(0, Math.min(ply, maxPly));
-        if (safePly === 0) {
-            board.reset();
-            updateAnalysisPanels();
-            return;
-        }
-        const move = currentMoves[safePly - 1];
-        if (!move) return;
-        board.setPosition(fenToBoardPosition(move.fen));
-        updateAnalysisPanels();
-    };
-
-    const createChapter = async () => {
-        const title = window.prompt('Chapter title');
-        if (!title) return;
-        try {
-            const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters`, {
-                title,
-            });
-            chapters = [...chapters, response].sort((a, b) => a.order - b.order);
-            renderChapters(chapters);
-            selectChapter(response);
-            startHeartbeat();
-        } catch (error) {
-            console.error('Failed to create chapter:', error);
-            alert('Failed to create chapter');
-        }
-    };
-
-    const importPgn = async () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.pgn';
-        input.addEventListener('change', async () => {
-            const file = input.files?.[0];
-            if (!file) return;
-            try {
-                const pgnContent = await file.text();
-                const detection = await detectPGN(pgnContent);
-                if (!detection.game_count) {
-                    alert('No games detected. Make sure the PGN has headers like [Event "..."].');
-                    return;
-                }
-
-                const previewLines = detection.games.slice(0, 3).map((game) => {
-                    const headers = game.headers || {};
-                    const event = headers.Event || 'Unknown event';
-                    const white = headers.White || '?';
-                    const black = headers.Black || '?';
-                    return `${game.index}. ${event} - ${white} vs ${black}`;
-                });
-                const preview = previewLines.length ? `\n${previewLines.join('\n')}` : '';
-                alert(`Detected ${detection.game_count} game(s).${preview}`);
-
-                if (detection.game_count > 64) {
-                    const response = await api.post('/api/v1/workspace/studies/import-pgn', {
-                        pgn_content: pgnContent,
-                        base_title: currentStudy?.title || 'Imported PGN',
-                        parent_id: currentStudy?.parent_id || null,
-                        auto_split: true,
-                        visibility: currentStudy?.visibility || 'private',
-                    });
-                    if (response?.was_split) {
-                        const count = response.studies_created?.length || 0;
-                        alert(`PGN split into ${count} study(ies). Check workspace list.`);
-                        window.location.assign('/workspace-select');
-                        return;
+                            await selectChapter(chapters[0]); // Await selectChapter
+            
+                            startHeartbeat();
+            
+                        } else {
+            
+                            renderEmptyState();
+            
+                        }
+            
+                    } catch (error) {
+            
+                        console.error('Failed to load study:', error);
+            
                     }
-                } else {
-                    await api.post(`/api/v1/workspace/studies/${studyId}/chapters/import-pgn`, {
-                        pgn_content: pgnContent,
+            
+                };
+            
+            
+            
+                const loadChapterPgn = async (chapterId: string) => {
+            
+                    try {
+            
+                        const response = await api.post(`/api/v1/workspace/studies/${studyId}/pgn/export/raw`, {
+            
+                            chapter_id: chapterId,
+            
+                            for_clipboard: true,
+            
+                        });
+            
+                        currentPgn = response.pgn_text || '';
+            
+                        await loadMainlineMoves();
+            
+                        currentPly = 0;
+            
+                        await updateBoardForPly(currentPly);
+            
+                    } catch (error) {
+            
+                        console.error('Failed to load PGN:', error);
+            
+                        currentPgn = null;
+            
+                        currentMoves = [];
+            
+                        moveTree.innerHTML = '<div class="move-tree-empty">PGN unavailable</div>';
+            
+                    }
+            
+                };
+            
+            
+            
+                const loadMainlineMoves = async (moveIdToSelect?: string) => {
+            
+                    if (!currentChapter) return;
+            
+                    try {
+            
+                        const response = await api.get(
+            
+                            `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/mainline`
+            
+                        );
+            
+                        currentMoves = (response?.moves || []).map((move: any) => ({
+            
+                            id: move.id,
+            
+                            moveNumber: move.move_number,
+            
+                            color: move.color,
+            
+                            san: move.san,
+            
+                            fen: move.fen,
+            
+                            annotationId: move.annotation_id,
+            
+                            annotationText: move.annotation_text,
+            
+                            annotationVersion: move.annotation_version,
+            
+                        }));
+            
+                        renderMoveTree();
+            
+                        if (moveIdToSelect) {
+            
+                            const index = currentMoves.findIndex((item) => item.id === moveIdToSelect);
+            
+                            if (index >= 0) {
+            
+                                selectMove(currentMoves[index], index);
+            
+                            }
+            
+                        }
+            
+                    } catch (error) {
+            
+                        console.error('Failed to load move list:', error);
+            
+                        currentMoves = [];
+            
+                        renderMoveTree();
+            
+                    }
+            
+                };
+            
+            
+            
+                const selectMove = (move: typeof currentMoves[number], index: number) => {
+            
+                    if (!board) return;
+            
+                    selectedMoveId = move.id;
+            
+                    selectedAnnotationId = move.annotationId;
+            
+                    selectedAnnotationVersion = move.annotationVersion;
+            
+                    pgnCommentInput.value = ''; // This line is changed in replace
+            
+                    currentPly = index + 1;
+            
+                    board.setPosition(fenToBoardPosition(move.fen));
+            
+                    updateAnalysisPanels();
+            
+                };
+            
+            
+            
+                const renderMoveTree = () => {
+            
+                    moveTree.innerHTML = '';
+            
+                    if (!currentMoves.length) {
+            
+                        moveTree.innerHTML = '<div class="move-tree-empty">No moves yet</div>';
+            
+                        return;
+            
+                    }
+            
+            
+            
+                    const rows = new Map<number, { white?: typeof currentMoves[number]; black?: typeof currentMoves[number] }>();
+            
+                    currentMoves.forEach((move) => {
+            
+                        const row = rows.get(move.moveNumber) || {};
+            
+                        if (move.color === 'white') {
+            
+                            row.white = move;
+            
+                        } else {
+            
+                            row.black = move;
+            
+                        }
+            
+                        rows.set(move.moveNumber, row);
+            
                     });
-                    await loadStudyData();
+            
+            
+            
+                    const orderedNumbers = Array.from(rows.keys()).sort((a, b) => a - b);
+            
+                    orderedNumbers.forEach((moveNumber) => {
+            
+                        const row = rows.get(moveNumber);
+            
+                        const rowEl = document.createElement('div');
+            
+                        rowEl.className = 'move-tree-row';
+            
+            
+            
+                        const numberEl = document.createElement('div');
+            
+                        numberEl.className = 'move-tree-number';
+            
+                        numberEl.textContent = `${moveNumber}.`;
+            
+                        rowEl.appendChild(numberEl);
+            
+            
+            
+                        const renderMoveButton = (move?: typeof currentMoves[number]) => {
+            
+                            const btn = document.createElement('button');
+            
+                            btn.className = 'move-tree-move';
+            
+                            btn.type = 'button';
+            
+                            btn.textContent = move ? move.san : '';
+            
+                            btn.disabled = !move;
+            
+                            if (move) {
+            
+                                btn.addEventListener('click', () => {
+            
+                                    const index = currentMoves.findIndex((item) => item.id === move.id);
+            
+                                    if (index >= 0) {
+            
+                                        selectMove(move, index);
+            
+                                    }
+            
+                                });
+            
+                            }
+            
+                            return btn;
+            
+                        };
+            
+            
+            
+                        rowEl.appendChild(renderMoveButton(row?.white));
+            
+                        rowEl.appendChild(renderMoveButton(row?.black));
+            
+                        moveTree.appendChild(rowEl);
+            
+                    });
+            
+                };
+            
+            
+            
+                const renderChapters = (chapters: any[]) => {
+            
+                    chapterList.innerHTML = '';
+            
+                    const tpl = document.getElementById('chapter-item-template') as HTMLTemplateElement;
+            
+                    
+            
+                    chapters.forEach(ch => {
+            
+                        const item = document.importNode(tpl.content, true);
+            
+                        const div = item.querySelector('.chapter-item') as HTMLElement;
+            
+                        div.dataset.id = ch.id;
+            
+                        div.querySelector('.chapter-order')!.textContent = ch.order.toString();
+            
+                        div.querySelector('.chapter-title')!.textContent = ch.title;
+            
+                        
+            
+                        div.addEventListener('click', () => selectChapter(ch));
+            
+                        chapterList.appendChild(item);
+            
+                    });
+            
+                };
+            
+            
+            
+                const renderEmptyState = () => {
+            
+                    chapterList.innerHTML = '<div class="chapter-empty">No chapters yet. Click + to add one.</div>';
+            
+                    moveTree.innerHTML = '<div class="move-tree-empty">No chapter selected</div>';
+            
+                    boardMount.innerHTML = '<div class="board-empty">Create a chapter to start</div>';
+            
+                    discussionMount.innerHTML = '<div class="discussion-empty">Select a chapter to view discussions.</div>';
+            
+                };
+            
+            
+            
+                const updateAnalysisPanels = () => {
+            
+                    if (!board) return;
+            
+                    const position = board.getPosition();
+            
+                    if (engineAnalysis) {
+            
+                        engineAnalysis.setPosition(position);
+            
+                        engineAnalysis.setMultipv(5);
+            
+                        engineAnalysis.analyze();
+            
+                    }
+            
+                    if (imitatorPanel) {
+            
+                        imitatorPanel.setPosition(position);
+            
+                    }
+            
+                };
+            
+            
+            
+                const selectChapter = async (ch: any) => { // Made async
+            
+                    currentChapter = ch;
+            
+                    selectedMoveId = null;
+            
+                    selectedAnnotationId = null;
+            
+                    selectedAnnotationVersion = null;
+            
+                    pgnCommentInput.value = '';
+            
+                    // Update UI
+            
+                    container.querySelectorAll('.chapter-item').forEach(el => {
+            
+                        el.classList.toggle('active', (el as HTMLElement).dataset.id === ch.id);
+            
+                    });
+            
+            
+            
+                    // Initialize/Update Board
+            
+                    if (!board) {
+            
+                        board = new Chessboard(boardMount, {
+            
+                            gameId: ch.id,
+            
+                            onMove: (move) => handleMove(move)
+            
+                        });
+            
+                        engineAnalysis = createEngineAnalysis(engineMount);
+            
+                        imitatorPanel = createImitatorPanel(imitatorMount);
+            
+                    } else {
+            
+                        // Update board position if needed
+            
+                        // board.loadPGN(ch.pgn); // Assuming board has this
+            
+                    }
+            
+            
+            
+                    await loadChapterPgn(ch.id); // Await this call
+            
+            
+            
+                    // Initialize Discussion (use study node for permissions)
+            
+                    if (!discussion) {
+            
+                        discussion = initDiscussion(discussionMount, {
+            
+                            targetType: 'study',
+            
+                            targetId: studyId
+            
+                        });
+            
+                    }
+            
+                    else {
+            
+                        discussion.updateContext('study', studyId);
+            
+                    }
+            
+                };
+            
+            
+            
+                const handleMove = async (move: any) => {
+            
+                    try {
+            
+                        if (!move?.san || !move?.uci || !move?.fen || !move?.number || !move?.color) {
+            
+                            console.error('Move metadata missing, skipping save:', move);
+            
+                            return;
+            
+                        }
+            
+                        // POST /api/v1/workspace/studies/{id}/chapters/{id}/moves
+            
+                        const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
+            
+                            parent_id: move.parentId,
+            
+                            san: move.san,
+            
+                            uci: move.uci,
+            
+                            fen: move.fen,
+            
+                            move_number: move.number,
+            
+                            color: move.color
+            
+                        });
+            
+                        if (response?.id) {
+            
+                            lastMoveId = response.id;
+            
+                            selectedMoveId = response.id;
+            
+                            selectedAnnotationId = null;
+            
+                            selectedAnnotationVersion = null;
+            
+                            pgnCommentInput.value = '';
+            
+                        }
+            
+                        await loadMainlineMoves(response?.id);
+            
+                        updateAnalysisPanels();
+            
+                    } catch (error) {
+            
+                        console.error('Failed to save move:', error);
+            
+                    }
+            
+                };
+            
+            
+            
+                const addPgnComment = async () => {
+            
+                    const text = pgnCommentInput.value.trim();
+            
+                    if (!text) return;
+            
+                    const targetMoveId = selectedMoveId || lastMoveId;
+            
+                    if (!currentChapter || !targetMoveId) {
+            
+                        alert('Select a move first, then add a comment.');
+            
+                        return;
+            
+                    }
+            
+                    try {
+            
+                        if (selectedAnnotationId && selectedAnnotationVersion !== null) {
+            
+                            const updated = await api.put(
+            
+                                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/annotations/${selectedAnnotationId}`,
+            
+                                { text, version: selectedAnnotationVersion }
+            
+                            );
+            
+                            selectedAnnotationVersion = updated?.version ?? selectedAnnotationVersion;
+            
+                        } else if (selectedAnnotationId) {
+            
+                            const updated = await api.put(
+            
+                                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/annotations/${selectedAnnotationId}`,
+            
+                                { text, version: 1 }
+            
+                            );
+            
+                            selectedAnnotationVersion = updated?.version ?? selectedAnnotationVersion;
+            
+                        } else {
+            
+                            const created = await api.post(
+            
+                                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/${targetMoveId}/annotations`,
+            
+                                { text }
+            
+                            );
+            
+                            selectedAnnotationId = created?.id || selectedAnnotationId;
+            
+                            selectedAnnotationVersion = created?.version ?? selectedAnnotationVersion;
+            
+                        }
+            
+                        await loadMainlineMoves(targetMoveId);
+            
+                    } catch (error) {
+            
+                        console.error('Failed to add PGN comment:', error);
+            
+                        alert('Failed to add PGN comment');
+            
+                    }
+            
+                };
+            
+            
+            
+                const updateBoardForPly = async (ply: number) => {
+            
+                    if (!board) return;
+            
+                    const maxPly = currentMoves.length;
+            
+                    const safePly = Math.max(0, Math.min(ply, maxPly));
+            
+                    if (safePly === 0) {
+            
+                        board.reset();
+            
+                        updateAnalysisPanels();
+            
+                        return;
+            
+                    }
+            
+                    const move = currentMoves[safePly - 1];
+            
+                    if (!move) return;
+            
+                    board.setPosition(fenToBoardPosition(move.fen));
+            
+                    updateAnalysisPanels();
+            
+                };
+            
+            
+            
+                const createChapter = async () => {
+            
+                    const title = window.prompt('Chapter title');
+            
+                    if (!title) return;
+            
+                    try {
+            
+                        const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters`, {
+            
+                            title,
+            
+                        });
+            
+                        chapters = [...chapters, response].sort((a, b) => a.order - b.order);
+            
+                        renderChapters(chapters);
+            
+                        await selectChapter(response); // Await selectChapter
+            
+                        startHeartbeat();
+            
+                    } catch (error) {
+            
+                        console.error('Failed to create chapter:', error);
+            
+                        alert('Failed to create chapter');
+            
+                    }
+            
+                };
+            
+            
+            
+                const importPgn = async () => {
+            
+                    const input = document.createElement('input');
+            
+                    input.type = 'file';
+            
+                    input.accept = '.pgn';
+            
+                    input.addEventListener('change', async () => {
+            
+                        const file = input.files?.[0];
+            
+                        if (!file) return;
+            
+                        try {
+            
+                            const pgnContent = await file.text();
+            
+                            const detection = await detectPGN(pgnContent);
+            
+                            if (!detection.game_count) {
+            
+                                alert('No games detected. Make sure the PGN has headers like [Event "..."].');
+            
+                                return;
+            
+                            }
+            
+            
+            
+                            const previewLines = detection.games.slice(0, 3).map((game) => {
+            
+                                const headers = game.headers || {};
+            
+                                const event = headers.Event || 'Unknown event';
+            
+                                const white = headers.White || '?';
+            
+                                const black = headers.Black || '?';
+            
+                                return `${game.index}. ${event} - ${white} vs ${black}`;
+            
+                            });
+            
+                            const preview = previewLines.length ? `\n${previewLines.join('\n')}` : '';
+            
+                            alert(`Detected ${detection.game_count} game(s).${preview}`);
+            
+            
+            
+                            if (detection.game_count > 64) {
+            
+                                const response = await api.post('/api/v1/workspace/studies/import-pgn', {
+            
+                                    pgn_content: pgnContent,
+            
+                                    base_title: currentStudy?.title || 'Imported PGN',
+            
+                                    parent_id: currentStudy?.parent_id || null,
+            
+                                    auto_split: true,
+            
+                                    visibility: currentStudy?.visibility || 'private',
+            
+                                });
+            
+                                if (response?.was_split) {
+            
+                                    const count = response.studies_created?.length || 0;
+            
+                                    alert(`PGN split into ${count} study(ies). Check workspace list.`);
+            
+                                    window.location.assign('/workspace-select');
+            
+                                    return;
+            
+                                }
+            
+                            } else {
+            
+                                await api.post(`/api/v1/workspace/studies/${studyId}/chapters/import-pgn`, {
+            
+                                    pgn_content: pgnContent,
+            
+                                });
+            
+                                await loadStudyData();
+            
+                            }
+            
+                        } catch (error) {
+            
+                            console.error('Failed to import PGN:', error);
+            
+                            const message = error instanceof Error ? error.message : 'Failed to import PGN';
+            
+                            alert(message);
+            
+                        }
+            
+                    });
+            
+                    input.click();
+            
+                };
+            
+            
+            
+                // Tabs
+            
+                tabBtns.forEach(btn => {
+            
+                    btn.addEventListener('click', () => {
+            
+                        const tab = (btn as HTMLElement).dataset.tab;
+            
+                        tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+            
+                        tabContents.forEach(c => {
+            
+                            c.classList.toggle('active', c.id === `tab-${tab}`);
+            
+                        });
+            
+                    });
+            
+                });
+            
+            
+            
+                addChapterBtn?.addEventListener('click', createChapter);
+            
+                importPgnBtn?.addEventListener('click', importPgn);
+            
+                pgnCommentBtn?.addEventListener('click', addPgnComment);
+            
+                firstMoveBtn?.addEventListener('click', async () => {
+            
+                    currentPly = 0;
+            
+                    await updateBoardForPly(currentPly);
+            
+                });
+            
+                prevMoveBtn?.addEventListener('click', async () => {
+            
+                    currentPly = Math.max(0, currentPly - 1);
+            
+                    await updateBoardForPly(currentPly);
+            
+                });
+            
+                nextMoveBtn?.addEventListener('click', async () => {
+            
+                    currentPly = Math.min(currentMoves.length, currentPly + 1);
+            
+                    await updateBoardForPly(currentPly);
+            
+                });
+            
+                lastMoveBtn?.addEventListener('click', async () => {
+            
+                    currentPly = currentMoves.length;
+            
+                    await updateBoardForPly(currentPly);
+            
+                });
+            
+                flipBtn?.addEventListener('click', () => {
+            
+                    if (board) {
+            
+                        board.flip();
+            
+                    }
+            
+                });
+            
+                backBtn?.addEventListener('click', () => {
+            
+                    window.history.back();
+            
+                });
+            
+            
+            
+                // Start
+            
+                setupSplitters();
+            
+                await loadStudyData(); // Await this call
+            
+            
+            
+                if (!board) {
+            
+                  throw new Error("Chessboard failed to initialize.");
+            
                 }
-            } catch (error) {
-                console.error('Failed to import PGN:', error);
-                const message = error instanceof Error ? error.message : 'Failed to import PGN';
-                alert(message);
+            
+                return board;
+            
             }
-        });
-        input.click();
-    };
-
-    // Tabs
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = (btn as HTMLElement).dataset.tab;
-            tabBtns.forEach(b => b.classList.toggle('active', b === btn));
-            tabContents.forEach(c => {
-                c.classList.toggle('active', c.id === `tab-${tab}`);
-            });
-        });
-    });
-
-    addChapterBtn?.addEventListener('click', createChapter);
-    importPgnBtn?.addEventListener('click', importPgn);
-    pgnCommentBtn?.addEventListener('click', addPgnComment);
-    firstMoveBtn?.addEventListener('click', async () => {
-        currentPly = 0;
-        await updateBoardForPly(currentPly);
-    });
-    prevMoveBtn?.addEventListener('click', async () => {
-        currentPly = Math.max(0, currentPly - 1);
-        await updateBoardForPly(currentPly);
-    });
-    nextMoveBtn?.addEventListener('click', async () => {
-        currentPly = Math.min(currentMoves.length, currentPly + 1);
-        await updateBoardForPly(currentPly);
-    });
-    lastMoveBtn?.addEventListener('click', async () => {
-        currentPly = currentMoves.length;
-        await updateBoardForPly(currentPly);
-    });
-    flipBtn?.addEventListener('click', () => {
-        if (board) {
-            board.flip();
-        }
-    });
-    backBtn?.addEventListener('click', () => {
-        window.history.back();
-    });
-
-    // Start
-    setupSplitters();
-    loadStudyData();
-}

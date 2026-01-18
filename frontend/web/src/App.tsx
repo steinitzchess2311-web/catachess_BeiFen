@@ -216,7 +216,14 @@ function WorkspacePage() {
   useEffect(() => {
     if (!containerRef.current || !id) return;
     containerRef.current.innerHTML = "";
-    initStudy(containerRef.current, id);
+    const boardInstance = initStudy(containerRef.current, id);
+
+    return () => {
+      // Cleanup function to destroy the board instance when the component unmounts
+      if (boardInstance && typeof boardInstance.destroy === 'function') {
+        boardInstance.destroy();
+      }
+    };
   }, [id]);
 
   return (

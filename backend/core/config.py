@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     ENGINE_SPOTS: str = ""  # JSON array of spot configs
     SPOT_REQUEST_TIMEOUT: int = 30
     SPOT_MAX_RETRIES: int = 2
+    ENGINE_FALLBACK_MODE: str = "legal"  # "legal" for local rule-based fallback, "off" to disable
 
     # ===== database =====
     # SECURITY FIX: Removed hardcoded credentials - must be set via environment variable

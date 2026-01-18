@@ -1,10 +1,12 @@
 """Engine orchestrator - routes requests and handles failover."""
 from typing import List
 from core.chess_engine.schemas import EngineResult
+from core.chess_engine.fallback import analyze_legal_moves
 from core.chess_engine.spot.models import SpotConfig
 from core.chess_engine.orchestrator.pool import EngineSpotPool
 from core.log.log_chess_engine import logger
 from core.errors import ChessEngineError, ChessEngineTimeoutError
+from core.config import settings
 
 
 class EngineOrchestrator:
@@ -98,6 +100,8 @@ class EngineOrchestrator:
         # All spots failed
         error_summary = "; ".join(errors)
         logger.error(f"All spots failed after {attempts} attempts: {error_summary}")
+        if settings.ENGINE_FALLBACK_MODE != "off":
+            return analyze_legal_moves(fen, depth, multipv)
         raise ChessEngineError(
             f"All engine spots failed ({attempts} attempts): {error_summary}"
         )

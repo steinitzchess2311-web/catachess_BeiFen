@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from core.chess_engine import get_engine
 from core.chess_engine.schemas import EngineLine
 from core.tagger.facade import tag_position
+from core.log.log_chess_engine import logger
 from core.tagger.tagging import get_primary_tags
 
 from .profile_loader import load_profile_csv
@@ -30,14 +31,18 @@ def predict_moves(
     candidates: List[Dict[str, Any]] = []
     for line in lines:
         move_uci = line.pv[0]
-        tag_result = tag_position(
-            fen=fen,
-            played_move_uci=move_uci,
-            depth=depth,
-            multipv=multipv,
-            engine_mode="http",
-        )
-        tags = get_primary_tags(tag_result)
+        try:
+            tag_result = tag_position(
+                fen=fen,
+                played_move_uci=move_uci,
+                depth=depth,
+                multipv=multipv,
+                engine_mode="http",
+            )
+            tags = get_primary_tags(tag_result)
+        except Exception as exc:
+            logger.warning(f"Predictor tagger failed for {move_uci}: {exc}")
+            tags = []
         scores = score_tags(tags, profile)
         candidates.append(_build_candidate(line, tags, scores))
 
