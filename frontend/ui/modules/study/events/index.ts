@@ -179,32 +179,10 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
             
-                const loadChapterPgn = async (chapterId: string) => {
-
-                    try {
-
-                        const response = await api.get(
-                            `/api/v1/workspace/studies/${studyId}/chapters/${chapterId}/pgn`
-                        );
-
-                        currentPgn = response.pgn_text || '';
-
-                        await loadMainlineMoves();
-
-                        currentPly = 0;
-
-                    } catch (error) {
-
-                        console.error('Failed to load PGN:', error);
-
-                        currentPgn = null;
-
-                        await loadMainlineMoves();
-
-                        currentPly = 0;
-
-                    }
-
+                const loadChapterPgn = async (_chapterId: string) => {
+                    currentPgn = null;
+                    await loadMainlineMoves();
+                    currentPly = 0;
                 };
             
             
@@ -214,20 +192,39 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     if (!currentChapter) return;
 
                     try {
-                        let movesData: Array<{
-                            id: string;
-                            moveNumber: number;
-                            color: 'white' | 'black';
-                            san: string;
-                            fen: string;
-                            annotationId: string | null;
-                            annotationText: string | null;
-                            annotationVersion: number | null;
-                        }> = [];
-                        let legacyMoves: typeof movesData | null = null;
+                        const loadLegacyMoves = async () => {
+                            const response = await api.get(
+                                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/mainline`
+                            );
+                            return (response?.moves || []).map((move: any) => ({
+                                id: move.id,
+                                moveNumber: move.move_number,
+                                color: move.color,
+                                san: move.san,
+                                fen: move.fen,
+                                annotationId: move.annotation_id,
+                                annotationText: move.annotation_text,
+                                annotationVersion: move.annotation_version,
+                            }));
+                        };
 
                         currentShowDTO = null;
                         showMainlineMoveIds = [];
+
+                        let legacyMoves: typeof currentMoves | null = null;
+                        try {
+                            legacyMoves = await loadLegacyMoves();
+                        } catch (legacyError) {
+                            console.warn('Failed to load legacy mainline moves:', legacyError);
+                        }
+
+                        if (legacyMoves) {
+                            currentMoves = legacyMoves;
+                            renderMoveTree();
+                            if (moveIdToSelect) {
+                                selectLegacyMove(moveIdToSelect);
+                            }
+                        }
 
                         if (isShowDTOEnabled()) {
                             try {
@@ -248,24 +245,12 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                                     }
                                 }
 
-                                // Populate movesData for backward compatibility (e.g., updateBoardForPly for non-ShowDTO parts)
-                                // This still extracts mainline, but the rendering will use currentShowDTO.render
                                 if (rootNodeId) {
                                     let currentShowNode = nodes[rootNodeId];
                                     while (currentShowNode && currentShowNode.main_child) {
                                         const nextNode = nodes[currentShowNode.main_child];
                                         if (nextNode) {
                                             showMainlineMoveIds.push(nextNode.node_id);
-                                            movesData.push({
-                                                id: nextNode.node_id,
-                                                moveNumber: nextNode.move_number,
-                                                color: nextNode.ply % 2 === 1 ? 'white' : 'black',
-                                                san: nextNode.san,
-                                                fen: nextNode.fen,
-                                                annotationId: nextNode.annotation_id || null,
-                                                annotationText: nextNode.comment_after || nextNode.comment_before,
-                                                annotationVersion: nextNode.annotation_version || null,
-                                            });
                                             currentShowNode = nextNode;
                                         } else {
                                             break;
@@ -279,57 +264,24 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                                 console.error('Failed to load moves using ShowDTO:', showError);
                                 currentShowDTO = null; // Clear DTO on error
                             }
-                        }
 
-                        const loadLegacyMoves = async () => {
-                            const response = await api.get(
-                                `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/mainline`
-                            );
-                            return (response?.moves || []).map((move: any) => ({
-                                id: move.id,
-                                moveNumber: move.move_number,
-                                color: move.color,
-                                san: move.san,
-                                fen: move.fen,
-                                annotationId: move.annotation_id,
-                                annotationText: move.annotation_text,
-                                annotationVersion: move.annotation_version,
-                            }));
-                        };
+                            renderMoveTree();
 
-                        if (!currentShowDTO) {
-                            try {
-                                legacyMoves = await loadLegacyMoves();
-                            } catch (legacyError) {
-                                legacyMoves = null;
-                            }
-                        }
-
-                        if (!currentShowDTO && legacyMoves && legacyMoves.length) {
-                            movesData = legacyMoves;
-                        }
-
-                        currentMoves = movesData;
-                        renderMoveTree();
-            
-                        if (moveIdToSelect) {
-                            if (currentShowDTO) {
+                            if (moveIdToSelect) {
                                 selectMove(moveIdToSelect);
-                            } else {
-                                selectLegacyMove(moveIdToSelect);
                             }
                         }
-            
+
                     } catch (error) {
-            
+
                         console.error('Failed to load move list:', error);
-            
+
                         currentMoves = [];
-            
+
                         renderMoveTree();
-            
+
                     }
-            
+
                 };
             
             
