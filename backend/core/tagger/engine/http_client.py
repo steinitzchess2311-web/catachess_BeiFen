@@ -53,26 +53,29 @@ class HTTPStockfishClient:
         """
         fen = board.fen()
 
-        resp = requests.get(
-            f"{self.base_url}/analyze/stream",
-            params={"fen": fen, "depth": depth, "multipv": multipv},
-            timeout=self.timeout,
-            stream=True,
-        )
-        resp.raise_for_status()
+        if "/engine" in self.base_url:
+            multipv_data = self._post_analyze(fen=fen, depth=depth, multipv=multipv)
+        else:
+            resp = requests.get(
+                f"{self.base_url}/analyze/stream",
+                params={"fen": fen, "depth": depth, "multipv": multipv},
+                timeout=self.timeout,
+                stream=True,
+            )
+            resp.raise_for_status()
 
-        # Parse SSE response
-        multipv_data = {}
-        for line in resp.iter_lines():
-            if not line:
-                continue
-            decoded = line.decode("utf-8") if isinstance(line, bytes) else line
-            if decoded.startswith("data: "):
-                content = decoded[6:]
-                if content.startswith("info "):
-                    parsed = self._parse_uci_info(content)
-                    if parsed:
-                        multipv_data[parsed["multipv"]] = parsed
+            # Parse SSE response
+            multipv_data = {}
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+                if decoded.startswith("data: "):
+                    content = decoded[6:]
+                    if content.startswith("info "):
+                        parsed = self._parse_uci_info(content)
+                        if parsed:
+                            multipv_data[parsed["multipv"]] = parsed
 
         # Build candidates
         candidates = []
@@ -122,27 +125,51 @@ class HTTPStockfishClient:
         board_copy.push(move)
         fen = board_copy.fen()
 
-        resp = requests.get(
-            f"{self.base_url}/analyze/stream",
-            params={"fen": fen, "depth": depth, "multipv": 1},
-            timeout=self.timeout,
-            stream=True,
-        )
-        resp.raise_for_status()
+        if "/engine" in self.base_url:
+            multipv_data = self._post_analyze(fen=fen, depth=depth, multipv=1)
+            if 1 in multipv_data:
+                return multipv_data[1]["score_cp"]
+        else:
+            resp = requests.get(
+                f"{self.base_url}/analyze/stream",
+                params={"fen": fen, "depth": depth, "multipv": 1},
+                timeout=self.timeout,
+                stream=True,
+            )
+            resp.raise_for_status()
 
-        # Parse best line score
-        for line in resp.iter_lines():
-            if not line:
-                continue
-            decoded = line.decode("utf-8") if isinstance(line, bytes) else line
-            if decoded.startswith("data: "):
-                content = decoded[6:]
-                if content.startswith("info "):
-                    parsed = self._parse_uci_info(content)
-                    if parsed and parsed["multipv"] == 1:
-                        return parsed["score_cp"]
+            # Parse best line score
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+                if decoded.startswith("data: "):
+                    content = decoded[6:]
+                    if content.startswith("info "):
+                        parsed = self._parse_uci_info(content)
+                        if parsed and parsed["multipv"] == 1:
+                            return parsed["score_cp"]
 
         return 0
+
+    def _post_analyze(self, fen: str, depth: int, multipv: int) -> Dict[int, Dict[str, Any]]:
+        resp = requests.post(
+            f"{self.base_url}/analyze",
+            json={"fen": fen, "depth": depth, "multipv": multipv},
+            timeout=self.timeout,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        info_lines = payload.get("info", [])
+        multipv_data: Dict[int, Dict[str, Any]] = {}
+        for line in info_lines:
+            if not isinstance(line, str):
+                continue
+            if line.startswith("info "):
+                parsed = self._parse_uci_info(line)
+                if parsed:
+                    multipv_data[parsed["multipv"]] = parsed
+        return multipv_data
 
     def _parse_uci_info(self, content: str) -> Optional[Dict[str, Any]]:
         """Parse UCI info line to extract score and PV."""
