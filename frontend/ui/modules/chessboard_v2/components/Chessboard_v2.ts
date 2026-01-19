@@ -313,6 +313,13 @@ export class ChessboardV2 {
       this.state.position = result.position; 
       this.state.lastMove = move; // Keep our last move for highlighting
       this.updateAllPieces(); // Sync entire board with backend state
+      if (result.moveMeta) {
+        move.san = result.moveMeta.san as string;
+        move.uci = result.moveMeta.uci as string;
+        move.fen = result.moveMeta.fen as string;
+        move.number = result.moveMeta.move_number as number;
+        move.color = result.moveMeta.color as 'white' | 'black';
+      }
       return true;
     } catch (error) {
       console.error("Failed to apply move, reverting:", error);

@@ -181,13 +181,9 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                     try {
 
-                        const response = await api.post(`/api/v1/workspace/studies/${studyId}/pgn/export/raw`, {
-
-                            chapter_id: chapterId,
-
-                            for_clipboard: true,
-
-                        });
+                        const response = await api.get(
+                            `/api/v1/workspace/studies/${studyId}/chapters/${chapterId}/pgn`
+                        );
 
                         currentPgn = response.pgn_text || '';
 
@@ -683,7 +679,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
                         const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
             
-                            parent_id: move.parentId,
+                            parent_id: selectedMoveId || null,
             
                             san: move.san,
             
