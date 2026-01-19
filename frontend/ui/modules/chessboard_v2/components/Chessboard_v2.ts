@@ -33,7 +33,6 @@ export class ChessboardV2 {
   private resizeObserver: ResizeObserver | null = null;
   private resizeHandler: (() => void) | null = null;
   private moveRequestId = 0;
-  private pendingMove = false;
 
   constructor(container: HTMLElement, options: ChessboardOptions = {}) {
     this.container = container;
@@ -246,9 +245,6 @@ export class ChessboardV2 {
   }
 
   private async handleSquareClick(event: MouseEvent): Promise<void> {
-    if (this.pendingMove) {
-      return;
-    }
     const target = event.target as HTMLElement;
     const squareElement = target.closest('.square') as HTMLElement;
     if (!squareElement) return;
@@ -298,11 +294,9 @@ export class ChessboardV2 {
   }
 
   private async makeMove(move: Move): Promise<boolean> {
-    if (this.pendingMove) return false;
     const originalPosition = JSON.parse(JSON.stringify(this.state.position));
     const piece = this.state.position.squares[move.from.rank][move.from.file];
     if (!piece) return false;
-    this.pendingMove = true;
     const requestId = ++this.moveRequestId;
 
     // Optimistic UI update
@@ -340,9 +334,7 @@ export class ChessboardV2 {
       this.updateAllPieces();
       return false;
     } finally {
-      if (requestId === this.moveRequestId) {
-        this.pendingMove = false;
-      }
+      // No-op: allow overlapping requests and ignore stale responses.
     }
   }
 
