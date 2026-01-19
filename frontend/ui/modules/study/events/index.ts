@@ -78,6 +78,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     let localIdCounter = 0;
     const localToServerId = new Map<string, string>();
     let saveInterval: number | null = null;
+    let renderScheduled = false;
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -283,7 +284,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         } else {
                             seedLocalTreeFromMainline();
                         }
-                        rebuildShowFromLocal();
+                        scheduleRender();
 
                     } catch (error) {
 
@@ -643,6 +644,15 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         renderMoveTree();
                     }
                 };
+
+                const scheduleRender = () => {
+                    if (renderScheduled) return;
+                    renderScheduled = true;
+                    requestAnimationFrame(() => {
+                        renderScheduled = false;
+                        rebuildShowFromLocal();
+                    });
+                };
             
                 const renderChapters = (chapters: any[]) => {
             
@@ -887,7 +897,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         selectedAnnotationVersion = null;
                         pgnCommentInput.value = '';
 
-                        rebuildShowFromLocal();
+                        scheduleRender();
                         updateAnalysisPanels();
 
                         moveSaveQueue.push({
@@ -1076,13 +1086,17 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     const safePly = Math.max(0, Math.min(ply, maxPly));
             
                     if (safePly === 0) {
-            
+
                         board.reset();
-            
+
                         updateAnalysisPanels();
-            
+                        selectedMoveId = null;
+                        selectedAnnotationId = null;
+                        selectedAnnotationVersion = null;
+                        pgnCommentInput.value = '';
+
                         return;
-            
+
                     }
             
                     const move = currentMoves[safePly - 1];
