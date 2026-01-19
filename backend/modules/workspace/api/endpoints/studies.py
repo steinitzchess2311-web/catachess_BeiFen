@@ -1161,8 +1161,7 @@ async def get_chapter_show(
 
     This is the new v2 endpoint for frontend rendering.
     """
-    if not settings.PGN_V2_ENABLED:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PGN V2 endpoints are not enabled")
+    # Always allow ShowDTO for rendering; frontend relies on it for variations.
     r2_key = None
     try:
         chapter = await study_repo.get_chapter_by_id(chapter_id)
@@ -1225,8 +1224,7 @@ async def get_node_fen(
     This endpoint allows the frontend to retrieve FEN for any node
     without loading the entire tree.
     """
-    if not settings.PGN_V2_ENABLED:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PGN V2 endpoints are not enabled")
+    # Always allow FEN lookup for node navigation.
     r2_key = None
     try:
         variation = await variation_repo.get_variation_by_id(node_id)
