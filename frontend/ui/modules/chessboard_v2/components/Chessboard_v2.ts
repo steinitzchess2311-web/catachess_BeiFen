@@ -336,15 +336,18 @@ export class ChessboardV2 {
         grid-template-columns: repeat(8, 1fr);
         grid-template-rows: repeat(8, 1fr);
         width: 100%;
-        height: 100%;
+        height: auto;
         aspect-ratio: 1 / 1;
         box-sizing: border-box;
         background-color: #b58863;
+        line-height: 0;
+        font-size: 0;
       }
       .chessboard-v2 .square {
         position: relative;
         box-sizing: border-box;
         aspect-ratio: 1 / 1;
+        overflow: hidden;
       }
       .chessboard-v2 .square.selected {
         box-shadow: inset 0 0 0 3px #173a7a;
