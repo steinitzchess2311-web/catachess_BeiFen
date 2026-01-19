@@ -71,6 +71,13 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     let analysisTimer: number | null = null;
     let moveSaveInFlight = false;
     const moveSaveQueue: any[] = [];
+    let localTree: {
+        rootId: string;
+        nodes: Record<string, any>;
+    } | null = null;
+    let localIdCounter = 0;
+    const localToServerId = new Map<string, string>();
+    let saveInterval: number | null = null;
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -230,10 +237,10 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                         try {
                             const showResponse = await fetchShowDTO(studyId, currentChapter.id);
-                                const hasRenderableMoves = (showResponse.render || []).some((token) => token.t === 'move');
-                                if (hasRenderableMoves) {
-                                    currentShowDTO = showResponse; // Store the full DTO
-                                }
+                            const hasRenderableMoves = (showResponse.render || []).some((token) => token.t === 'move');
+                            if (hasRenderableMoves) {
+                                currentShowDTO = showResponse; // Store the full DTO
+                            }
                                 const nodes = showResponse.nodes;
                                 let rootNodeId: string | null = null;
 
@@ -271,6 +278,12 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         if (moveIdToSelect && currentShowDTO) {
                             selectMove(moveIdToSelect);
                         }
+                        if (currentShowDTO) {
+                            seedLocalTreeFromShowDTO(currentShowDTO);
+                        } else {
+                            seedLocalTreeFromMainline();
+                        }
+                        rebuildShowFromLocal();
 
                     } catch (error) {
 
@@ -485,6 +498,151 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                     requestAnimationFrame(renderChunk);
                 };
+
+                const buildShowDTOFromLocalTree = () => {
+                    if (!localTree) return null;
+                    const tree = localTree;
+                    const nodes = tree.nodes;
+                    const root = nodes[tree.rootId];
+                    if (!root) return null;
+
+                    const headers: Array<{ k: string; v: string }> = [];
+                    const render: Array<ShowDTORenderToken> = [];
+
+                    const buildTokens = (nodeId: string, isVariationStart: boolean) => {
+                        const node = nodes[nodeId];
+                        if (!node) return;
+                        if (node.san === '<root>') {
+                            if (node.main_child) {
+                                buildTokens(node.main_child, false);
+                            }
+                            return;
+                        }
+
+                        let label = '';
+                        const isBlackMove = node.ply % 2 === 0;
+                        const parent = node.parent_id ? nodes[node.parent_id] : null;
+                        const parentIsRoot = parent?.san === '<root>';
+                        if (!isBlackMove) {
+                            label = `${node.move_number}.`;
+                        } else if (isVariationStart || parentIsRoot) {
+                            label = `${node.move_number}...`;
+                        }
+                        if (isVariationStart) {
+                            label = `(${label}`;
+                        }
+
+                        if (node.comment_before) {
+                            render.push({ t: 'comment', node: node.node_id, text: node.comment_before });
+                        }
+                        render.push({ t: 'move', node: node.node_id, label, san: node.san });
+                        if (node.comment_after) {
+                            render.push({ t: 'comment', node: node.node_id, text: node.comment_after });
+                        }
+
+                        if (node.variations?.length) {
+                            node.variations.forEach((varId: string) => {
+                                render.push({ t: 'variation_start', from: node.node_id });
+                                buildTokens(varId, true);
+                                render.push({ t: 'variation_end' });
+                            });
+                        }
+
+                        if (node.main_child) {
+                            buildTokens(node.main_child, false);
+                        }
+                    };
+
+                    buildTokens(tree.rootId, false);
+
+                    return {
+                        headers,
+                        nodes: nodes as Record<string, ShowDTONode>,
+                        render,
+                        root_fen: root.fen || null,
+                        result: null,
+                    } as ShowDTOResponse;
+                };
+
+                const seedLocalTreeFromShowDTO = (show: ShowDTOResponse | null) => {
+                    if (!show) {
+                        localTree = null;
+                        return;
+                    }
+                    const nodes: Record<string, any> = {};
+                    Object.values(show.nodes).forEach((node) => {
+                        nodes[node.node_id] = {
+                            ...node,
+                            variations: [...(node.variations || [])],
+                        };
+                    });
+                    const rootId = Object.values(show.nodes).find((node) => node.ply === 0 && node.parent_id === null)?.node_id || 'virtual_root';
+                    localTree = { rootId, nodes };
+                };
+
+                const seedLocalTreeFromMainline = () => {
+                    const rootId = 'virtual_root';
+                    const nodes: Record<string, any> = {
+                        [rootId]: {
+                            node_id: rootId,
+                            parent_id: null,
+                            san: '<root>',
+                            uci: '<root>',
+                            ply: 0,
+                            move_number: 0,
+                            fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                            comment_before: null,
+                            comment_after: null,
+                            nags: [],
+                            main_child: null,
+                            variations: [],
+                        },
+                    };
+
+                    let parentId: string | null = rootId;
+                    currentMoves.forEach((move, index) => {
+                        const nodeId = move.id;
+                        const ply = index + 1;
+                        nodes[nodeId] = {
+                            node_id: nodeId,
+                            parent_id: parentId,
+                            san: move.san,
+                            uci: '',
+                            ply,
+                            move_number: move.moveNumber,
+                            fen: move.fen,
+                            comment_before: null,
+                            comment_after: move.annotationText || null,
+                            nags: [],
+                            main_child: null,
+                            variations: [],
+                        };
+                        if (parentId) {
+                            nodes[parentId].main_child = nodeId;
+                        }
+                        parentId = nodeId;
+                    });
+                    localTree = { rootId, nodes };
+                };
+
+                const rebuildShowFromLocal = () => {
+                    if (!localTree) return;
+                    const show = buildShowDTOFromLocalTree();
+                    if (show) {
+                        currentShowDTO = show;
+                        showMainlineMoveIds = [];
+                        const root = show.nodes[localTree.rootId];
+                        if (root && root.main_child) {
+                            let cursor = show.nodes[root.main_child];
+                            while (cursor) {
+                                showMainlineMoveIds.push(cursor.node_id);
+                                if (!cursor.main_child) break;
+                                cursor = show.nodes[cursor.main_child];
+                            }
+                        }
+                        renderMoveTree();
+                    }
+                };
             
                 const renderChapters = (chapters: any[]) => {
             
@@ -570,6 +728,9 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     pgnCommentInput.value = '';
                     moveSaveQueue.length = 0;
                     moveSaveInFlight = false;
+                    localTree = null;
+                    localToServerId.clear();
+                    localIdCounter = 0;
             
                     // Update UI
             
@@ -642,28 +803,21 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const enqueueMoveSave = (move: any) => {
-                    moveSaveQueue.push(move);
-                    if (!moveSaveInFlight) {
-                        void processMoveQueue();
-                    }
+                    void handleMove(move);
                 };
 
                 const processMoveQueue = async () => {
                     if (moveSaveInFlight) return;
                     moveSaveInFlight = true;
-                    while (moveSaveQueue.length > 0) {
-                        const nextMove = moveSaveQueue.shift();
-                        try {
-                            await handleMove(nextMove);
-                        } catch (error) {
-                            console.error('Move save failed:', error);
-                        }
+                    try {
+                        await flushPendingMoves();
+                    } finally {
+                        moveSaveInFlight = false;
                     }
-                    moveSaveInFlight = false;
                 };
 
                 const handleMove = async (move: any) => {
-            
+
                     try {
             
                         if (!move?.san || !move?.uci || !move?.fen || !move?.number || !move?.color) {
@@ -674,62 +828,171 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
                         }
             
-                        // POST /api/v1/workspace/studies/{id}/chapters/{id}/moves
-            
-                        const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`, {
-            
-                            parent_id: selectedMoveId || null,
-            
-                            san: move.san,
-            
-                            uci: move.uci,
-            
-                            fen: move.fen,
-            
-                            move_number: move.number,
-            
-                            color: move.color
-            
-                        });
-            
-                        if (response?.id) {
-            
-                            lastMoveId = response.id;
-            
-                            selectedMoveId = response.id;
-            
-                            selectedAnnotationId = null;
-            
-                            selectedAnnotationVersion = null;
-            
-                            pgnCommentInput.value = '';
-            
+                        if (!localTree) {
+                            seedLocalTreeFromMainline();
                         }
-            
-                        await loadMainlineMoves(response?.id);
-            
+
+                        const parentId = selectedMoveId || localTree?.rootId || null;
+                        const parentNode = parentId ? localTree?.nodes[parentId] : null;
+                        const nextRank = parentNode?.main_child ? (parentNode.variations?.length || 0) + 1 : 0;
+                        const localId = `local-${Date.now()}-${localIdCounter++}`;
+                        const ply = move.number * 2 - (move.color === 'white' ? 1 : 0);
+
+                        const node = {
+                            node_id: localId,
+                            parent_id: parentId,
+                            san: move.san,
+                            uci: move.uci,
+                            ply,
+                            move_number: move.number,
+                            fen: move.fen,
+                            comment_before: null,
+                            comment_after: null,
+                            nags: [],
+                            main_child: null,
+                            variations: [],
+                            annotation_id: null,
+                            annotation_version: null,
+                        };
+
+                        if (localTree && parentId && localTree.nodes[parentId]) {
+                            if (!localTree.nodes[parentId].main_child) {
+                                localTree.nodes[parentId].main_child = localId;
+                            } else {
+                                localTree.nodes[parentId].variations = localTree.nodes[parentId].variations || [];
+                                localTree.nodes[parentId].variations.push(localId);
+                            }
+                        }
+
+                        if (localTree) {
+                            localTree.nodes[localId] = node;
+                        }
+
+                        if (nextRank === 0) {
+                            currentMoves = currentMoves.concat([{
+                                id: localId,
+                                moveNumber: move.number,
+                                color: move.color,
+                                san: move.san,
+                                fen: move.fen,
+                                annotationId: null,
+                                annotationText: null,
+                                annotationVersion: null,
+                            }]);
+                        }
+
+                        selectedMoveId = localId;
+                        lastMoveId = localId;
+                        selectedAnnotationId = null;
+                        selectedAnnotationVersion = null;
+                        pgnCommentInput.value = '';
+
+                        rebuildShowFromLocal();
                         updateAnalysisPanels();
-            
+
+                        moveSaveQueue.push({
+                            localId,
+                            parentId,
+                            san: move.san,
+                            uci: move.uci,
+                            fen: move.fen,
+                            move_number: move.number,
+                            color: move.color,
+                            rank: nextRank,
+                        });
+
                     } catch (error) {
-            
+
                         console.error('Failed to save move:', error);
-            
+
                     }
-            
+
+                };
+
+                const startSaveInterval = () => {
+                    if (saveInterval) {
+                        window.clearInterval(saveInterval);
+                    }
+                    saveInterval = window.setInterval(() => {
+                        if (!moveSaveInFlight) {
+                            void processMoveQueue();
+                        }
+                    }, 30000);
+                };
+
+                const flushPendingMoves = async () => {
+                    if (!currentChapter || !moveSaveQueue.length) return;
+                    const pending = [...moveSaveQueue];
+                    moveSaveQueue.length = 0;
+                    let progress = true;
+
+                    while (pending.length && progress) {
+                        progress = false;
+                        for (let i = 0; i < pending.length; i++) {
+                            const item = pending[i];
+                            const parentId = item.parentId;
+                            let resolvedParent = parentId;
+                            if (parentId && parentId.startsWith('local-')) {
+                                resolvedParent = localToServerId.get(parentId) || null;
+                                if (!resolvedParent) {
+                                    continue;
+                                }
+                            }
+
+                            try {
+                                const response = await api.post(
+                                    `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves`,
+                                    {
+                                        parent_id: resolvedParent,
+                                        san: item.san,
+                                        uci: item.uci,
+                                        fen: item.fen,
+                                        move_number: item.move_number,
+                                        color: item.color,
+                                        rank: item.rank,
+                                    }
+                                );
+                                if (response?.id) {
+                                    localToServerId.set(item.localId, response.id);
+                                    lastMoveId = response.id;
+                                    if (selectedMoveId === item.localId) {
+                                        selectedMoveId = response.id;
+                                    }
+                                }
+                                pending.splice(i, 1);
+                                i -= 1;
+                                progress = true;
+                            } catch (error) {
+                                console.error('Move save failed:', error);
+                            }
+                        }
+                    }
+
+                    if (pending.length) {
+                        moveSaveQueue.push(...pending);
+                    }
+
+                    if (!moveSaveQueue.length) {
+                        await loadMainlineMoves(selectedMoveId || undefined);
+                    }
                 };
             
             
             
                 const addPgnComment = async () => {
-            
+
                     const text = pgnCommentInput.value.trim();
-            
+
                     if (!text) return;
-            
+
                     const targetMoveId = selectedMoveId || lastMoveId;
-            
+                    if (targetMoveId && targetMoveId.startsWith('local-')) {
+                        alert('Move is still saving. Please try again in a moment.');
+                        return;
+                    }
+
                     if (!currentChapter || !targetMoveId) {
-            
+
                         alert('Select a move first, then add a comment.');
             
                         return;
@@ -1091,10 +1354,11 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 // Start
-            
+
                 setupSplitters();
-            
+
                 await loadStudyData(); // Await this call
+                startSaveInterval();
             
             
             
