@@ -121,12 +121,16 @@ def db_to_tree(
 
 
     # 3. Process annotations into a lookup map
-    annotation_map = defaultdict(lambda: {"nags": [], "text": None})
+    annotation_map = defaultdict(
+        lambda: {"nags": [], "text": None, "annotation_id": None, "annotation_version": None}
+    )
     for anno in annotations:
         if anno.nag and anno.nag in NAG_MAP:
             annotation_map[anno.move_id]["nags"].append(NAG_MAP[anno.nag])
         if anno.text:
             annotation_map[anno.move_id]["text"] = anno.text
+            annotation_map[anno.move_id]["annotation_id"] = anno.id
+            annotation_map[anno.move_id]["annotation_version"] = anno.version
 
     # 4. Build a set of all variation IDs for parent validation
     all_variation_ids = {var.id for var in variations}
@@ -161,6 +165,8 @@ def db_to_tree(
             ply=ply,
             move_number=var.move_number,
             comment_after=anno["text"],
+            annotation_id=anno["annotation_id"],
+            annotation_version=anno["annotation_version"],
             nags=anno["nags"],
             fen=var.fen
         )

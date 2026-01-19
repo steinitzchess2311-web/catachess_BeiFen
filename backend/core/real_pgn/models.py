@@ -13,6 +13,8 @@ class PgnNode:
     move_number: int
     comment_before: Optional[str] = None
     comment_after: Optional[str] = None
+    annotation_id: Optional[str] = None
+    annotation_version: Optional[int] = None
     nags: List[int] = field(default_factory=list)
     main_child: Optional[str] = None
     variations: List[str] = field(default_factory=list)
@@ -30,4 +32,3 @@ class NodeTree:
     nodes: Dict[str, PgnNode] = field(default_factory=dict)
     root_id: Optional[str] = None
     meta: GameMeta = field(default_factory=GameMeta)
-

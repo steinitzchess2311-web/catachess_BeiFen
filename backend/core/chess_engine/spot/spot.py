@@ -13,10 +13,11 @@ class EngineSpot:
 
     def __init__(self, config: SpotConfig, timeout: int = 30):
         self.config = config
+        self.base_url = self._normalize_base_url(config.url)
         self.timeout = timeout
         self.metrics = SpotMetrics(status=SpotStatus.UNKNOWN)
         logger.info(
-            f"EngineSpot initialized: id={config.id}, url={config.url}, timeout={timeout}s"
+            f"EngineSpot initialized: id={config.id}, url={self.base_url}, timeout={timeout}s"
         )
 
     def analyze(self, fen: str, depth: int = 15, multipv: int = 3) -> EngineResult:
@@ -30,7 +31,7 @@ class EngineSpot:
         )
 
         try:
-            if "/engine" in self.config.url:
+            if "/engine" in self.base_url:
                 multipv_data = self._post_analyze(
                     fen=fen,
                     depth=depth,
@@ -38,7 +39,7 @@ class EngineSpot:
                 )
             else:
                 resp = requests.get(
-                    f"{self.config.url}/analyze/stream",
+                    f"{self.base_url}/analyze/stream",
                     params={
                         "fen": fen,
                         "depth": depth,
@@ -103,7 +104,7 @@ class EngineSpot:
     def health_check(self) -> bool:
         """Quick health check (GET /health)."""
         try:
-            resp = requests.get(f"{self.config.url}/health", timeout=5)
+            resp = requests.get(f"{self.base_url}/health", timeout=5)
             is_healthy = resp.status_code == 200
             if is_healthy:
                 logger.debug(f"[{self.config.id}] Health check: OK")
@@ -116,7 +117,7 @@ class EngineSpot:
 
     def _post_analyze(self, fen: str, depth: int, multipv: int) -> dict[int, dict]:
         resp = requests.post(
-            f"{self.config.url}/analyze",
+            f"{self.base_url}/analyze",
             json={
                 "fen": fen,
                 "depth": depth,
@@ -164,3 +165,14 @@ class EngineSpot:
             }
         except (ValueError, IndexError):
             return None
+
+    @staticmethod
+    def _normalize_base_url(base_url: str | None) -> str:
+        if not base_url:
+            return ""
+        url = base_url.rstrip("/")
+        if url.endswith("/analyze/stream"):
+            url = url[: -len("/analyze/stream")]
+        if url.endswith("/analyze"):
+            url = url[: -len("/analyze")]
+        return url

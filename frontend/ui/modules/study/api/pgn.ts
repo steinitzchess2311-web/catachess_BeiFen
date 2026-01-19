@@ -42,6 +42,8 @@ export type ShowDTONode = {
     fen: string;
     comment_before: string | null;
     comment_after: string | null;
+    annotation_id?: string | null;
+    annotation_version?: number | null;
     nags: number[];
     main_child: string | null;
     variations: string[];

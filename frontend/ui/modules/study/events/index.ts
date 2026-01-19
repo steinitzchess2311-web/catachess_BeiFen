@@ -67,6 +67,8 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     let engineAnalysis: any = null;
     let imitatorPanel: any = null;
     let currentShowDTO: ShowDTOResponse | null = null; // New state variable
+    let showMainlineMoveIds: string[] = [];
+    let analysisTimer: number | null = null;
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -191,8 +193,6 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                         currentPly = 0;
 
-                        await updateBoardForPly(currentPly);
-
                     } catch (error) {
 
                         console.error('Failed to load PGN:', error);
@@ -202,7 +202,6 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         await loadMainlineMoves();
 
                         currentPly = 0;
-                        await updateBoardForPly(currentPly);
 
                     }
 
@@ -211,9 +210,9 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const loadMainlineMoves = async (moveIdToSelect?: string) => {
-            
+
                     if (!currentChapter) return;
-            
+
                     try {
                         let movesData: Array<{
                             id: string;
@@ -225,11 +224,18 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                             annotationText: string | null;
                             annotationVersion: number | null;
                         }> = [];
+                        let legacyMoves: typeof movesData | null = null;
+
+                        currentShowDTO = null;
+                        showMainlineMoveIds = [];
 
                         if (isShowDTOEnabled()) {
                             try {
                                 const showResponse = await fetchShowDTO(studyId, currentChapter.id);
-                                currentShowDTO = showResponse; // Store the full DTO
+                                const hasRenderableMoves = (showResponse.render || []).some((token) => token.t === 'move');
+                                if (hasRenderableMoves) {
+                                    currentShowDTO = showResponse; // Store the full DTO
+                                }
                                 const nodes = showResponse.nodes;
                                 let rootNodeId: string | null = null;
 
@@ -249,15 +255,16 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                                     while (currentShowNode && currentShowNode.main_child) {
                                         const nextNode = nodes[currentShowNode.main_child];
                                         if (nextNode) {
+                                            showMainlineMoveIds.push(nextNode.node_id);
                                             movesData.push({
                                                 id: nextNode.node_id,
                                                 moveNumber: nextNode.move_number,
                                                 color: nextNode.ply % 2 === 1 ? 'white' : 'black',
                                                 san: nextNode.san,
                                                 fen: nextNode.fen,
-                                                annotationId: null,
+                                                annotationId: nextNode.annotation_id || null,
                                                 annotationText: nextNode.comment_after || nextNode.comment_before,
-                                                annotationVersion: null,
+                                                annotationVersion: nextNode.annotation_version || null,
                                             });
                                             currentShowNode = nextNode;
                                         } else {
@@ -274,11 +281,11 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                             }
                         }
 
-                        if (!currentShowDTO) { // If ShowDTO is not enabled or failed, use existing API
-                             const response = await api.get(
+                        const loadLegacyMoves = async () => {
+                            const response = await api.get(
                                 `/api/v1/workspace/studies/${studyId}/chapters/${currentChapter.id}/moves/mainline`
                             );
-                            movesData = (response?.moves || []).map((move: any) => ({
+                            return (response?.moves || []).map((move: any) => ({
                                 id: move.id,
                                 moveNumber: move.move_number,
                                 color: move.color,
@@ -288,6 +295,18 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                                 annotationText: move.annotation_text,
                                 annotationVersion: move.annotation_version,
                             }));
+                        };
+
+                        if (!currentShowDTO) {
+                            try {
+                                legacyMoves = await loadLegacyMoves();
+                            } catch (legacyError) {
+                                legacyMoves = null;
+                            }
+                        }
+
+                        if (!currentShowDTO && legacyMoves && legacyMoves.length) {
+                            movesData = legacyMoves;
                         }
 
                         currentMoves = movesData;
@@ -325,11 +344,10 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     }
                     
                     selectedMoveId = nodeId;
-                    // For now, we'll keep annotation IDs/versions as null if using ShowDTO
-                    // This part needs more thought if editing annotations is desired with PGN v2
-                    selectedAnnotationId = null; 
-                    selectedAnnotationVersion = null;
-                    pgnCommentInput.value = node.comment_after || node.comment_before || ''; 
+                    const meta = currentMoves.find(item => item.id === nodeId);
+                    selectedAnnotationId = meta?.annotationId || node.annotation_id || null;
+                    selectedAnnotationVersion = meta?.annotationVersion || node.annotation_version || null;
+                    pgnCommentInput.value = meta?.annotationText || node.comment_after || node.comment_before || ''; 
                     
                     board.setPosition(fenToBoardPosition(node.fen));
                     updateAnalysisPanels();
@@ -392,7 +410,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     moveTree.innerHTML = '';
                     if (!currentShowDTO) {
                         if (!currentMoves.length) {
-                            moveTree.innerHTML = '<div class="move-tree-empty">PGN unavailable</div>';
+                            moveTree.innerHTML = '<div class="move-tree-empty">No moves yet</div>';
                             return;
                         }
 
@@ -425,6 +443,13 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     pgnOutputWrapper.appendChild(headerInfo);
 
                     const tokens = currentShowDTO.render;
+                    if (!tokens.length) {
+                        const empty = document.createElement('div');
+                        empty.className = 'move-tree-empty';
+                        empty.textContent = 'No moves yet';
+                        pgnOutputWrapper.appendChild(empty);
+                        return;
+                    }
                     let currentIndex = 0;
                     const CHUNK_SIZE = 75;
 
@@ -556,27 +581,26 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const updateAnalysisPanels = () => {
-            
+
                     if (!board) return;
-            
+
+                    if (analysisTimer !== null) {
+                        window.clearTimeout(analysisTimer);
+                    }
+
                     const position = board.getPosition();
-            
-                    if (engineAnalysis) {
-            
-                        engineAnalysis.setPosition(position);
-            
-                        engineAnalysis.setMultipv(5);
-            
-                        engineAnalysis.analyze();
-            
-                    }
-            
-                    if (imitatorPanel) {
-            
-                        imitatorPanel.setPosition(position);
-            
-                    }
-            
+                    analysisTimer = window.setTimeout(() => {
+                        if (engineAnalysis) {
+                            engineAnalysis.setPosition(position);
+                            engineAnalysis.setMultipv(5);
+                            engineAnalysis.analyze();
+                        }
+
+                        if (imitatorPanel) {
+                            imitatorPanel.setPosition(position);
+                        }
+                    }, 50);
+
                 };
             
             
@@ -802,14 +826,9 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     // For now, if ShowDTO is enabled, we'll rely on selectMove with a specific nodeId,
                     // or enhance this to find a node by ply if needed.
                     if (currentShowDTO && currentShowDTO.nodes) {
-                        const nodesByPly = Object.values(currentShowDTO.nodes).filter(node => node.ply === ply && node.san !== "<root>");
-                        if (nodesByPly.length > 0) {
-                            // Prioritize mainline node if available
-                            const mainlineNode = nodesByPly.find(node => {
-                                const parentNode = currentShowDTO?.nodes[node.parent_id || ''];
-                                return parentNode && parentNode.main_child === node.node_id;
-                            }) || nodesByPly[0]; // Fallback to first node at that ply
-                            selectMove(mainlineNode.node_id);
+                        if (ply > 0 && showMainlineMoveIds.length >= ply) {
+                            const targetNodeId = showMainlineMoveIds[ply - 1];
+                            selectMove(targetNodeId);
                             return;
                         }
                     }

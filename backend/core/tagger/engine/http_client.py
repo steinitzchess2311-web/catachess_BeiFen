@@ -23,7 +23,7 @@ class HTTPStockfishClient:
             base_url: Remote engine service URL
             timeout: Request timeout in seconds (default: 10s for batch optimization)
         """
-        self.base_url = base_url.rstrip("/")
+        self.base_url = self._normalize_base_url(base_url)
         self.timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
     def __enter__(self):
@@ -200,6 +200,17 @@ class HTTPStockfishClient:
             }
         except (ValueError, IndexError):
             return None
+
+    @staticmethod
+    def _normalize_base_url(base_url: str | None) -> str:
+        if not base_url:
+            return ""
+        url = base_url.rstrip("/")
+        if url.endswith("/analyze/stream"):
+            url = url[: -len("/analyze/stream")]
+        if url.endswith("/analyze"):
+            url = url[: -len("/analyze")]
+        return url
 
     def _classify_move(self, board: chess.Board, move: chess.Move) -> str:
         """Classify move as quiet, dynamic, or forcing."""

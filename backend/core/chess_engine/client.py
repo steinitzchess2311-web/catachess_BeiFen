@@ -14,7 +14,7 @@ class EngineClient:
         base_url: str | None = None,
         timeout: int | None = None,
     ):
-        self.base_url = (base_url or settings.ENGINE_URL).rstrip("/")
+        self.base_url = self._normalize_base_url(base_url or settings.ENGINE_URL)
         self.timeout = timeout or settings.ENGINE_TIMEOUT
         logger.info(f"EngineClient initialized with base_url={self.base_url}, timeout={self.timeout}s")
 
@@ -143,3 +143,14 @@ class EngineClient:
         result = EngineResult(lines=lines)
         logger.info(f"Analysis complete: {len(lines)} lines received")
         return result
+
+    @staticmethod
+    def _normalize_base_url(base_url: str | None) -> str:
+        if not base_url:
+            return ""
+        url = base_url.rstrip("/")
+        if url.endswith("/analyze/stream"):
+            url = url[: -len("/analyze/stream")]
+        if url.endswith("/analyze"):
+            url = url[: -len("/analyze")]
+        return url

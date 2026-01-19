@@ -81,6 +81,9 @@ def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str,
 
     # --- Token Generation ---
 
+    if node.comment_before:
+        tokens.append({"t": "comment", "node": node.node_id, "text": node.comment_before})
+
     tokens.append({
 
         "t": "move",
@@ -116,5 +119,4 @@ def _build_tokens_recursive(tree: NodeTree, node_id: str, tokens: List[Dict[str,
     if node.main_child:
 
         _build_tokens_recursive(tree, node.main_child, tokens, is_variation_start=False)
-
 
