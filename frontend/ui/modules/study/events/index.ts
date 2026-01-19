@@ -178,37 +178,38 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const loadChapterPgn = async (chapterId: string) => {
-            
+
                     try {
-            
+
                         const response = await api.post(`/api/v1/workspace/studies/${studyId}/pgn/export/raw`, {
-            
+
                             chapter_id: chapterId,
-            
+
                             for_clipboard: true,
-            
+
                         });
-            
+
                         currentPgn = response.pgn_text || '';
-            
+
                         await loadMainlineMoves();
-            
+
                         currentPly = 0;
-            
+
                         await updateBoardForPly(currentPly);
-            
+
                     } catch (error) {
-            
+
                         console.error('Failed to load PGN:', error);
-            
+
                         currentPgn = null;
-            
-                        currentMoves = [];
-            
-                        moveTree.innerHTML = '<div class="move-tree-empty">PGN unavailable</div>';
-            
+
+                        await loadMainlineMoves();
+
+                        currentPly = 0;
+                        await updateBoardForPly(currentPly);
+
                     }
-            
+
                 };
             
             
@@ -797,7 +798,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const updateBoardForPly = async (ply: number) => {
-            
+
                     if (!board) return;
             
                     // If using ShowDTO, direct ply-based navigation through currentMoves is less straightforward.
@@ -832,13 +833,24 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     }
             
                     const move = currentMoves[safePly - 1];
-            
+
                     if (!move) return;
-            
+
                     board.setPosition(fenToBoardPosition(move.fen));
-            
+
                     updateAnalysisPanels();
-            
+
+                    selectedMoveId = move.id;
+                    selectedAnnotationId = move.annotationId;
+                    selectedAnnotationVersion = move.annotationVersion;
+                    pgnCommentInput.value = move.annotationText || '';
+
+                    moveTree.querySelectorAll('.move-token.active').forEach(el => el.classList.remove('active'));
+                    const selectedMoveElement = moveTree.querySelector(`.move-token[data-move-id="${move.id}"]`);
+                    if (selectedMoveElement) {
+                        selectedMoveElement.classList.add('active');
+                    }
+
                 };
             
             
