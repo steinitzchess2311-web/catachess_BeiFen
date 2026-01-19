@@ -344,6 +344,7 @@ export class ChessboardV2 {
       .chessboard-v2 .square {
         position: relative;
         box-sizing: border-box;
+        aspect-ratio: 1 / 1;
       }
       .chessboard-v2 .square.selected {
         box-shadow: inset 0 0 0 3px #173a7a;
