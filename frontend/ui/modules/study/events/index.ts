@@ -69,6 +69,8 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     let currentShowDTO: ShowDTOResponse | null = null; // New state variable
     let showMainlineMoveIds: string[] = [];
     let analysisTimer: number | null = null;
+    let moveSaveInFlight = false;
+    const moveSaveQueue: any[] = [];
 
     // 4. Initialization
     let heartbeatInterval: any = null;
@@ -558,16 +560,18 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
                 const selectChapter = async (ch: any) => { // Made async
-            
+
                     currentChapter = ch;
-            
+
                     selectedMoveId = null;
             
                     selectedAnnotationId = null;
             
                     selectedAnnotationVersion = null;
-            
+
                     pgnCommentInput.value = '';
+                    moveSaveQueue.length = 0;
+                    moveSaveInFlight = false;
             
                     // Update UI
             
@@ -584,11 +588,11 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     if (!board) {
             
                         board = new ChessboardV2(boardMount, {
-            
+
                             gameId: ch.id,
-            
-                            onMove: (move) => handleMove(move)
-            
+
+                            onMove: (move) => enqueueMoveSave(move)
+
                         });
             
                         engineAnalysis = createEngineAnalysis(engineMount);
@@ -639,6 +643,27 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             
             
             
+                const enqueueMoveSave = (move: any) => {
+                    moveSaveQueue.push(move);
+                    if (!moveSaveInFlight) {
+                        void processMoveQueue();
+                    }
+                };
+
+                const processMoveQueue = async () => {
+                    if (moveSaveInFlight) return;
+                    moveSaveInFlight = true;
+                    while (moveSaveQueue.length > 0) {
+                        const nextMove = moveSaveQueue.shift();
+                        try {
+                            await handleMove(nextMove);
+                        } catch (error) {
+                            console.error('Move save failed:', error);
+                        }
+                    }
+                    moveSaveInFlight = false;
+                };
+
                 const handleMove = async (move: any) => {
             
                     try {
