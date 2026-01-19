@@ -11,6 +11,7 @@ import {
     ShowDTORenderToken,
 } from '../api/pgn';
 import { api } from '../../../assets/api';
+import { PgnRenderer } from '../pgn_renderer';
 
 export async function initStudy(container: HTMLElement, studyId: string): Promise<ChessboardV2> {
     // 1. Load Template
@@ -41,6 +42,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     const studyContainer = container.querySelector('.study-container') as HTMLElement;
     const leftSplitter = container.querySelector('[data-split="left"]') as HTMLElement;
     const rightSplitter = container.querySelector('[data-split="right"]') as HTMLElement;
+    const pgnRenderer = new PgnRenderer(moveTree);
 
     // 3. State
     let currentStudy: any = null;
@@ -373,131 +375,14 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                 }
 
                 const renderMoveTree = () => {
-                    moveTree.innerHTML = '';
                     if (!currentShowDTO) {
-                        if (!currentMoves.length) {
-                            moveTree.innerHTML = '<div class="move-tree-empty">No moves yet</div>';
-                            return;
-                        }
-
-                        const list = document.createElement('div');
-                        list.className = 'pgn-legacy-list';
-                        currentMoves.forEach((move) => {
-                            const moveEl = document.createElement('button');
-                            moveEl.className = 'move-token';
-                            moveEl.type = 'button';
-                            moveEl.dataset.moveId = move.id;
-                            const label = move.color === 'white' ? `${move.moveNumber}.` : `${move.moveNumber}...`;
-                            moveEl.innerHTML = `<span class="move-label">${label}</span><span class="move-san">${move.san}</span>`;
-                            moveEl.addEventListener('click', () => selectLegacyMove(move.id));
-                            list.appendChild(moveEl);
-                            list.appendChild(document.createTextNode(' '));
-                        });
-                        moveTree.appendChild(list);
+                        pgnRenderer.renderLegacy(currentMoves, selectLegacyMove);
                         return;
                     }
-
-                    const pgnOutputWrapper = document.createElement('div');
-                    pgnOutputWrapper.className = 'pgn-output-wrapper';
-                    moveTree.appendChild(pgnOutputWrapper);
-
-                    const headerInfo = document.createElement('div');
-                    headerInfo.className = 'pgn-header-info';
-                    const rootFenSpan = document.createElement('span');
-                    rootFenSpan.textContent = `Start FEN: ${currentShowDTO.root_fen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'}`;
-                    headerInfo.appendChild(rootFenSpan);
-                    pgnOutputWrapper.appendChild(headerInfo);
-
-                    const tokens = currentShowDTO.render;
-                    if (!tokens.length) {
-                        const empty = document.createElement('div');
-                        empty.className = 'move-tree-empty';
-                        empty.textContent = 'No moves yet';
-                        pgnOutputWrapper.appendChild(empty);
-                        return;
-                    }
-                    let currentIndex = 0;
-                    const CHUNK_SIZE = 75;
-
-                    const currentContainerStack: HTMLElement[] = [pgnOutputWrapper];
-                    let variationLevel = 0;
-
-                    // Helper functions (createMoveElement, createCommentElement) remain the same
-                    const createMoveElement = (nodeId: string, label: string, san: string): HTMLElement => {
-                        const moveEl = document.createElement('button');
-                        moveEl.className = 'move-token';
-                        moveEl.type = 'button';
-                        moveEl.dataset.nodeId = nodeId;
-                        moveEl.innerHTML = `<span class="move-label">${label}</span><span class="move-san">${san}</span>`;
-                        moveEl.addEventListener('click', () => selectMove(nodeId));
-                        moveEl.addEventListener('mouseenter', () => hoverMove(nodeId, true));
-                        moveEl.addEventListener('mouseleave', () => hoverMove(nodeId, false));
-                        return moveEl;
-                    };
-
-                    const createCommentElement = (nodeId: string, text: string): HTMLElement => {
-                        const commentWrapper = document.createElement('span');
-                        commentWrapper.className = 'comment-wrapper';
-                        commentWrapper.dataset.nodeId = nodeId;
-                        const commentTextSpan = document.createElement('span');
-                        commentTextSpan.className = 'comment-text';
-                        commentTextSpan.textContent = text;
-                        commentWrapper.appendChild(commentTextSpan);
-                        return commentWrapper;
-                    };
-
-                    const renderChunk = () => {
-                        const fragment = document.createDocumentFragment();
-                        const end = Math.min(currentIndex + CHUNK_SIZE, tokens.length);
-                        
-                        while (currentIndex < end) {
-                            const token = tokens[currentIndex];
-                            const currentParent = currentContainerStack[currentContainerStack.length - 1];
-
-                            if (token.t === 'move') {
-                                const moveEl = createMoveElement(token.node, token.label, token.san);
-                                currentParent.appendChild(moveEl);
-                                currentParent.appendChild(document.createTextNode(' '));
-                            } else if (token.t === 'comment') {
-                                const commentEl = createCommentElement(token.node, token.text);
-                                currentParent.appendChild(commentEl);
-                                currentParent.appendChild(document.createTextNode(' '));
-                            } else if (token.t === 'variation_start') {
-                                variationLevel++;
-                                const cappedVariationLevel = Math.min(variationLevel, 5);
-                                const variationContainer = document.createElement('span');
-                                variationContainer.className = `variation-container variation-level-${cappedVariationLevel}`;
-                                variationContainer.style.marginLeft = `${cappedVariationLevel * 10}px`;
-                                currentParent.appendChild(variationContainer);
-                                currentContainerStack.push(variationContainer);
-                            } else if (token.t === 'variation_end') {
-                                const popped = currentContainerStack.pop();
-                                if (popped) {
-                                    const closeParen = document.createElement('span');
-                                    closeParen.className = 'variation-paren variation-end-paren';
-                                    closeParen.textContent = ')';
-                                    (currentContainerStack[currentContainerStack.length - 1] || pgnOutputWrapper).appendChild(closeParen);
-                                    (currentContainerStack[currentContainerStack.length - 1] || pgnOutputWrapper).appendChild(document.createTextNode(' '));
-                                }
-                                variationLevel--;
-                            }
-                            currentIndex++;
-                        }
-
-                        if (currentIndex < tokens.length) {
-                            requestAnimationFrame(renderChunk);
-                        } else {
-                            // Finished rendering
-                            if (currentShowDTO.result) {
-                                const resultSpan = document.createElement('span');
-                                resultSpan.className = 'pgn-result';
-                                resultSpan.textContent = ` ${currentShowDTO.result}`;
-                                pgnOutputWrapper.appendChild(resultSpan);
-                            }
-                        }
-                    };
-
-                    requestAnimationFrame(renderChunk);
+                    pgnRenderer.renderShow(currentShowDTO, {
+                        onSelect: selectMove,
+                        onHover: hoverMove,
+                    });
                 };
 
                 const buildShowDTOFromLocalTree = () => {
@@ -826,6 +711,9 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     }
                 };
 
+                const getMoveNumber = (ply: number) => Math.floor((ply + 1) / 2);
+                const getMoveColor = (ply: number) => (ply % 2 === 1 ? 'white' : 'black');
+
                 const handleMove = async (move: any) => {
 
                     try {
@@ -845,8 +733,11 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         const parentId = selectedMoveId || localTree?.rootId || null;
                         const parentNode = parentId ? localTree?.nodes[parentId] : null;
                         const nextRank = parentNode?.main_child ? (parentNode.variations?.length || 0) + 1 : 0;
+                        const parentPly = parentNode?.ply || 0;
+                        const ply = parentPly + 1;
+                        const moveNumber = getMoveNumber(ply);
+                        const moveColor = getMoveColor(ply) as 'white' | 'black';
                         const localId = `local-${Date.now()}-${localIdCounter++}`;
-                        const ply = move.number * 2 - (move.color === 'white' ? 1 : 0);
 
                         const node = {
                             node_id: localId,
@@ -854,7 +745,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                             san: move.san,
                             uci: move.uci,
                             ply,
-                            move_number: move.number,
+                            move_number: moveNumber,
                             fen: move.fen,
                             comment_before: null,
                             comment_after: null,
@@ -881,8 +772,8 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         if (nextRank === 0) {
                             currentMoves = currentMoves.concat([{
                                 id: localId,
-                                moveNumber: move.number,
-                                color: move.color,
+                                moveNumber,
+                                color: moveColor,
                                 san: move.san,
                                 fen: move.fen,
                                 annotationId: null,
@@ -897,7 +788,22 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                         selectedAnnotationVersion = null;
                         pgnCommentInput.value = '';
 
-                        scheduleRender();
+                        const isMainlineContinuation = nextRank === 0 && (showMainlineMoveIds.length === ply - 1);
+                        if (currentShowDTO && isMainlineContinuation) {
+                            const parentIsRoot = parentNode?.san === '<root>';
+                            const label = moveColor === 'white' ? `${moveNumber}.` : (parentIsRoot ? `${moveNumber}...` : '');
+                            const appended = pgnRenderer.appendMainline(node, label, {
+                                onSelect: selectMove,
+                                onHover: hoverMove,
+                            });
+                            if (appended) {
+                                showMainlineMoveIds.push(localId);
+                            } else {
+                                scheduleRender();
+                            }
+                        } else {
+                            scheduleRender();
+                        }
                         updateAnalysisPanels();
 
                         moveSaveQueue.push({
@@ -906,8 +812,8 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                             san: move.san,
                             uci: move.uci,
                             fen: move.fen,
-                            move_number: move.number,
-                            color: move.color,
+                            move_number: moveNumber,
+                            color: moveColor,
                             rank: nextRank,
                         });
 
