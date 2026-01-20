@@ -125,11 +125,14 @@ async def export_chapter_pgn(
         tree = StudyTreeDTO(**tree_data)
         
         chapter = await study_repo.get_chapter_by_id(chapter_id)
-        title = chapter.title if chapter else "Chapter"
-        
-        pgn = _tree_to_pgn(tree, title)
+        pgn = _tree_to_pgn(tree, chapter)
         logger.info(f"PGN export successful for chapter {chapter_id} (length: {len(pgn)})")
         return {"success": True, "pgn": pgn}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to export PGN for chapter {chapter_id}: {e}")
+        return {"success": False, "error": str(e)}
 
 def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:
     """Helper to convert StudyTreeDTO to PGN string."""
