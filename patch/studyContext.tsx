@@ -52,6 +52,9 @@ export interface StudyStateSnapshot {
   lastReplayResult: ReplayResult | null;
   error: StudyError | null;
   isLoading: boolean;
+  isDirty: boolean;
+  lastSavedAt: number | null;
+  isSaving: boolean;
 }
 
 export interface StudyState extends StudyStateSnapshot {
@@ -77,6 +80,8 @@ type StudyAction =
   | { type: 'SET_ERROR'; error: StudyError }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_LOADING'; isLoading: boolean }
+  | { type: 'MARK_SAVED'; timestamp: number }
+  | { type: 'SET_SAVING'; isSaving: boolean }
   | { type: 'RESET' };
 
 // =============================================================================
@@ -95,6 +100,9 @@ const initialSnapshot: StudyStateSnapshot = {
   lastReplayResult: null,
   error: null,
   isLoading: false,
+  isDirty: false,
+  lastSavedAt: null,
+  isSaving: false,
 };
 
 const initialState: StudyState = {
@@ -141,6 +149,9 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
               message: `Invalid starting FEN, falling back to default: ${startValidation.error}`,
               timestamp: Date.now(),
             },
+        isDirty: false,
+        lastSavedAt: null,
+        isSaving: false,
         history: [], // Reset history on new chapter
       };
     }
@@ -174,6 +185,9 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
               message: `Invalid starting FEN, falling back to default: ${startValidation.error}`,
               timestamp: Date.now(),
             },
+        isDirty: false,
+        lastSavedAt: null,
+        isSaving: false,
         history: [],
       };
     }
@@ -245,6 +259,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
           currentPath: newPath,
           currentFen: nextFen,
           lastReplayResult: replayResult || state.lastReplayResult,
+          isDirty: true,
           error: replayResult?.error
             ? {
                 type: 'REPLAY_ERROR',
@@ -299,6 +314,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
           cursorNodeId: nextCursorId,
           currentPath: nextPath,
           currentFen: nextFen,
+          isDirty: true,
           history: [...state.history, snapshot],
         };
       } catch (e: any) {
@@ -346,6 +362,12 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
     case 'SET_LOADING':
       return { ...state, isLoading: action.isLoading };
 
+    case 'MARK_SAVED':
+      return { ...state, isDirty: false, lastSavedAt: action.timestamp };
+
+    case 'SET_SAVING':
+      return { ...state, isSaving: action.isSaving };
+
     case 'RESET':
       return initialState;
 
@@ -371,6 +393,7 @@ export interface StudyContextValue {
   addMove: (san: string) => void;
   deleteMove: (nodeId: string) => void;
   undo: () => void;
+  saveTree: () => Promise<void>;
   loadTreeFromServer: () => Promise<void>;
 }
 
@@ -387,6 +410,7 @@ const defaultContextValue: StudyContextValue = {
   addMove: () => {},
   deleteMove: () => {},
   undo: () => {},
+  saveTree: async () => {},
   loadTreeFromServer: async () => {},
 };
 
@@ -468,6 +492,51 @@ export function StudyProvider({ children }: StudyProviderProps) {
     dispatch({ type: 'UNDO' });
   }, []);
 
+  const saveTree = useCallback(async () => {
+    if (!state.chapterId) {
+      setError('SAVE_ERROR', 'Cannot save: missing chapter id');
+      return;
+    }
+    if (state.isSaving) {
+      return;
+    }
+
+    dispatch({ type: 'SET_SAVING', isSaving: true });
+    try {
+      const response = await fetch(`/study-patch/chapter/${state.chapterId}/tree`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(state.tree),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        setError('SAVE_ERROR', text || 'Failed to save tree');
+        return;
+      }
+
+      dispatch({ type: 'MARK_SAVED', timestamp: Date.now() });
+    } catch (e) {
+      setError('SAVE_ERROR', e instanceof Error ? e.message : 'Failed to save tree');
+    } finally {
+      dispatch({ type: 'SET_SAVING', isSaving: false });
+    }
+  }, [state.chapterId, state.isSaving, state.tree, setError]);
+
+  useEffect(() => {
+    if (!state.isDirty || !state.chapterId) return;
+
+    const timeoutId = window.setTimeout(() => {
+      saveTree();
+    }, 15000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [state.isDirty, state.chapterId, state.tree, saveTree]);
+
   const loadTreeFromServer = useCallback(async () => {
     console.log("loadTreeFromServer placeholder called");
   }, []);
@@ -485,6 +554,7 @@ export function StudyProvider({ children }: StudyProviderProps) {
     addMove,
     deleteMove,
     undo,
+    saveTree,
     loadTreeFromServer,
   };
 

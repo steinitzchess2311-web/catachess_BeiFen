@@ -11,6 +11,7 @@ export interface PatchStudyPageProps {
 function StudyPageContent({ className }: PatchStudyPageProps) {
   const { id } = useParams<{ id: string }>();
   const { state, clearError } = useStudy();
+  const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
 
   return (
     <div className={`patch-study-page ${className || ''}`}>
@@ -41,6 +42,11 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         <p className="patch-study-notice">
           This is the new patch-based study interface. Development in progress.
         </p>
+        <div className="patch-study-save-status">
+          {state.isSaving && <span>Saving...</span>}
+          {!state.isSaving && state.isDirty && <span>Unsaved changes</span>}
+          {!state.isSaving && !state.isDirty && savedTime && <span>Saved at {savedTime}</span>}
+        </div>
       </div>
       <div className="patch-study-layout">
         <div className="patch-study-sidebar">
