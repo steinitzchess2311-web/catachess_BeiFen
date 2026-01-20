@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import StudyTreeDTO, TreeResponse
@@ -84,6 +84,7 @@ async def get_chapter_tree(
 async def put_chapter_tree(
     chapter_id: str,
     tree: StudyTreeDTO,
+    request: Request,
     r2_client: R2Client = Depends(get_r2_client)
 ):
     """Save the tree.json for a chapter to R2."""
@@ -99,9 +100,12 @@ async def put_chapter_tree(
 
     key = R2Keys.chapter_tree_json(chapter_id)
     try:
+        client_hash = request.headers.get("X-Tree-Hash")
         content = tree.model_dump_json()
         r2_client.upload_json(key, content)
         logger.info(f"Tree saved for chapter {chapter_id} (size: {len(content)} bytes)")
+        if client_hash:
+            logger.info(f"Tree hash received for chapter {chapter_id}: {client_hash}")
         return TreeResponse(success=True)
     except Exception as e:
         logger.error(f"Failed to save tree for chapter {chapter_id}: {e}")

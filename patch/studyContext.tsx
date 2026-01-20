@@ -55,6 +55,7 @@ export interface StudyStateSnapshot {
   isDirty: boolean;
   lastSavedAt: number | null;
   isSaving: boolean;
+  lastSavedHash: string | null;
 }
 
 export interface StudyState extends StudyStateSnapshot {
@@ -80,7 +81,7 @@ type StudyAction =
   | { type: 'SET_ERROR'; error: StudyError }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_LOADING'; isLoading: boolean }
-  | { type: 'MARK_SAVED'; timestamp: number }
+  | { type: 'MARK_SAVED'; timestamp: number; hash: string }
   | { type: 'SET_SAVING'; isSaving: boolean }
   | { type: 'RESET' };
 
@@ -103,6 +104,7 @@ const initialSnapshot: StudyStateSnapshot = {
   isDirty: false,
   lastSavedAt: null,
   isSaving: false,
+  lastSavedHash: null,
 };
 
 const initialState: StudyState = {
@@ -152,6 +154,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
         isDirty: false,
         lastSavedAt: null,
         isSaving: false,
+        lastSavedHash: null,
         history: [], // Reset history on new chapter
       };
     }
@@ -188,6 +191,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
         isDirty: false,
         lastSavedAt: null,
         isSaving: false,
+        lastSavedHash: null,
         history: [],
       };
     }
@@ -363,7 +367,7 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
       return { ...state, isLoading: action.isLoading };
 
     case 'MARK_SAVED':
-      return { ...state, isDirty: false, lastSavedAt: action.timestamp };
+      return { ...state, isDirty: false, lastSavedAt: action.timestamp, lastSavedHash: action.hash };
 
     case 'SET_SAVING':
       return { ...state, isSaving: action.isSaving };
@@ -501,14 +505,32 @@ export function StudyProvider({ children }: StudyProviderProps) {
       return;
     }
 
+    const treePayload = JSON.stringify(state.tree);
+    let currentHash = '';
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(treePayload);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      currentHash = Array.from(new Uint8Array(hashBuffer))
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join('');
+    } catch {
+      currentHash = '';
+    }
+    if (currentHash === state.lastSavedHash && !state.isDirty) {
+      return;
+    }
+
+    console.info(`[saveTree] Saving tree for chapter ${state.chapterId}`, { hash: currentHash || 'n/a' });
     dispatch({ type: 'SET_SAVING', isSaving: true });
     try {
       const response = await fetch(`/study-patch/chapter/${state.chapterId}/tree`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'X-Tree-Hash': currentHash,
         },
-        body: JSON.stringify(state.tree),
+        body: treePayload,
       });
 
       if (!response.ok) {
@@ -517,13 +539,14 @@ export function StudyProvider({ children }: StudyProviderProps) {
         return;
       }
 
-      dispatch({ type: 'MARK_SAVED', timestamp: Date.now() });
+      console.info(`[saveTree] Saved tree for chapter ${state.chapterId}`, { hash: currentHash });
+      dispatch({ type: 'MARK_SAVED', timestamp: Date.now(), hash: currentHash });
     } catch (e) {
       setError('SAVE_ERROR', e instanceof Error ? e.message : 'Failed to save tree');
     } finally {
       dispatch({ type: 'SET_SAVING', isSaving: false });
     }
-  }, [state.chapterId, state.isSaving, state.tree, setError]);
+  }, [state.chapterId, state.isSaving, state.isDirty, state.lastSavedHash, state.tree, setError]);
 
   useEffect(() => {
     if (!state.isDirty || !state.chapterId) return;
