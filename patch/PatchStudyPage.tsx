@@ -16,6 +16,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const { id } = useParams<{ id: string }>();
   const { state, clearError, setError, selectChapter, loadTree } = useStudy();
   const [chapters, setChapters] = useState<any[]>([]);
+  const [studyTitle, setStudyTitle] = useState<string>('');
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
 
   const patchBase = '/api/v1/workspace/studies/study-patch';
@@ -118,6 +119,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     const resolveChapterAndTree = async () => {
       try {
         const studyResponse = await api.get(`/api/v1/workspace/studies/${id}`);
+        const resolvedTitle =
+          studyResponse?.study?.title || studyResponse?.title || 'Study';
+        setStudyTitle(resolvedTitle);
         const responseChapters = extractChapters(studyResponse);
         if (!Array.isArray(responseChapters)) {
           throw new Error('API response unexpected: chapters list missing');
@@ -134,8 +138,11 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
               title: 'Chapter 1',
             });
           } catch (createError) {
-            const retryResponse = await api.get(`/api/v1/workspace/studies/${id}`);
-            const retryChapters = extractChapters(retryResponse);
+        const retryResponse = await api.get(`/api/v1/workspace/studies/${id}`);
+        const retryTitle =
+          retryResponse?.study?.title || retryResponse?.title || 'Study';
+        setStudyTitle(retryTitle);
+        const retryChapters = extractChapters(retryResponse);
 
             if (!Array.isArray(retryChapters)) {
               throw createError;
@@ -190,7 +197,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         </div>
       )}
       <div className="patch-study-header">
-        <h2>Patch Study Mode (ID: {id})</h2>
+        <h2>{studyTitle || 'Study'}</h2>
         <p className="patch-study-notice">
           This is the new patch-based study interface. Development in progress.
         </p>
