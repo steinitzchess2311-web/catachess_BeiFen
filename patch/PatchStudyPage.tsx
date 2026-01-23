@@ -215,10 +215,12 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
             onSelectChapter={handleSelectChapter}
             onCreateChapter={handleCreateChapter}
           />
-          <MoveTree />
         </div>
         <div className="patch-study-main">
           <StudyBoard />
+        </div>
+        <div className="patch-study-rightbar">
+          <MoveTree />
         </div>
       </div>
     </div>
