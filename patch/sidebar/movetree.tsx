@@ -87,14 +87,6 @@ export function MoveTree({ className }: MoveTreeProps) {
     loadTree(result.tree);
   };
 
-  if (!rootNode || rootNode.children.length === 0) {
-    return (
-      <div className={`move-tree-container ${className || ''}`} style={{ padding: '20px', color: '#666', fontStyle: 'italic' }}>
-        No moves yet. Start playing on the board!
-      </div>
-    );
-  }
-
   return (
     <div className={`move-tree-container ${className || ''}`} style={{ 
       padding: '10px', 
@@ -115,13 +107,15 @@ export function MoveTree({ className }: MoveTreeProps) {
         </div>
       </div>
       <div className="move-tree-content">
-        <MoveBranch 
-          nodeIds={rootNode.children} 
-          nodes={tree.nodes} 
-          cursorNodeId={cursorNodeId} 
-          onSelect={handleNodeClick} 
-          depth={0}
-        />
+        {rootNode && rootNode.children.length > 0 && (
+          <MoveBranch 
+            nodeIds={rootNode.children} 
+            nodes={tree.nodes} 
+            cursorNodeId={cursorNodeId} 
+            onSelect={handleNodeClick} 
+            depth={0}
+          />
+        )}
       </div>
     </div>
   );
