@@ -39,6 +39,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border-right: 1px solid #000;
+  padding-right: 12px;
 }
 
 .patch-study-main {
@@ -52,6 +54,8 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  border-left: 1px solid #000;
+  padding-left: 12px;
 }
 
 /* Study Board Container */
