@@ -17,6 +17,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const { state, clearError, setError, selectChapter, loadTree } = useStudy();
   const [chapters, setChapters] = useState<any[]>([]);
   const [studyTitle, setStudyTitle] = useState<string>('');
+  const [studyPath, setStudyPath] = useState<string>('');
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
 
   const patchBase = '/api/v1/workspace/studies/study-patch';
@@ -122,6 +123,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         const resolvedTitle =
           studyResponse?.study?.title || studyResponse?.title || 'Study';
         setStudyTitle(resolvedTitle);
+        const resolvedPath =
+          studyResponse?.study?.path || studyResponse?.path || '';
+        setStudyPath(resolvedPath || 'root');
         const responseChapters = extractChapters(studyResponse);
         if (!Array.isArray(responseChapters)) {
           throw new Error('API response unexpected: chapters list missing');
@@ -142,6 +146,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         const retryTitle =
           retryResponse?.study?.title || retryResponse?.title || 'Study';
         setStudyTitle(retryTitle);
+        const retryPath =
+          retryResponse?.study?.path || retryResponse?.path || '';
+        setStudyPath(retryPath || 'root');
         const retryChapters = extractChapters(retryResponse);
 
             if (!Array.isArray(retryChapters)) {
@@ -199,7 +206,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       <div className="patch-study-header">
         <h2>{studyTitle || 'Study'}</h2>
         <p className="patch-study-notice">
-          This is the new patch-based study interface. Development in progress.
+          {studyPath || 'root'}
         </p>
         <div className="patch-study-save-status">
           {state.isSaving && <span>Saving...</span>}

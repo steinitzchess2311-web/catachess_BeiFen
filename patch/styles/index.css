@@ -12,22 +12,34 @@
   border: 1px solid #000;
   padding: 10px 12px;
   border-radius: 6px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title notice"
+    "status status";
+  align-items: end;
 }
 
 .patch-study-header h2 {
   margin: 0 0 8px 0;
+  grid-area: title;
+  justify-self: center;
 }
 
 .patch-study-notice {
   color: #888;
   font-size: 14px;
   margin: 0;
+  grid-area: notice;
+  justify-self: end;
+  align-self: end;
 }
 
 .patch-study-save-status {
   margin-top: 6px;
   color: #666;
   font-size: 12px;
+  grid-area: status;
 }
 
 .patch-study-layout {
