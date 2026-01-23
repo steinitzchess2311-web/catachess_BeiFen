@@ -9,6 +9,9 @@
 
 .patch-study-header {
   margin-bottom: 16px;
+  border: 1px solid #000;
+  padding: 10px 12px;
+  border-radius: 6px;
 }
 
 .patch-study-header h2 {
