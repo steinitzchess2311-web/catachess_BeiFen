@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, ReactNode } from 'react';
+import { api } from '@ui/assets/api';
 import { replaySanPath, STARTING_FEN } from './chessJS/replay';
 import type { ReplayResult } from './chessJS/replay';
 import { StudyTree, createEmptyTree } from './tree/StudyTree';
@@ -431,6 +432,7 @@ export interface StudyProviderProps {
 export function StudyProvider({ children }: StudyProviderProps) {
   const [state, dispatch] = useReducer(studyReducer, initialState);
   const fenCacheRef = useRef<Record<string, string>>({});
+  const patchBase = '/api/v1/workspace/studies/study-patch';
 
   useEffect(() => {
     if (state.cursorNodeId && state.currentFen) {
@@ -524,20 +526,7 @@ export function StudyProvider({ children }: StudyProviderProps) {
     console.info(`[saveTree] Saving tree for chapter ${state.chapterId}`, { hash: currentHash || 'n/a' });
     dispatch({ type: 'SET_SAVING', isSaving: true });
     try {
-      const response = await fetch(`/study-patch/chapter/${state.chapterId}/tree`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Tree-Hash': currentHash,
-        },
-        body: treePayload,
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        setError('SAVE_ERROR', text || 'Failed to save tree');
-        return;
-      }
+      await api.put(`${patchBase}/chapter/${state.chapterId}/tree`, state.tree);
 
       console.info(`[saveTree] Saved tree for chapter ${state.chapterId}`, { hash: currentHash });
       dispatch({ type: 'MARK_SAVED', timestamp: Date.now(), hash: currentHash });
@@ -546,7 +535,7 @@ export function StudyProvider({ children }: StudyProviderProps) {
     } finally {
       dispatch({ type: 'SET_SAVING', isSaving: false });
     }
-  }, [state.chapterId, state.isSaving, state.isDirty, state.lastSavedHash, state.tree, setError]);
+  }, [patchBase, state.chapterId, state.isSaving, state.isDirty, state.lastSavedHash, state.tree, setError]);
 
   useEffect(() => {
     if (!state.isDirty || !state.chapterId) return;
