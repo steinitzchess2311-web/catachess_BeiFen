@@ -109,11 +109,13 @@ export function MoveTree({ className }: MoveTreeProps) {
       <div className="move-tree-content">
         {rootNode && rootNode.children.length > 0 && (
           <MoveBranch 
-            nodeIds={rootNode.children} 
+            startNodeId={rootNode.children[0]}
             nodes={tree.nodes} 
             cursorNodeId={cursorNodeId} 
             onSelect={handleNodeClick} 
             depth={0}
+            startPly={1}
+            isMainline={true}
           />
         )}
       </div>
@@ -122,79 +124,137 @@ export function MoveTree({ className }: MoveTreeProps) {
 }
 
 interface MoveBranchProps {
-  nodeIds: string[];
   nodes: Record<string, StudyNode>;
   cursorNodeId: string;
   onSelect: (nodeId: string) => void;
   depth: number;
+  startNodeId: string;
+  startPly: number;
+  isMainline: boolean;
 }
 
 /**
  * Renders a branch of moves (mainline + variations)
  */
-function MoveBranch({ nodeIds, nodes, cursorNodeId, onSelect, depth }: MoveBranchProps) {
-  if (nodeIds.length === 0) return null;
+function MoveBranch({ startNodeId, nodes, cursorNodeId, onSelect, depth, startPly, isMainline }: MoveBranchProps) {
+  if (!startNodeId) return null;
 
-  // children[0] is the mainline
-  // children[1..n] are variations
-  const mainlineId = nodeIds[0];
-  const variationsIds = nodeIds.slice(1);
+  const renderVariations = (nodeId: string, ply: number) => {
+    const node = nodes[nodeId];
+    if (!node || node.children.length < 2) return null;
+    const variationsIds = node.children.slice(1);
+    return (
+      <div className="variations" style={{ 
+        fontSize: '0.9em', 
+        color: '#555', 
+        marginTop: '4px',
+        marginBottom: '4px',
+        borderLeft: '2px solid #ddd',
+        paddingLeft: '8px',
+        marginLeft: '12px'
+      }}>
+        {variationsIds.map((vId) => (
+          <div key={vId} className="variation-wrapper" style={{ marginBottom: '4px' }}>
+            <span style={{ color: '#888', marginRight: '4px' }}>(variation)</span>
+            <MoveBranch
+              startNodeId={vId}
+              nodes={nodes}
+              cursorNodeId={cursorNodeId}
+              onSelect={onSelect}
+              depth={depth + 1}
+              startPly={ply}
+              isMainline={false}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const lines: React.ReactNode[] = [];
+  let currentId: string | null = startNodeId;
+  let ply = startPly;
+
+  while (currentId) {
+    const currentNode = nodes[currentId];
+    if (!currentNode) break;
+
+    const isWhite = ply % 2 === 1;
+    let whiteNode: StudyNode | null = null;
+    let blackNode: StudyNode | null = null;
+    let blackId: string | null = null;
+
+    if (isWhite) {
+      whiteNode = currentNode;
+      blackId = currentNode.children[0] || null;
+      blackNode = blackId ? nodes[blackId] : null;
+    } else {
+      blackNode = currentNode;
+    }
+
+    const moveNumber = Math.floor((ply + 1) / 2);
+    const whitePrefix = isWhite ? `${moveNumber}.` : '';
+    const blackPrefix = !isWhite ? `${moveNumber}...` : '';
+
+    lines.push(
+      <div key={`line-${currentId}`} className="move-line" style={{ 
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '6px',
+        marginBottom: '4px'
+      }}>
+        {whiteNode ? (
+          <MoveItem
+            nodeId={whiteNode.id}
+            nodes={nodes}
+            cursorNodeId={cursorNodeId}
+            onSelect={onSelect}
+            isMainline={isMainline}
+            prefix={whitePrefix}
+          />
+        ) : (
+          <div />
+        )}
+        {blackNode ? (
+          <MoveItem
+            nodeId={blackNode.id}
+            nodes={nodes}
+            cursorNodeId={cursorNodeId}
+            onSelect={onSelect}
+            isMainline={isMainline}
+            prefix={blackPrefix}
+          />
+        ) : (
+          <div />
+        )}
+      </div>
+    );
+
+    if (whiteNode) {
+      const whitePly = ply;
+      lines.push(renderVariations(whiteNode.id, whitePly + 1));
+    }
+    if (blackNode) {
+      const blackPly = isWhite ? ply + 1 : ply;
+      lines.push(renderVariations(blackNode.id, blackPly + 1));
+    }
+
+    if (isWhite) {
+      if (blackId) {
+        currentId = blackNode?.children[0] || null;
+        ply += 2;
+      } else {
+        currentId = null;
+      }
+    } else {
+      currentId = blackNode?.children[0] || null;
+      ply += 1;
+    }
+  }
 
   return (
     <div className="move-branch" style={{ marginLeft: depth > 0 ? '12px' : '0' }}>
-      {/* 1. The mainline node */}
-      <MoveItem 
-        nodeId={mainlineId} 
-        nodes={nodes} 
-        cursorNodeId={cursorNodeId} 
-        onSelect={onSelect} 
-        isMainline={true}
-      />
-
-      {/* 2. Variations (if any) starting from this point */}
-      {variationsIds.length > 0 && (
-        <div className="variations" style={{ 
-          fontSize: '0.9em', 
-          color: '#555', 
-          marginTop: '4px',
-          marginBottom: '4px',
-          borderLeft: '2px solid #ddd',
-          paddingLeft: '8px'
-        }}>
-          {variationsIds.map((vId) => (
-            <div key={vId} className="variation-wrapper" style={{ marginBottom: '2px' }}>
-              <span style={{ color: '#888', marginRight: '4px' }}>(variation)</span>
-              <MoveItem 
-                nodeId={vId} 
-                nodes={nodes} 
-                cursorNodeId={cursorNodeId} 
-                onSelect={onSelect} 
-                isMainline={false}
-              />
-              {nodes[vId] && nodes[vId].children.length > 0 && (
-                <MoveBranch
-                  nodeIds={nodes[vId].children}
-                  nodes={nodes}
-                  cursorNodeId={cursorNodeId}
-                  onSelect={onSelect}
-                  depth={depth + 1}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 3. Continue the mainline from the mainline node's children */}
-      {nodes[mainlineId] && nodes[mainlineId].children.length > 0 && (
-        <MoveBranch 
-          nodeIds={nodes[mainlineId].children} 
-          nodes={nodes} 
-          cursorNodeId={cursorNodeId} 
-          onSelect={onSelect} 
-          depth={depth} // We don't increment depth for mainline continuation to keep it vertically aligned
-        />
-      )}
+      {lines}
     </div>
   );
 }
@@ -205,9 +265,10 @@ interface MoveItemProps {
   cursorNodeId: string;
   onSelect: (nodeId: string) => void;
   isMainline: boolean;
+  prefix?: string;
 }
 
-function MoveItem({ nodeId, nodes, cursorNodeId, onSelect, isMainline }: MoveItemProps) {
+function MoveItem({ nodeId, nodes, cursorNodeId, onSelect, isMainline, prefix = '' }: MoveItemProps) {
   const node = nodes[nodeId];
   if (!node) return null;
 
@@ -239,6 +300,7 @@ function MoveItem({ nodeId, nodes, cursorNodeId, onSelect, isMainline }: MoveIte
         if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
       }}
     >
+      {prefix && <span className="move-prefix" style={{ marginRight: '4px' }}>{prefix}</span>}
       <span className="move-san">{node.san}</span>
       {node.nags && node.nags.length > 0 && (
         <span className="move-nags" style={{ marginLeft: '2px', color: isActive ? 'white' : '#d97706' }}>
