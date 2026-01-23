@@ -177,6 +177,15 @@ function MoveBranch({ nodeIds, nodes, cursorNodeId, onSelect, depth }: MoveBranc
                 onSelect={onSelect} 
                 isMainline={false}
               />
+              {nodes[vId] && nodes[vId].children.length > 0 && (
+                <MoveBranch
+                  nodeIds={nodes[vId].children}
+                  nodes={nodes}
+                  cursorNodeId={cursorNodeId}
+                  onSelect={onSelect}
+                  depth={depth + 1}
+                />
+              )}
             </div>
           ))}
         </div>
