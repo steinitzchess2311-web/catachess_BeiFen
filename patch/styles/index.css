@@ -70,6 +70,17 @@
   min-height: 0;
 }
 
+.patch-right-panel {
+  background: #f5f5f5;
+  border: 1px solid #242424;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+}
+
 /* Study Board Container */
 .study-board-container {
   width: 100%;
@@ -89,7 +100,7 @@
 /* Move Tree Container */
 .move-tree-container {
   width: 100%;
-  background: #1a1a1a;
+  background: transparent;
   border-radius: 4px;
   padding: 16px;
   flex: 1;

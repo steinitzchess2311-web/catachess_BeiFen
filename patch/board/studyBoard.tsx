@@ -53,25 +53,6 @@ export function StudyBoard({ className, boardWidth = 400 }: StudyBoardProps) {
         />
       </div>
       
-      {/* Analysis Placeholder */}
-      <div className="study-board-controls">
-        <button 
-          className="analysis-button"
-          onClick={() => console.log('Analysis clicked (placeholder)')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#4a4a4a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'not-allowed', // Disabled for now
-            opacity: 0.7
-          }}
-          disabled
-        >
-          Analyze (Coming Soon)
-        </button>
-      </div>
     </div>
   );
 }

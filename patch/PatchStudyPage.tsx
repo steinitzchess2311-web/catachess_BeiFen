@@ -220,7 +220,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
           <StudyBoard />
         </div>
         <div className="patch-study-rightbar">
-          <MoveTree />
+          <div className="patch-right-panel">
+            <MoveTree />
+          </div>
         </div>
       </div>
     </div>
