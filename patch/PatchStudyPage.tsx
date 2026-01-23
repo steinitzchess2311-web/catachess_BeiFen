@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { StudyProvider, useStudy } from './studyContext';
 import { StudyBoard } from './board/studyBoard';
 import { MoveTree } from './sidebar/movetree';
+import { ChapterList } from './sidebar/ChapterList';
 import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
 import { TREE_SCHEMA_VERSION } from './tree/type';
@@ -14,7 +15,101 @@ export interface PatchStudyPageProps {
 function StudyPageContent({ className }: PatchStudyPageProps) {
   const { id } = useParams<{ id: string }>();
   const { state, clearError, setError, selectChapter, loadTree } = useStudy();
+  const [chapters, setChapters] = useState<any[]>([]);
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
+
+  const patchBase = '/api/v1/workspace/studies/study-patch';
+
+  const extractChapters = useCallback((response: any) => {
+    return response?.chapters || response?.study?.chapters || response?.data?.chapters;
+  }, []);
+
+  const getSortValue = useCallback((ch: any, key: string) => {
+    const value = ch?.[key];
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = Date.parse(value);
+      if (!Number.isNaN(parsed)) return parsed;
+      return value;
+    }
+    return null;
+  }, []);
+
+  const sortChapters = useCallback((items: any[]) => {
+    return [...items].sort((a, b) => {
+      const orderA = getSortValue(a, 'order');
+      const orderB = getSortValue(b, 'order');
+      if (orderA !== null || orderB !== null) {
+        if (orderA === null) return 1;
+        if (orderB === null) return -1;
+        return orderA < orderB ? -1 : orderA > orderB ? 1 : 0;
+      }
+
+      console.warn('[patch] Chapter order missing, falling back to created_at/id.');
+      const createdA = getSortValue(a, 'created_at');
+      const createdB = getSortValue(b, 'created_at');
+      if (createdA !== null || createdB !== null) {
+        if (createdA === null) return 1;
+        if (createdB === null) return -1;
+        return createdA < createdB ? -1 : createdA > createdB ? 1 : 0;
+      }
+
+      const idA = `${a?.id ?? ''}`;
+      const idB = `${b?.id ?? ''}`;
+      return idA.localeCompare(idB);
+    });
+  }, [getSortValue]);
+
+  const loadChapterTree = useCallback(async (chapterId: string) => {
+    selectChapter(chapterId);
+
+    try {
+      const treeResponse = await api.get(`${patchBase}/chapter/${chapterId}/tree`);
+      if (treeResponse?.success && treeResponse.tree) {
+        if (!treeResponse.tree.version) {
+          console.warn(`[patch] Tree missing version for chapter ${chapterId}, will re-save.`);
+          const upgradedTree = { ...treeResponse.tree, version: TREE_SCHEMA_VERSION };
+          await api.put(`${patchBase}/chapter/${chapterId}/tree`, upgradedTree);
+          loadTree(upgradedTree);
+          return;
+        }
+        loadTree(treeResponse.tree);
+        return;
+      }
+    } catch (e) {
+      console.warn(`[patch] Tree load failed for chapter ${chapterId}, initializing empty tree.`);
+    }
+
+    const emptyTree = createEmptyTree();
+    const createResponse = await api.put(`${patchBase}/chapter/${chapterId}/tree`, emptyTree);
+    if (!createResponse?.success) {
+      throw new Error(createResponse?.error || 'Failed to initialize tree');
+    }
+    loadTree(emptyTree);
+  }, [loadTree, patchBase, selectChapter]);
+
+  const handleSelectChapter = useCallback(async (chapterId: string) => {
+    try {
+      await loadChapterTree(chapterId);
+    } catch (e) {
+      setError('LOAD_ERROR', e instanceof Error ? e.message : 'Failed to load chapter');
+    }
+  }, [loadChapterTree, setError]);
+
+  const handleCreateChapter = useCallback(async () => {
+    if (!id) return;
+    try {
+      const title = `Chapter ${chapters.length + 1}`;
+      const chapter = await api.post(`/api/v1/workspace/studies/${id}/chapters`, { title });
+      const nextChapters = sortChapters([...chapters, chapter]);
+      setChapters(nextChapters);
+      if (chapter?.id) {
+        await loadChapterTree(chapter.id);
+      }
+    } catch (e) {
+      setError('LOAD_ERROR', e instanceof Error ? e.message : 'Failed to create chapter');
+    }
+  }, [chapters, id, loadChapterTree, setError, sortChapters]);
 
   useEffect(() => {
     if (!id) return;
@@ -22,54 +117,16 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
 
     const resolveChapterAndTree = async () => {
       try {
-        const extractChapters = (response: any) =>
-          response?.chapters || response?.study?.chapters || response?.data?.chapters;
-
-        const getSortValue = (ch: any, key: string) => {
-          const value = ch?.[key];
-          if (typeof value === 'number') return value;
-          if (typeof value === 'string') {
-            const parsed = Date.parse(value);
-            if (!Number.isNaN(parsed)) return parsed;
-            return value;
-          }
-          return null;
-        };
-
-        const sortChapters = (items: any[]) => {
-          return [...items].sort((a, b) => {
-            const orderA = getSortValue(a, 'order');
-            const orderB = getSortValue(b, 'order');
-            if (orderA !== null || orderB !== null) {
-              if (orderA === null) return 1;
-              if (orderB === null) return -1;
-              return orderA < orderB ? -1 : orderA > orderB ? 1 : 0;
-            }
-
-            console.warn('[patch] Chapter order missing, falling back to created_at/id.');
-            const createdA = getSortValue(a, 'created_at');
-            const createdB = getSortValue(b, 'created_at');
-            if (createdA !== null || createdB !== null) {
-              if (createdA === null) return 1;
-              if (createdB === null) return -1;
-              return createdA < createdB ? -1 : createdA > createdB ? 1 : 0;
-            }
-
-            const idA = `${a?.id ?? ''}`;
-            const idB = `${b?.id ?? ''}`;
-            return idA.localeCompare(idB);
-          });
-        };
-
         const studyResponse = await api.get(`/api/v1/workspace/studies/${id}`);
         const responseChapters = extractChapters(studyResponse);
         if (!Array.isArray(responseChapters)) {
           throw new Error('API response unexpected: chapters list missing');
         }
 
-        let chapters = sortChapters(responseChapters);
+        let sortedChapters = sortChapters(responseChapters);
+        setChapters(sortedChapters);
 
-        let chapter = chapters[0];
+        let chapter = sortedChapters[0];
 
         if (!chapter) {
           try {
@@ -84,8 +141,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
               throw createError;
             }
 
-            chapters = sortChapters(retryChapters);
-            chapter = chapters[0];
+            sortedChapters = sortChapters(retryChapters);
+            setChapters(sortedChapters);
+            chapter = sortedChapters[0];
             if (!chapter) {
               throw createError;
             }
@@ -93,32 +151,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         }
 
         if (cancelled) return;
-
-        selectChapter(chapter.id);
-
-        try {
-          const treeResponse = await api.get(`/study-patch/chapter/${chapter.id}/tree`);
-          if (treeResponse?.success && treeResponse.tree) {
-            if (!treeResponse.tree.version) {
-              console.warn(`[patch] Tree missing version for chapter ${chapter.id}, will re-save.`);
-              const upgradedTree = { ...treeResponse.tree, version: TREE_SCHEMA_VERSION };
-              await api.put(`/study-patch/chapter/${chapter.id}/tree`, upgradedTree);
-              loadTree(upgradedTree);
-              return;
-            }
-            loadTree(treeResponse.tree);
-            return;
-          }
-        } catch (e) {
-          console.warn(`[patch] Tree load failed for chapter ${chapter.id}, initializing empty tree.`);
-        }
-
-        const emptyTree = createEmptyTree();
-        const createResponse = await api.put(`/study-patch/chapter/${chapter.id}/tree`, emptyTree);
-        if (!createResponse?.success) {
-          throw new Error(createResponse?.error || 'Failed to initialize tree');
-        }
-        loadTree(emptyTree);
+        await loadChapterTree(chapter.id);
       } catch (e) {
         if (cancelled) return;
         setError('LOAD_ERROR', e instanceof Error ? e.message : 'Failed to enter study');
@@ -130,7 +163,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [id, loadTree, selectChapter, setError]);
+  }, [extractChapters, id, loadChapterTree, setError, sortChapters]);
 
   return (
     <div className={`patch-study-page ${className || ''}`}>
@@ -169,6 +202,12 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       </div>
       <div className="patch-study-layout">
         <div className="patch-study-sidebar">
+          <ChapterList
+            chapters={chapters}
+            currentChapterId={state.chapterId}
+            onSelectChapter={handleSelectChapter}
+            onCreateChapter={handleCreateChapter}
+          />
           <MoveTree />
         </div>
         <div className="patch-study-main">
