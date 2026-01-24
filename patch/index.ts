@@ -88,6 +88,10 @@ export type { MoveTreeProps } from './sidebar/movetree';
 // Terminal
 export { TerminalLauncher } from './modules/terminal';
 
+// Engine
+export { analyzeWithFallback } from './engine/client';
+export type { EngineAnalysis, EngineLine, EngineSource } from './engine/types';
+
 // Pages
 export { PatchStudyPage } from './PatchStudyPage';
 export type { PatchStudyPageProps } from './PatchStudyPage';

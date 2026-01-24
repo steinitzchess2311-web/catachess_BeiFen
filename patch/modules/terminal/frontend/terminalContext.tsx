@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode, useRef, useEffect } from 'react';
 import type { TerminalState, TerminalLine, SystemType, WindowState } from './types';
 import { getSystem } from './systems';
 import { executeCommand } from './commands';
@@ -9,7 +9,8 @@ import {
   deleteNode,
   getNodeChildren,
   getRootNodes,
-  resolvePathToNode,
+  getNode,
+  getNodePath,
   invalidatePathCache,
   type WorkspaceNode,
 } from './api';
@@ -30,8 +31,8 @@ interface FullTerminalState {
   window: WindowState;
   pendingConfirmation: PendingConfirmation | null;
   isProcessing: boolean;
-  currentNodeId: string | null; // Current directory node ID
-  nodeCache: Map<string, WorkspaceNode>; // Path -> Node cache
+  currentNodeId: string | null; // Current directory node ID (null = root level)
+  isInitialized: boolean;
 }
 
 // =============================================================================
@@ -40,10 +41,10 @@ interface FullTerminalState {
 
 type TerminalAction =
   | { type: 'SET_SYSTEM'; system: SystemType }
-  | { type: 'EXECUTE_COMMAND'; input: string }
   | { type: 'ADD_OUTPUT'; lines: TerminalLine[] }
   | { type: 'CLEAR' }
   | { type: 'NAVIGATE_HISTORY'; direction: 'up' | 'down' }
+  | { type: 'ADD_COMMAND_HISTORY'; command: string }
   | { type: 'TOGGLE_EFFECT'; effect: 'scanlines' | 'sound' | 'crtGlow' }
   | { type: 'SET_BOOTING'; isBooting: boolean }
   | { type: 'SET_WINDOW_POSITION'; x: number; y: number }
@@ -53,8 +54,8 @@ type TerminalAction =
   | { type: 'SET_VISIBLE'; isVisible: boolean }
   | { type: 'SET_PENDING_CONFIRMATION'; confirmation: PendingConfirmation | null }
   | { type: 'SET_PROCESSING'; isProcessing: boolean }
-  | { type: 'SET_CURRENT_NODE'; nodeId: string | null }
-  | { type: 'SET_CWD'; cwd: string };
+  | { type: 'SET_CURRENT_NODE'; nodeId: string | null; cwd: string }
+  | { type: 'SET_INITIALIZED'; isInitialized: boolean };
 
 // =============================================================================
 // Initial State
@@ -74,7 +75,7 @@ function createInitialState(system: SystemType = 'dos'): FullTerminalState {
       system,
       cwd: '/',
       username: 'user',
-      hostname: 'localhost',
+      hostname: 'catachess',
       history: startupLines,
       commandHistory: [],
       commandHistoryIndex: -1,
@@ -95,7 +96,7 @@ function createInitialState(system: SystemType = 'dos'): FullTerminalState {
     pendingConfirmation: null,
     isProcessing: false,
     currentNodeId: null,
-    nodeCache: new Map(),
+    isInitialized: false,
   };
 }
 
@@ -129,66 +130,7 @@ function terminalReducer(state: FullTerminalState, action: TerminalAction): Full
           commandHistoryIndex: -1,
         },
         currentNodeId: null,
-      };
-    }
-
-    case 'EXECUTE_COMMAND': {
-      const { input } = action;
-      const { terminal } = state;
-      const config = getSystem(terminal.system);
-      const prompt = config.prompt(terminal.cwd, terminal.username);
-
-      const inputLine: TerminalLine = {
-        id: generateId(),
-        type: 'input',
-        content: input,
-        prompt,
-        timestamp: Date.now(),
-      };
-
-      const result = executeCommand(input, terminal.cwd, terminal.system, virtualFS);
-
-      if (result.output.length === 1 && result.output[0] === '__CLEAR__') {
-        return {
-          ...state,
-          terminal: {
-            ...terminal,
-            history: [],
-            commandHistory: [...terminal.commandHistory, input],
-            commandHistoryIndex: -1,
-          },
-        };
-      }
-
-      const outputLines: TerminalLine[] = [];
-
-      if (result.error) {
-        outputLines.push({
-          id: generateId(),
-          type: 'error',
-          content: result.error,
-          timestamp: Date.now(),
-        });
-      } else {
-        for (const line of result.output) {
-          outputLines.push({
-            id: generateId(),
-            type: 'output',
-            content: line,
-            timestamp: Date.now(),
-          });
-        }
-      }
-
-      return {
-        ...state,
-        terminal: {
-          ...terminal,
-          cwd: result.newCwd || terminal.cwd,
-          history: [...terminal.history, inputLine, ...outputLines],
-          commandHistory: input.trim() ? [...terminal.commandHistory, input] : terminal.commandHistory,
-          commandHistoryIndex: -1,
-        },
+        isInitialized: false,
       };
     }
 
@@ -234,6 +176,17 @@ function terminalReducer(state: FullTerminalState, action: TerminalAction): Full
         terminal: {
           ...state.terminal,
           commandHistoryIndex: newIndex,
+        },
+      };
+    }
+
+    case 'ADD_COMMAND_HISTORY': {
+      return {
+        ...state,
+        terminal: {
+          ...state.terminal,
+          commandHistory: [...state.terminal.commandHistory, action.command],
+          commandHistoryIndex: -1,
         },
       };
     }
@@ -329,16 +282,17 @@ function terminalReducer(state: FullTerminalState, action: TerminalAction): Full
       return {
         ...state,
         currentNodeId: action.nodeId,
-      };
-    }
-
-    case 'SET_CWD': {
-      return {
-        ...state,
         terminal: {
           ...state.terminal,
           cwd: action.cwd,
         },
+      };
+    }
+
+    case 'SET_INITIALIZED': {
+      return {
+        ...state,
+        isInitialized: action.isInitialized,
       };
     }
 
@@ -370,6 +324,86 @@ interface TerminalContextValue {
 const TerminalContext = createContext<TerminalContextValue | null>(null);
 
 // =============================================================================
+// Formatting helpers
+// =============================================================================
+
+function formatDosDir(nodes: WorkspaceNode[], currentPath: string): string[] {
+  const lines: string[] = [];
+  const dosPath = currentPath === '/' ? 'C:\\' : `C:\\${currentPath.slice(1).replace(/\//g, '\\')}`;
+
+  lines.push(' Volume in drive C has no label');
+  lines.push(` Directory of ${dosPath}`);
+  lines.push('');
+
+  let fileCount = 0;
+  let dirCount = 0;
+
+  // Add . and .. for navigation reference
+  if (currentPath !== '/') {
+    lines.push('.            <DIR>        01-01-95  12:00a');
+    lines.push('..           <DIR>        01-01-95  12:00a');
+    dirCount += 2;
+  }
+
+  for (const node of nodes) {
+    const name = node.title.toUpperCase().substring(0, 12).padEnd(12);
+    if (node.node_type === 'folder' || node.node_type === 'workspace') {
+      lines.push(`${name} <DIR>        01-01-95  12:00a`);
+      dirCount++;
+    } else {
+      // Studies show as .STUDY files
+      const displayName = `${node.title.substring(0, 8)}.STUDY`.padEnd(12);
+      lines.push(`${displayName}      4,096  01-01-95  12:00a`);
+      fileCount++;
+    }
+  }
+
+  lines.push('');
+  lines.push(`        ${fileCount} file(s)          ${(fileCount * 4096).toLocaleString()} bytes`);
+  lines.push(`        ${dirCount} dir(s)   104,857,600 bytes free`);
+
+  return lines;
+}
+
+function formatUnixLs(nodes: WorkspaceNode[], flags: string, currentPath: string): string[] {
+  if (nodes.length === 0 && currentPath === '/') {
+    return ['(empty workspace - use mkdir to create folders)'];
+  }
+
+  if (nodes.length === 0) {
+    return [];
+  }
+
+  const longFormat = flags.includes('l');
+
+  if (longFormat) {
+    const lines: string[] = [];
+    lines.push(`total ${nodes.length * 4}`);
+
+    for (const node of nodes) {
+      const isDir = node.node_type === 'folder' || node.node_type === 'workspace';
+      const perms = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+      const size = '4096'.padStart(8);
+      const date = 'Jan  1 12:00';
+      const displayName = isDir ? node.title : `${node.title}.study`;
+      const name = isDir ? `\x1b[1;34m${displayName}\x1b[0m` : displayName;
+      lines.push(`${perms}  1 user user ${size} ${date} ${name}`);
+    }
+
+    return lines;
+  }
+
+  // Simple format - names in a row
+  const names = nodes.map(node => {
+    const isDir = node.node_type === 'folder' || node.node_type === 'workspace';
+    const displayName = isDir ? node.title : `${node.title}.study`;
+    return isDir ? `\x1b[1;34m${displayName}\x1b[0m` : displayName;
+  });
+
+  return [names.join('  ')];
+}
+
+// =============================================================================
 // Provider
 // =============================================================================
 
@@ -381,6 +415,26 @@ interface TerminalProviderProps {
 export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalProviderProps) {
   const [state, dispatch] = useReducer(terminalReducer, createInitialState(initialSystem));
   const pendingActionRef = useRef<{ target: string; nodeId?: string } | null>(null);
+
+  // Initialize - check root nodes exist
+  useEffect(() => {
+    if (state.isInitialized) return;
+
+    const init = async () => {
+      try {
+        const roots = await getRootNodes();
+        if (roots.length > 0) {
+          // Start at root level (null nodeId means we list all root nodes)
+          dispatch({ type: 'SET_CURRENT_NODE', nodeId: null, cwd: '/' });
+        }
+      } catch (e) {
+        console.error('[terminal] Failed to initialize:', e);
+      }
+      dispatch({ type: 'SET_INITIALIZED', isInitialized: true });
+    };
+
+    init();
+  }, [state.isInitialized]);
 
   const addOutput = useCallback((lines: TerminalLine[]) => {
     dispatch({ type: 'ADD_OUTPUT', lines });
@@ -395,13 +449,165 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
     }]);
   }, [addOutput]);
 
+  // Build path string from node chain
+  const buildPath = useCallback(async (nodeId: string | null): Promise<string> => {
+    if (!nodeId) return '/';
+    return await getNodePath(nodeId);
+  }, []);
+
+  // Handle async ls
+  const handleLs = useCallback(async (target: string, flags: string) => {
+    dispatch({ type: 'SET_PROCESSING', isProcessing: true });
+    const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
+
+    try {
+      let nodes: WorkspaceNode[];
+      let displayPath = state.terminal.cwd;
+
+      if (target === '' || target === '.') {
+        // List current directory
+        if (state.currentNodeId === null) {
+          nodes = await getRootNodes();
+        } else {
+          nodes = await getNodeChildren(state.currentNodeId);
+        }
+      } else if (target === '..') {
+        // List parent directory
+        if (state.currentNodeId === null) {
+          nodes = await getRootNodes();
+        } else {
+          const currentNode = await getNode(state.currentNodeId);
+          if (currentNode?.parent_id) {
+            nodes = await getNodeChildren(currentNode.parent_id);
+            displayPath = await buildPath(currentNode.parent_id);
+          } else {
+            nodes = await getRootNodes();
+            displayPath = '/';
+          }
+        }
+      } else {
+        // Find target node by name in current directory
+        let children: WorkspaceNode[];
+        if (state.currentNodeId === null) {
+          children = await getRootNodes();
+        } else {
+          children = await getNodeChildren(state.currentNodeId);
+        }
+
+        const targetNode = children.find(c =>
+          c.title.toLowerCase() === target.toLowerCase() ||
+          c.title.toLowerCase() === target.replace(/\.study$/i, '').toLowerCase()
+        );
+
+        if (!targetNode) {
+          addLine(isDos
+            ? 'File Not Found'
+            : `ls: cannot access '${target}': No such file or directory`,
+            'error'
+          );
+          return;
+        }
+
+        if (targetNode.node_type === 'study') {
+          // Can't ls a study file, just show its info
+          addLine(`${targetNode.title}.study`);
+          return;
+        }
+
+        nodes = await getNodeChildren(targetNode.id);
+        displayPath = await buildPath(targetNode.id);
+      }
+
+      // Format output based on system
+      const output = isDos || flags === 'dos'
+        ? formatDosDir(nodes, displayPath)
+        : formatUnixLs(nodes, flags, displayPath);
+
+      for (const line of output) {
+        addLine(line);
+      }
+    } catch (e: any) {
+      addLine(`Error: ${e.message || 'Failed to list directory'}`, 'error');
+    } finally {
+      dispatch({ type: 'SET_PROCESSING', isProcessing: false });
+    }
+  }, [state.terminal.system, state.terminal.cwd, state.currentNodeId, addLine, buildPath]);
+
+  // Handle async cd
+  const handleCd = useCallback(async (target: string) => {
+    dispatch({ type: 'SET_PROCESSING', isProcessing: true });
+    const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
+
+    try {
+      // Go to root
+      if (target === '' || target === '/' || target === '~') {
+        dispatch({ type: 'SET_CURRENT_NODE', nodeId: null, cwd: '/' });
+        return;
+      }
+
+      // Go to parent
+      if (target === '..') {
+        if (state.currentNodeId === null) {
+          // Already at root
+          return;
+        }
+
+        const currentNode = await getNode(state.currentNodeId);
+        if (!currentNode || !currentNode.parent_id) {
+          // Go to root
+          dispatch({ type: 'SET_CURRENT_NODE', nodeId: null, cwd: '/' });
+        } else {
+          const newPath = await buildPath(currentNode.parent_id);
+          dispatch({ type: 'SET_CURRENT_NODE', nodeId: currentNode.parent_id, cwd: newPath });
+        }
+        return;
+      }
+
+      // Find target node by name
+      let children: WorkspaceNode[];
+      if (state.currentNodeId === null) {
+        children = await getRootNodes();
+      } else {
+        children = await getNodeChildren(state.currentNodeId);
+      }
+
+      const targetNode = children.find(c =>
+        c.title.toLowerCase() === target.toLowerCase()
+      );
+
+      if (!targetNode) {
+        addLine(isDos
+          ? 'The system cannot find the path specified.'
+          : `cd: ${target}: No such file or directory`,
+          'error'
+        );
+        return;
+      }
+
+      if (targetNode.node_type === 'study') {
+        addLine(isDos
+          ? 'The directory name is invalid.'
+          : `cd: ${target}: Not a directory`,
+          'error'
+        );
+        return;
+      }
+
+      const newPath = await buildPath(targetNode.id);
+      dispatch({ type: 'SET_CURRENT_NODE', nodeId: targetNode.id, cwd: newPath });
+    } catch (e: any) {
+      addLine(`Error: ${e.message || 'Failed to change directory'}`, 'error');
+    } finally {
+      dispatch({ type: 'SET_PROCESSING', isProcessing: false });
+    }
+  }, [state.terminal.system, state.currentNodeId, addLine, buildPath]);
+
   // Handle async mkdir
   const handleMkdir = useCallback(async (dirName: string) => {
     dispatch({ type: 'SET_PROCESSING', isProcessing: true });
 
     try {
-      const parentNodeId = state.currentNodeId;
-      const result = await createFolder(dirName, parentNodeId || undefined);
+      const result = await createFolder(dirName, state.currentNodeId || undefined);
 
       if (result) {
         addLine(`Directory created: ${dirName}`);
@@ -422,8 +628,7 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
 
     try {
       const title = fileName.replace(/\.study$/i, '');
-      const parentNodeId = state.currentNodeId;
-      const result = await createStudy(title, parentNodeId || undefined);
+      const result = await createStudy(title, state.currentNodeId || undefined);
 
       if (result) {
         addLine(`Study created: ${fileName}`);
@@ -442,12 +647,18 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
   const handleDeleteConfirm = useCallback(async (target: string) => {
     const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
 
-    // Find the node to delete
-    const targetPath = target.startsWith('/')
-      ? target
-      : `${state.terminal.cwd}/${target}`.replace(/\/+/g, '/');
+    // Find the node to delete in current directory
+    let children: WorkspaceNode[];
+    if (state.currentNodeId === null) {
+      children = await getRootNodes();
+    } else {
+      children = await getNodeChildren(state.currentNodeId);
+    }
 
-    const node = await resolvePathToNode(targetPath);
+    const targetName = target.replace(/\.study$/i, '');
+    const node = children.find(c =>
+      c.title.toLowerCase() === targetName.toLowerCase()
+    );
 
     if (!node) {
       addLine(isDos
@@ -480,21 +691,32 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
       : `rm: remove ${typeLabel} '${target}'? (y/n)`,
       'system'
     );
-  }, [state.terminal.system, state.terminal.cwd, addLine]);
+  }, [state.terminal.system, state.currentNodeId, addLine]);
 
   // Handle delete force (no confirmation)
   const handleDeleteForce = useCallback(async (target: string) => {
     dispatch({ type: 'SET_PROCESSING', isProcessing: true });
+    const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
 
     try {
-      const targetPath = target.startsWith('/')
-        ? target
-        : `${state.terminal.cwd}/${target}`.replace(/\/+/g, '/');
+      let children: WorkspaceNode[];
+      if (state.currentNodeId === null) {
+        children = await getRootNodes();
+      } else {
+        children = await getNodeChildren(state.currentNodeId);
+      }
 
-      const node = await resolvePathToNode(targetPath);
+      const targetName = target.replace(/\.study$/i, '');
+      const node = children.find(c =>
+        c.title.toLowerCase() === targetName.toLowerCase()
+      );
 
       if (!node) {
-        addLine(`rm: cannot remove '${target}': No such file or directory`, 'error');
+        addLine(isDos
+          ? 'File Not Found'
+          : `rm: cannot remove '${target}': No such file or directory`,
+          'error'
+        );
         return;
       }
 
@@ -506,7 +728,163 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
     } finally {
       dispatch({ type: 'SET_PROCESSING', isProcessing: false });
     }
-  }, [state.terminal.cwd, addLine]);
+  }, [state.terminal.system, state.currentNodeId, state.terminal.cwd, addLine]);
+
+  // Handle async tree
+  const handleTree = useCallback(async (target: string) => {
+    dispatch({ type: 'SET_PROCESSING', isProcessing: true });
+    const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
+
+    try {
+      // Determine starting node
+      let startNodeId = state.currentNodeId;
+      let startPath = state.terminal.cwd;
+
+      if (target && target !== '.') {
+        // Find target node
+        let children: WorkspaceNode[];
+        if (state.currentNodeId === null) {
+          children = await getRootNodes();
+        } else {
+          children = await getNodeChildren(state.currentNodeId);
+        }
+
+        const targetNode = children.find(c =>
+          c.title.toLowerCase() === target.toLowerCase()
+        );
+
+        if (!targetNode) {
+          addLine(isDos
+            ? 'Invalid path'
+            : `tree: ${target}: No such file or directory`,
+            'error'
+          );
+          return;
+        }
+
+        if (targetNode.node_type === 'study') {
+          addLine(`${targetNode.title}.study`);
+          addLine('');
+          addLine('0 directories');
+          return;
+        }
+
+        startNodeId = targetNode.id;
+        startPath = await buildPath(targetNode.id);
+      }
+
+      const lines: string[] = [];
+
+      if (isDos) {
+        lines.push('Folder PATH listing for volume C:');
+        lines.push('Volume serial number is 1234-5678');
+      }
+
+      const dosPath = startPath === '/' ? 'C:\\' : `C:\\${startPath.slice(1).replace(/\//g, '\\')}`;
+      lines.push(isDos ? dosPath : startPath);
+
+      // Build tree recursively (limited depth)
+      let dirCount = 0;
+      const buildTree = async (nodeId: string | null, prefix: string, depth: number): Promise<void> => {
+        if (depth > 3) return;
+
+        const items = nodeId === null
+          ? await getRootNodes()
+          : await getNodeChildren(nodeId);
+
+        const dirs = items.filter(n => n.node_type === 'folder' || n.node_type === 'workspace');
+
+        for (let i = 0; i < dirs.length; i++) {
+          const dir = dirs[i];
+          const isLast = i === dirs.length - 1;
+          const connector = isLast ? '└───' : '├───';
+          const newPrefix = prefix + (isLast ? '    ' : '│   ');
+
+          lines.push(`${prefix}${connector}${dir.title}`);
+          dirCount++;
+
+          await buildTree(dir.id, newPrefix, depth + 1);
+        }
+      };
+
+      await buildTree(startNodeId, '', 0);
+
+      lines.push('');
+      lines.push(`${dirCount} directories`);
+
+      for (const line of lines) {
+        addLine(line);
+      }
+    } catch (e: any) {
+      addLine(`Error: ${e.message || 'Failed to build tree'}`, 'error');
+    } finally {
+      dispatch({ type: 'SET_PROCESSING', isProcessing: false });
+    }
+  }, [state.terminal.system, state.terminal.cwd, state.currentNodeId, addLine, buildPath]);
+
+  // Handle async cat (show study info)
+  const handleCat = useCallback(async (target: string) => {
+    dispatch({ type: 'SET_PROCESSING', isProcessing: true });
+    const isDos = state.terminal.system === 'dos' || state.terminal.system === 'win95';
+
+    try {
+      // Find target node
+      let children: WorkspaceNode[];
+      if (state.currentNodeId === null) {
+        children = await getRootNodes();
+      } else {
+        children = await getNodeChildren(state.currentNodeId);
+      }
+
+      const targetName = target.replace(/\.study$/i, '');
+      const node = children.find(c =>
+        c.title.toLowerCase() === targetName.toLowerCase()
+      );
+
+      if (!node) {
+        addLine(isDos
+          ? 'File not found'
+          : `cat: ${target}: No such file or directory`,
+          'error'
+        );
+        return;
+      }
+
+      if (node.node_type === 'folder' || node.node_type === 'workspace') {
+        addLine(isDos
+          ? 'Access denied'
+          : `cat: ${target}: Is a directory`,
+          'error'
+        );
+        return;
+      }
+
+      // Show study info
+      const lines: string[] = [];
+      lines.push('');
+      lines.push(`  Study: ${node.title}`);
+      lines.push(`  Type: Chess Study (.study)`);
+      lines.push(`  ID: ${node.id}`);
+      if (node.description) {
+        lines.push(`  Description: ${node.description}`);
+      }
+      lines.push(`  Visibility: ${node.visibility}`);
+      if (node.created_at) {
+        lines.push(`  Created: ${new Date(node.created_at).toLocaleString()}`);
+      }
+      lines.push('');
+      lines.push('  [Use the sidebar to open and edit this study]');
+      lines.push('');
+
+      for (const line of lines) {
+        addLine(line);
+      }
+    } catch (e: any) {
+      addLine(`Error: ${e.message || 'Failed to read file'}`, 'error');
+    } finally {
+      dispatch({ type: 'SET_PROCESSING', isProcessing: false });
+    }
+  }, [state.terminal.system, state.currentNodeId, addLine]);
 
   // Confirm or cancel pending action
   const confirmAction = useCallback(async (confirmed: boolean) => {
@@ -563,7 +941,12 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
       timestamp: Date.now(),
     }]);
 
-    // Execute the command
+    // Add to command history
+    if (input.trim()) {
+      dispatch({ type: 'ADD_COMMAND_HISTORY', command: input });
+    }
+
+    // Execute the command (gets token or direct result)
     const result = executeCommand(input, terminal.cwd, terminal.system, virtualFS);
 
     // Handle special async commands
@@ -572,10 +955,18 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
 
       if (output === '__CLEAR__') {
         dispatch({ type: 'CLEAR' });
-        dispatch({
-          type: 'SET_CWD',
-          cwd: terminal.cwd,
-        });
+        return;
+      }
+
+      if (output.startsWith('__ASYNC_LS__:')) {
+        const [, target, flags] = output.split(':');
+        await handleLs(target || '', flags || '');
+        return;
+      }
+
+      if (output.startsWith('__ASYNC_CD__:')) {
+        const target = output.replace('__ASYNC_CD__:', '');
+        await handleCd(target);
         return;
       }
 
@@ -602,6 +993,18 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
         await handleDeleteForce(target);
         return;
       }
+
+      if (output.startsWith('__ASYNC_TREE__:')) {
+        const target = output.replace('__ASYNC_TREE__:', '');
+        await handleTree(target);
+        return;
+      }
+
+      if (output.startsWith('__ASYNC_CAT__:')) {
+        const target = output.replace('__ASYNC_CAT__:', '');
+        await handleCat(target);
+        return;
+      }
     }
 
     // Normal output
@@ -612,27 +1015,18 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
         addLine(line, 'output');
       }
     }
-
-    // Update cwd if changed
-    if (result.newCwd) {
-      dispatch({ type: 'SET_CWD', cwd: result.newCwd });
-    }
-
-    // Update command history
-    if (input.trim()) {
-      dispatch({
-        type: 'NAVIGATE_HISTORY',
-        direction: 'down', // Reset index
-      });
-    }
   }, [
     state,
     addOutput,
     addLine,
+    handleLs,
+    handleCd,
     handleMkdir,
     handleTouch,
     handleDeleteConfirm,
     handleDeleteForce,
+    handleTree,
+    handleCat,
     confirmAction,
   ]);
 

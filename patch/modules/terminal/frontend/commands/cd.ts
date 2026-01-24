@@ -1,43 +1,37 @@
-import type { Command, CommandContext, CommandResult, VirtualFileSystem } from '../types';
+import type { Command, CommandContext, CommandResult } from '../types';
 
+/**
+ * cd command - Changes directory using real workspace nodes
+ * Returns a special token that terminalContext handles asynchronously
+ */
 export const cdCommand: Command = {
   name: 'cd',
   aliases: ['chdir'],
   description: 'Change the current directory',
   usage: 'cd [directory]',
-  handler: (ctx: CommandContext, fs: VirtualFileSystem): CommandResult => {
-    const { cwd, system, args } = ctx;
-    const separator = system === 'dos' || system === 'win95' ? '\\' : '/';
+  handler: (ctx: CommandContext): CommandResult => {
+    const { args } = ctx;
 
-    // No argument - go to home
+    // No argument - go to root
     if (args.length === 0) {
-      const homePath = system === 'dos' || system === 'win95'
-        ? 'C:\\'
-        : system === 'mac'
-          ? '/Users/user'
-          : '/home/user';
-      return { output: [], newCwd: homePath };
+      return {
+        output: ['__ASYNC_CD__:'],
+      };
     }
 
     const target = args[0];
 
-    // Handle special cases
+    // Handle ~ as root
     if (target === '~') {
-      const homePath = system === 'mac' ? '/Users/user' : '/home/user';
-      return { output: [], newCwd: homePath };
+      return {
+        output: ['__ASYNC_CD__:'],
+      };
     }
 
-    // Resolve the path
-    const newPath = fs.getAbsolutePath(cwd, target, separator);
-
-    // Check if directory exists
-    if (!fs.isDirectory(newPath)) {
-      const errorMsg = system === 'dos' || system === 'win95'
-        ? 'The system cannot find the path specified.'
-        : `cd: ${target}: No such file or directory`;
-      return { output: [], error: errorMsg };
-    }
-
-    return { output: [], newCwd: newPath };
+    // Return special token for async handling
+    // Format: __ASYNC_CD__:target
+    return {
+      output: [`__ASYNC_CD__:${target}`],
+    };
   },
 };
