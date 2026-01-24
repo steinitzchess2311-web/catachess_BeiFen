@@ -79,6 +79,23 @@
   min-height: 0;
 }
 
+.patch-study-footer-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.patch-study-footer-spacer {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.patch-study-footer-box {
+  height: 200px;
+  border: 1px solid #000;
+  flex: 1;
+}
+
 .patch-study-sidebar {
   width: 280px;
   flex-shrink: 0;

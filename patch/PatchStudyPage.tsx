@@ -247,6 +247,11 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
           </div>
         </div>
       </div>
+      <div className="patch-study-footer-row">
+        <div className="patch-study-footer-spacer" />
+        <div className="patch-study-footer-box" />
+        <div className="patch-study-footer-spacer" />
+      </div>
     </div>
   );
 }
