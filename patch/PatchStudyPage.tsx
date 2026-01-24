@@ -8,6 +8,7 @@ import { CommentBox } from './CommentBox';
 import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
 import { TREE_SCHEMA_VERSION } from './tree/type';
+import { TerminalLauncher } from './modules/terminal';
 
 export interface PatchStudyPageProps {
   className?: string;
@@ -19,6 +20,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const [chapters, setChapters] = useState<any[]>([]);
   const [studyTitle, setStudyTitle] = useState<string>('');
   const [displayPath, setDisplayPath] = useState<string>('root');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreatingChapter, setIsCreatingChapter] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
   const savedLabel = state.isSaving
     ? 'Saving...'
@@ -147,6 +151,30 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     }
   }, [chapters, id, loadChapterTree, setError, sortChapters]);
 
+  const openCreateModal = useCallback(() => {
+    setCreateError(null);
+    setIsCreateModalOpen(true);
+  }, []);
+
+  const closeCreateModal = useCallback(() => {
+    if (isCreatingChapter) return;
+    setIsCreateModalOpen(false);
+  }, [isCreatingChapter]);
+
+  const confirmCreateChapter = useCallback(async () => {
+    if (isCreatingChapter) return;
+    setIsCreatingChapter(true);
+    setCreateError(null);
+    try {
+      await handleCreateChapter();
+      setIsCreateModalOpen(false);
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : 'Failed to create chapter');
+    } finally {
+      setIsCreatingChapter(false);
+    }
+  }, [handleCreateChapter, isCreatingChapter]);
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -236,7 +264,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
             chapters={chapters}
             currentChapterId={state.chapterId}
             onSelectChapter={handleSelectChapter}
-            onCreateChapter={handleCreateChapter}
+            onCreateChapter={openCreateModal}
           />
         </div>
         <div className="patch-study-main">
@@ -255,6 +283,34 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         </div>
         <div className="patch-study-footer-spacer" />
       </div>
+      {isCreateModalOpen && (
+        <div className="patch-modal-overlay" role="dialog" aria-modal="true">
+          <div className="patch-modal">
+            <h3>Create new chapter?</h3>
+            <p>This will add a new chapter to the current study.</p>
+            {createError && <div className="patch-modal-error">{createError}</div>}
+            <div className="patch-modal-actions">
+              <button
+                type="button"
+                className="patch-modal-button"
+                onClick={closeCreateModal}
+                disabled={isCreatingChapter}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="patch-modal-button primary"
+                onClick={confirmCreateChapter}
+                disabled={isCreatingChapter}
+              >
+                {isCreatingChapter ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <TerminalLauncher />
     </div>
   );
 }
