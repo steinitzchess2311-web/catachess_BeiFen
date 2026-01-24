@@ -9,6 +9,7 @@ import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
 import { TREE_SCHEMA_VERSION } from './tree/type';
 import { TerminalLauncher } from './modules/terminal';
+import './modules/terminal/frontend/styles.css';
 
 export interface PatchStudyPageProps {
   className?: string;
