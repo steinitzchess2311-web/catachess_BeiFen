@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStudy } from '../studyContext';
 import { uciLineToSan } from '../chessJS/uci';
+import { getFullmoveNumber, getTurn } from '../chessJS/fen';
 import { ChapterList } from './ChapterList';
 
 export interface StudySidebarProps {
@@ -31,6 +32,24 @@ function formatScore(raw: number | string): string {
   return `${sign}${value.toFixed(2)}`;
 }
 
+function formatSanWithMoveNumbers(sanMoves: string[], fen: string): string {
+  if (sanMoves.length === 0) return '';
+  const turn = getTurn(fen);
+  let moveNumber = getFullmoveNumber(fen);
+  const parts: string[] = [];
+  let isWhite = turn === 'w';
+  for (const san of sanMoves) {
+    if (isWhite) {
+      parts.push(`${moveNumber}. ${san}`);
+    } else {
+      parts.push(`${moveNumber}... ${san}`);
+      moveNumber += 1;
+    }
+    isWhite = !isWhite;
+  }
+  return parts.join(' ');
+}
+
 export function StudySidebar({
   chapters,
   currentChapterId,
@@ -41,7 +60,7 @@ export function StudySidebar({
   const [activeTab, setActiveTab] = useState<'chapters' | 'analysis'>('chapters');
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
-  const [engineEnabled, setEngineEnabled] = useState(true);
+  const [engineEnabled, setEngineEnabled] = useState(false);
   const [lines, setLines] = useState<EngineLine[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -154,11 +173,12 @@ export function StudySidebar({
           const sanMoves = sanLine
             .map((step) => step.san)
             .filter((move): move is string => Boolean(move));
+          const sanText = formatSanWithMoveNumbers(sanMoves, state.currentFen);
           return (
           <div key={`pv-${line.multipv}`} className="patch-analysis-line">
             <div className="patch-analysis-score">{formatScore(line.score)}</div>
             <div className="patch-analysis-pv">
-              {sanMoves.length > 0 ? sanMoves.join(' ') : line.pv?.join(' ')}
+              {sanText || (line.pv?.join(' ') ?? '')}
             </div>
           </div>
         );
