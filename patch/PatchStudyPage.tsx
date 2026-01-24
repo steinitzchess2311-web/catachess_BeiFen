@@ -4,6 +4,7 @@ import { StudyProvider, useStudy } from './studyContext';
 import { StudyBoard } from './board/studyBoard';
 import { MoveTree } from './sidebar/movetree';
 import { ChapterList } from './sidebar/ChapterList';
+import { CommentBox } from './CommentBox';
 import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
 import { TREE_SCHEMA_VERSION } from './tree/type';
@@ -249,7 +250,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       </div>
       <div className="patch-study-footer-row">
         <div className="patch-study-footer-spacer" />
-        <div className="patch-study-footer-box" />
+        <div className="patch-study-footer-box">
+          <CommentBox />
+        </div>
         <div className="patch-study-footer-spacer" />
       </div>
     </div>

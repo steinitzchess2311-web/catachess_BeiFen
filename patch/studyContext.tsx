@@ -76,6 +76,7 @@ type StudyAction =
   | { type: 'LOAD_TREE'; tree: StudyTreeData }
   | { type: 'SET_CURSOR'; nodeId: string; precomputedFen?: string }
   | { type: 'ADD_MOVE'; san: string }
+  | { type: 'SET_COMMENT'; nodeId: string; comment: string }
   | { type: 'DELETE_MOVE'; nodeId: string }
   | { type: 'UNDO' }
   | { type: 'SET_REPLAY_RESULT'; result: ReplayResult }
@@ -287,6 +288,20 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
       }
     }
 
+    case 'SET_COMMENT': {
+      const treeClone = JSON.parse(JSON.stringify(state.tree));
+      if (treeClone.nodes[action.nodeId]) {
+        treeClone.nodes[action.nodeId].comment = action.comment || null;
+      }
+      const snapshot = createSnapshot(state);
+      return {
+        ...state,
+        tree: treeClone,
+        isDirty: true,
+        history: [...state.history, snapshot],
+      };
+    }
+
     case 'DELETE_MOVE': {
       if (action.nodeId === state.tree.rootId) return state;
 
@@ -396,6 +411,7 @@ export interface StudyContextValue {
   loadTree: (tree: StudyTreeData) => void;
   selectNode: (nodeId: string) => void;
   addMove: (san: string) => void;
+  setComment: (nodeId: string, comment: string) => void;
   deleteMove: (nodeId: string) => void;
   undo: () => void;
   saveTree: () => Promise<void>;
@@ -413,6 +429,7 @@ const defaultContextValue: StudyContextValue = {
   loadTree: () => {},
   selectNode: () => {},
   addMove: () => {},
+  setComment: () => {},
   deleteMove: () => {},
   undo: () => {},
   saveTree: async () => {},
@@ -490,6 +507,10 @@ export function StudyProvider({ children }: StudyProviderProps) {
     dispatch({ type: 'ADD_MOVE', san });
   }, []);
 
+  const setComment = useCallback((nodeId: string, comment: string) => {
+    dispatch({ type: 'SET_COMMENT', nodeId, comment });
+  }, []);
+
   const deleteMove = useCallback((nodeId: string) => {
     dispatch({ type: 'DELETE_MOVE', nodeId });
   }, []);
@@ -564,6 +585,7 @@ export function StudyProvider({ children }: StudyProviderProps) {
     loadTree,
     selectNode,
     addMove,
+    setComment,
     deleteMove,
     undo,
     saveTree,
