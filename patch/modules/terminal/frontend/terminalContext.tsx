@@ -567,15 +567,21 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
       let children: WorkspaceNode[];
       if (state.currentNodeId === null) {
         children = await getRootNodes();
+        console.log('[terminal] getRootNodes returned:', children);
       } else {
         children = await getNodeChildren(state.currentNodeId);
+        console.log('[terminal] getNodeChildren returned:', children);
       }
+
+      console.log('[terminal] Looking for target:', target);
+      console.log('[terminal] Available titles:', children.map(c => c.title));
 
       const targetNode = children.find(c =>
         c.title.toLowerCase() === target.toLowerCase()
       );
 
       if (!targetNode) {
+        console.log('[terminal] Target not found in children');
         addLine(isDos
           ? 'The system cannot find the path specified.'
           : `cd: ${target}: No such file or directory`,

@@ -48,8 +48,22 @@ const BASE_URL = '/api/v1/workspace';
 export async function getRootNodes(): Promise<WorkspaceNode[]> {
   try {
     const response = await api.get(`${BASE_URL}/nodes`);
-    // API returns { nodes: [...], total: number }
-    return response?.nodes || [];
+    console.log('[terminal-api] getRootNodes raw response:', response);
+    // Handle different response formats
+    let nodes: WorkspaceNode[];
+    if (Array.isArray(response)) {
+      nodes = response;
+    } else if (response?.nodes) {
+      nodes = response.nodes;
+    } else if (response?.data?.nodes) {
+      nodes = response.data.nodes;
+    } else if (response?.data && Array.isArray(response.data)) {
+      nodes = response.data;
+    } else {
+      nodes = [];
+    }
+    console.log('[terminal-api] getRootNodes extracted nodes:', nodes);
+    return nodes;
   } catch (e) {
     console.error('[terminal-api] Failed to get root nodes:', e);
     return [];
@@ -62,8 +76,22 @@ export async function getRootNodes(): Promise<WorkspaceNode[]> {
 export async function getNodeChildren(nodeId: string): Promise<WorkspaceNode[]> {
   try {
     const response = await api.get(`${BASE_URL}/nodes/${nodeId}/children`);
-    // API returns { nodes: [...], total: number }
-    return response?.nodes || [];
+    console.log('[terminal-api] getNodeChildren raw response:', response);
+    // Handle different response formats
+    let nodes: WorkspaceNode[];
+    if (Array.isArray(response)) {
+      nodes = response;
+    } else if (response?.nodes) {
+      nodes = response.nodes;
+    } else if (response?.data?.nodes) {
+      nodes = response.data.nodes;
+    } else if (response?.data && Array.isArray(response.data)) {
+      nodes = response.data;
+    } else {
+      nodes = [];
+    }
+    console.log('[terminal-api] getNodeChildren extracted nodes:', nodes);
+    return nodes;
   } catch (e) {
     console.error('[terminal-api] Failed to get children:', e);
     return [];
