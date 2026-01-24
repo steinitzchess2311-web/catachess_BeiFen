@@ -5,6 +5,8 @@ export { Terminal } from './Terminal';
 export { TerminalWindow } from './TerminalWindow';
 export { TerminalLine } from './TerminalLine';
 export { SystemPicker } from './SystemPicker';
+import './styles.css';
+
 export { TerminalLauncher } from './TerminalLauncher';
 
 // Context
