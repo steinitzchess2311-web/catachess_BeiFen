@@ -100,6 +100,54 @@ export function MoveTree({ className }: MoveTreeProps) {
     loadTree(result.tree);
   };
 
+  const renderRootVariations = () => {
+    if (!rootNode || rootNode.children.length < 2) return null;
+    const variationIds = rootNode.children.slice(1);
+    return (
+      <div className="variations" style={{ 
+        fontSize: '0.9em', 
+        color: '#555', 
+        marginTop: '6px',
+        marginBottom: '4px',
+        borderLeft: '2px solid #ddd',
+        paddingLeft: '8px',
+        marginLeft: '12px'
+      }}>
+        {variationIds.map((vId) => (
+          <div key={vId} className="variation-wrapper" style={{ marginBottom: '4px' }}>
+            <button
+              type="button"
+              onClick={() => toggleVariation(vId)}
+              style={{
+                marginRight: '6px',
+                padding: '0 6px',
+                border: '1px solid #ccc',
+                background: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              {collapsedVariations.has(vId) ? '+' : '-'}
+            </button>
+            <span style={{ color: '#888', marginRight: '4px' }}>(variation)</span>
+            {!collapsedVariations.has(vId) && (
+              <MoveBranch
+                startNodeId={vId}
+                nodes={tree.nodes}
+                cursorNodeId={cursorNodeId}
+                onSelect={handleNodeClick}
+                depth={1}
+                startPly={1}
+                isMainline={false}
+                collapsedVariations={collapsedVariations}
+                onToggleVariation={toggleVariation}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={`move-tree-container ${className || ''}`} style={{ 
       padding: '10px', 
@@ -128,6 +176,7 @@ export function MoveTree({ className }: MoveTreeProps) {
             onToggleVariation={toggleVariation}
           />
         )}
+        {renderRootVariations()}
       </div>
     </div>
   );
