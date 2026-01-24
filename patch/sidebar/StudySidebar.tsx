@@ -34,8 +34,8 @@ function formatScore(raw: number | string): string {
 
 function formatSanWithMoveNumbers(sanMoves: string[], fen: string): string {
   if (sanMoves.length === 0) return '';
-  const turn = getTurn(fen);
-  let moveNumber = getFullmoveNumber(fen);
+  const turn = getTurn(fen) || 'w';
+  let moveNumber = getFullmoveNumber(fen) || 1;
   const parts: string[] = [];
   let isWhite = turn === 'w';
   for (const san of sanMoves) {
@@ -137,6 +137,9 @@ export function StudySidebar({
     }
     setStatus('idle');
     setHealth('down');
+    setLines([]);
+    setError(null);
+    setLastUpdated(null);
   }, [engineEnabled]);
 
   useEffect(() => {
@@ -167,7 +170,12 @@ export function StudySidebar({
       </div>
       {error && <div className="patch-analysis-error">{error}</div>}
       <div className="patch-analysis-lines">
-        {lines.length === 0 && <div className="patch-analysis-empty">No analysis yet.</div>}
+        {!engineEnabled && (
+          <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
+        )}
+        {engineEnabled && lines.length === 0 && (
+          <div className="patch-analysis-empty">No analysis yet.</div>
+        )}
         {lines.map((line) => {
           const sanLine = uciLineToSan(line.pv || [], state.currentFen);
           const sanMoves = sanLine

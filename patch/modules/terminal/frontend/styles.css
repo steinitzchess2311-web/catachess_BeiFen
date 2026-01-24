@@ -1,0 +1,414 @@
+/* =============================================================================
+   Terminal Module Styles
+   Retro CRT / 90s computer terminal aesthetic
+   ============================================================================= */
+
+/* Google Fonts import for VT323 */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* =============================================================================
+   Terminal Window
+   ============================================================================= */
+
+.terminal-window {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.terminal-window.dos-style {
+  border: 2px solid #808080;
+  background: #c0c0c0;
+}
+
+.terminal-window.unix-style {
+  border: 1px solid #3a3a3a;
+  background: #2d2d2d;
+}
+
+/* =============================================================================
+   Title Bar
+   ============================================================================= */
+
+.terminal-window-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  cursor: move;
+}
+
+.dos-style .terminal-window-titlebar {
+  background: linear-gradient(to right, #000080, #1084d0);
+  color: white;
+  font-family: "MS Sans Serif", "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 4px;
+}
+
+.unix-style .terminal-window-titlebar {
+  background: #3a3a3a;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.terminal-window-title {
+  flex: 1;
+}
+
+.terminal-window-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.terminal-window-btn {
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dos-style .terminal-window-btn {
+  width: 16px;
+  height: 14px;
+  background: #c0c0c0;
+  border: 1px outset #c0c0c0;
+  font-family: "Marlett", sans-serif;
+  font-size: 10px;
+  padding: 0;
+}
+
+.dos-style .terminal-window-btn:active {
+  border-style: inset;
+}
+
+.unix-style .terminal-window-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  font-size: 0;
+  padding: 0;
+}
+
+.unix-style .terminal-window-btn.close {
+  background: #ff5f57;
+}
+
+.unix-style .terminal-window-btn.minimize {
+  background: #ffbd2e;
+}
+
+.unix-style .terminal-window-btn.maximize {
+  background: #28ca41;
+}
+
+.unix-style .terminal-window-btn:hover::after {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.unix-style .terminal-window-btn.close:hover::after {
+  content: "×";
+}
+
+.unix-style .terminal-window-btn.minimize:hover::after {
+  content: "−";
+}
+
+.unix-style .terminal-window-btn.maximize:hover::after {
+  content: "+";
+}
+
+/* =============================================================================
+   Toolbar
+   ============================================================================= */
+
+.terminal-window-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 8px;
+  background: #e0e0e0;
+  border-bottom: 1px solid #888;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+}
+
+.system-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.system-picker-label {
+  color: #333;
+}
+
+.system-picker-select {
+  padding: 2px 6px;
+  border: 1px solid #888;
+  border-radius: 3px;
+  background: white;
+  font-size: 12px;
+}
+
+.terminal-effects-toggle {
+  display: flex;
+  gap: 12px;
+}
+
+.terminal-effects-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #333;
+  cursor: pointer;
+}
+
+.terminal-effects-toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* =============================================================================
+   Terminal Content Area
+   ============================================================================= */
+
+.terminal-window-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.terminal {
+  width: 100%;
+  height: 100%;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.terminal-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Custom scrollbar */
+.terminal-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.terminal-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* =============================================================================
+   Terminal Lines
+   ============================================================================= */
+
+.terminal-line {
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 1.3em;
+}
+
+.terminal-prompt {
+  user-select: none;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  white-space: pre;
+}
+
+.terminal-input-text {
+  white-space: pre;
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  opacity: 0;
+  vertical-align: text-bottom;
+  animation: none;
+}
+
+.terminal-cursor.visible {
+  opacity: 1;
+}
+
+.terminal-hidden-input {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+/* =============================================================================
+   CRT Effects
+   ============================================================================= */
+
+.terminal-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 10;
+}
+
+.terminal-crt-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 60px rgba(0, 255, 0, 0.1);
+  z-index: 9;
+}
+
+/* Add subtle screen flicker */
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
+.terminal {
+  animation: flicker 0.15s infinite;
+}
+
+/* =============================================================================
+   Resize Handles
+   ============================================================================= */
+
+.resize-handle {
+  position: absolute;
+  z-index: 100;
+}
+
+.resize-handle.n {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  cursor: ns-resize;
+}
+
+.resize-handle.s {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  cursor: ns-resize;
+}
+
+.resize-handle.e {
+  top: 10px;
+  right: 0;
+  bottom: 10px;
+  width: 4px;
+  cursor: ew-resize;
+}
+
+.resize-handle.w {
+  top: 10px;
+  left: 0;
+  bottom: 10px;
+  width: 4px;
+  cursor: ew-resize;
+}
+
+.resize-handle.ne {
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nesw-resize;
+}
+
+.resize-handle.nw {
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
+}
+
+.resize-handle.se {
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
+}
+
+.resize-handle.sw {
+  bottom: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  cursor: nesw-resize;
+}
+
+/* =============================================================================
+   Minimized State
+   ============================================================================= */
+
+.terminal-window-minimized {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  padding: 6px 12px;
+  background: #c0c0c0;
+  border: 2px outset #c0c0c0;
+  font-family: "MS Sans Serif", "Segoe UI", sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 999;
+}
+
+.terminal-window-minimized:hover {
+  background: #d0d0d0;
+}
+
+.terminal-window-minimized-icon {
+  font-weight: bold;
+}
