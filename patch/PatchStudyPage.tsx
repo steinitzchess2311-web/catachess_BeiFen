@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { StudyProvider, useStudy } from './studyContext';
 import { StudyBoard } from './board/studyBoard';
 import { MoveTree } from './sidebar/movetree';
-import { ChapterList } from './sidebar/ChapterList';
+import { StudySidebar } from './sidebar/StudySidebar';
 import { CommentBox } from './CommentBox';
 import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
@@ -227,12 +227,12 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
           >
             {state.isSaving ? 'Saving...' : (state.isDirty ? 'Save' : 'Saved')}
           </button>
-          <div className="patch-study-save-status">{savedLabel}</div>
         </div>
+        <div className="patch-study-save-status">{savedLabel}</div>
       </div>
       <div className="patch-study-layout" style={{ height: '600px' }}>
         <div className="patch-study-sidebar">
-          <ChapterList
+          <StudySidebar
             chapters={chapters}
             currentChapterId={state.chapterId}
             onSelectChapter={handleSelectChapter}

@@ -17,9 +17,8 @@
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
-    "title ."
-    ". actions"
-    "status status";
+    "title actions"
+    "notice status";
   align-items: center;
 }
 
@@ -35,7 +34,7 @@
   color: #888;
   font-size: 16px;
   margin: 0;
-  grid-area: status;
+  grid-area: notice;
   justify-self: start;
   align-self: center;
 }
@@ -44,14 +43,16 @@
   margin-top: 0;
   color: #666;
   font-size: 16px;
+  grid-area: status;
+  justify-self: end;
+  align-self: center;
 }
 
 .patch-study-actions {
   grid-area: actions;
   justify-self: end;
-  align-self: end;
+  align-self: center;
   display: flex;
-  flex-direction: column;
   gap: 2px;
   align-items: flex-end;
 }
@@ -129,6 +130,172 @@
   padding-right: 12px;
   min-height: 0;
   overflow: hidden;
+}
+
+.patch-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
+}
+
+.patch-sidebar-tabs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border: 1px solid #242424;
+  border-radius: 999px;
+  padding: 4px;
+  background: #f5f5f5;
+}
+
+.patch-sidebar-tab {
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.patch-sidebar-tab.is-active {
+  background: #242424;
+  color: #fff;
+}
+
+.patch-sidebar-settings {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: #242424;
+}
+
+.patch-analysis-settings {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #242424;
+  border-radius: 6px;
+  padding: 8px;
+  background: #fff;
+}
+
+.patch-analysis-settings label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.patch-analysis-settings select {
+  font-size: 12px;
+}
+
+.patch-analysis-panel {
+  background: #f5f5f5;
+  border: 1px solid #242424;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  padding: 8px;
+  gap: 8px;
+}
+
+.patch-analysis-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: #242424;
+}
+
+.patch-analysis-badge {
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.patch-analysis-badge.is-running {
+  background: #ffe9a8;
+}
+
+.patch-analysis-badge.is-ready {
+  background: #d1f3dd;
+}
+
+.patch-analysis-badge.is-error {
+  background: #ffd1d1;
+}
+
+.patch-analysis-badge.is-idle {
+  background: #e6e6e6;
+}
+
+.patch-analysis-health {
+  color: #555;
+}
+
+.patch-analysis-updated {
+  margin-left: auto;
+  color: #666;
+}
+
+.patch-analysis-error {
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.patch-analysis-lines {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.patch-analysis-line {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.patch-analysis-score {
+  text-align: right;
+  color: #111;
+}
+
+.patch-analysis-pv {
+  color: #333;
+}
+
+.patch-analysis-empty {
+  color: #666;
+  font-size: 12px;
+}
+
+.patch-analysis-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.patch-analysis-controls button {
+  border: 1px solid #242424;
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .patch-study-main {
