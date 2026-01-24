@@ -192,17 +192,6 @@ export function StudySidebar({
         );
         })}
       </div>
-      <div className="patch-analysis-controls">
-        <button
-          type="button"
-          onClick={() => {
-            if (!engineEnabled) return;
-            analyzePosition(state.currentFen);
-          }}
-        >
-          Analyze
-        </button>
-      </div>
     </div>
   );
 

@@ -5,6 +5,7 @@ export { Terminal } from './Terminal';
 export { TerminalWindow } from './TerminalWindow';
 export { TerminalLine } from './TerminalLine';
 export { SystemPicker } from './SystemPicker';
+export { TerminalLauncher } from './TerminalLauncher';
 
 // Context
 export { TerminalProvider, useTerminal } from './terminalContext';

@@ -1,11 +1,38 @@
 import type { Command, CommandContext, CommandResult, VirtualFileSystem, SystemType } from '../types';
+
+// Import all commands
 import { cdCommand } from './cd';
 import { lsCommand, dirCommand } from './ls';
+import { pwdCommand } from './pwd';
+import { catCommand, typeCommand } from './cat';
+import { echoCommand } from './echo';
+import { whoamiCommand, hostnameCommand } from './whoami';
+import { dateCommand, timeCommand } from './date';
+import { historyCommand, dosKeyCommand, setCommandHistoryRef } from './history';
+import { treeCommand } from './tree';
+import { cowsayCommand, cowthinkCommand } from './cowsay';
+import { fortuneCommand } from './fortune';
+import { matrixCommand } from './matrix';
+import { slCommand } from './sl';
+import { neofetchCommand } from './neofetch';
+import { colorCommand } from './color';
+import {
+  editCommand,
+  formatCommand,
+  deltreeCommand,
+  pingCommand,
+  memCommand,
+  scandiskCommand,
+  defragCommand,
+} from './retro';
+
+// Re-export history ref setter
+export { setCommandHistoryRef };
 
 // Command registry
 const commands: Map<string, Command> = new Map();
 
-// Register built-in commands
+// Register a command and its aliases
 function registerCommand(cmd: Command): void {
   commands.set(cmd.name.toLowerCase(), cmd);
   if (cmd.aliases) {
@@ -15,14 +42,47 @@ function registerCommand(cmd: Command): void {
   }
 }
 
+// Register all commands
+// Basic file operations
 registerCommand(cdCommand);
 registerCommand(lsCommand);
 registerCommand(dirCommand);
+registerCommand(pwdCommand);
+registerCommand(catCommand);
+registerCommand(typeCommand);
+registerCommand(treeCommand);
+
+// Information commands
+registerCommand(echoCommand);
+registerCommand(whoamiCommand);
+registerCommand(hostnameCommand);
+registerCommand(dateCommand);
+registerCommand(timeCommand);
+registerCommand(historyCommand);
+registerCommand(dosKeyCommand);
+
+// Fun commands
+registerCommand(cowsayCommand);
+registerCommand(cowthinkCommand);
+registerCommand(fortuneCommand);
+registerCommand(matrixCommand);
+registerCommand(slCommand);
+registerCommand(neofetchCommand);
+registerCommand(colorCommand);
+
+// Retro/90s commands
+registerCommand(editCommand);
+registerCommand(formatCommand);
+registerCommand(deltreeCommand);
+registerCommand(pingCommand);
+registerCommand(memCommand);
+registerCommand(scandiskCommand);
+registerCommand(defragCommand);
 
 // Help command
 const helpCommand: Command = {
   name: 'help',
-  aliases: ['?'],
+  aliases: ['?', 'commands'],
   description: 'Display available commands',
   usage: 'help [command]',
   handler: (ctx: CommandContext): CommandResult => {
@@ -37,7 +97,8 @@ const helpCommand: Command = {
           output: [
             `${cmd.name.toUpperCase()} - ${cmd.description}`,
             `Usage: ${cmd.usage}`,
-          ],
+            cmd.aliases?.length ? `Aliases: ${cmd.aliases.join(', ')}` : '',
+          ].filter(Boolean),
         };
       }
       return {
@@ -47,23 +108,58 @@ const helpCommand: Command = {
     }
 
     const lines: string[] = [];
+
     if (isDos) {
-      lines.push('Available commands:');
-      lines.push('');
-      lines.push('  CD       Change directory');
-      lines.push('  DIR      List directory contents');
-      lines.push('  CLS      Clear screen');
-      lines.push('  HELP     Display this help');
-      lines.push('  VER      Display version');
+      lines.push('╔══════════════════════════════════════════════════════════╗');
+      lines.push('║                  AVAILABLE COMMANDS                      ║');
+      lines.push('╠══════════════════════════════════════════════════════════╣');
+      lines.push('║  FILE OPERATIONS                                         ║');
+      lines.push('║    CD        Change directory       DIR       List files ║');
+      lines.push('║    TYPE      View file contents     TREE      Dir tree   ║');
+      lines.push('║                                                          ║');
+      lines.push('║  SYSTEM INFORMATION                                      ║');
+      lines.push('║    VER       System version         MEM       Memory     ║');
+      lines.push('║    DATE      Show date              TIME      Show time  ║');
+      lines.push('║    HOSTNAME  Computer name                               ║');
+      lines.push('║                                                          ║');
+      lines.push('║  UTILITIES                                               ║');
+      lines.push('║    CLS       Clear screen           ECHO      Print text ║');
+      lines.push('║    HELP      This help              EDIT      Text editor║');
+      lines.push('║    PING      Network test           SCANDISK  Check disk ║');
+      lines.push('║    DEFRAG    Defragment             FORMAT    Format disk║');
+      lines.push('║                                                          ║');
+      lines.push('║  FUN STUFF                                               ║');
+      lines.push('║    COWSAY    Talking cow            FORTUNE   Random quote║');
+      lines.push('║    MATRIX    Digital rain           NEOFETCH  System info║');
+      lines.push('║    COLOR     Change colors          SL        Choo choo! ║');
+      lines.push('╚══════════════════════════════════════════════════════════╝');
     } else {
-      lines.push('Available commands:');
-      lines.push('');
-      lines.push('  cd       Change directory');
-      lines.push('  ls       List directory contents');
-      lines.push('  clear    Clear screen');
-      lines.push('  help     Display this help');
-      lines.push('  uname    Display system information');
+      lines.push('┌──────────────────────────────────────────────────────────┐');
+      lines.push('│                  AVAILABLE COMMANDS                      │');
+      lines.push('├──────────────────────────────────────────────────────────┤');
+      lines.push('│  File Operations:                                        │');
+      lines.push('│    cd        Change directory       ls        List files │');
+      lines.push('│    pwd       Print working dir      cat       View file  │');
+      lines.push('│    tree      Directory tree                              │');
+      lines.push('│                                                          │');
+      lines.push('│  System Information:                                     │');
+      lines.push('│    uname     System info            whoami    Username   │');
+      lines.push('│    hostname  Computer name          date      Show date  │');
+      lines.push('│    free      Memory usage           history   Cmd history│');
+      lines.push('│                                                          │');
+      lines.push('│  Utilities:                                              │');
+      lines.push('│    clear     Clear screen           echo      Print text │');
+      lines.push('│    help      This help              ping      Network    │');
+      lines.push('│                                                          │');
+      lines.push('│  Fun Stuff:                                              │');
+      lines.push('│    cowsay    Talking cow            fortune   Random quote│');
+      lines.push('│    matrix    Digital rain           neofetch  Sys info   │');
+      lines.push('│    color     Change colors          sl        Train!     │');
+      lines.push('└──────────────────────────────────────────────────────────┘');
     }
+
+    lines.push('');
+    lines.push('Type "help <command>" for detailed information.');
 
     return { output: lines };
   },
@@ -91,17 +187,42 @@ const versionCommand: Command = {
   description: 'Display system version',
   usage: 'ver',
   handler: (ctx: CommandContext): CommandResult => {
-    const { system } = ctx;
+    const { system, flags } = ctx;
+
+    // Handle uname -a style
+    if (flags['a']) {
+      switch (system) {
+        case 'linux':
+          return { output: ['Linux localhost 5.15.0-generic #1 SMP x86_64 GNU/Linux'] };
+        case 'mac':
+          return { output: ['Darwin Mac.local 22.0.0 Darwin Kernel Version 22.0.0: x86_64'] };
+        default:
+          break;
+      }
+    }
 
     switch (system) {
       case 'dos':
-        return { output: ['MS-DOS Version 6.22'] };
+        return {
+          output: [
+            '',
+            'MS-DOS Version 6.22',
+            '',
+          ],
+        };
       case 'win95':
-        return { output: ['Microsoft Windows 95 [Version 4.00.950]'] };
+        return {
+          output: [
+            '',
+            'Microsoft Windows 95 [Version 4.00.950]',
+            '(C) Copyright Microsoft Corp 1981-1995.',
+            '',
+          ],
+        };
       case 'linux':
-        return { output: ['Linux localhost 5.15.0-generic #1 SMP x86_64 GNU/Linux'] };
+        return { output: ['Linux'] };
       case 'mac':
-        return { output: ['Darwin Mac.local 22.0.0 Darwin Kernel Version 22.0.0'] };
+        return { output: ['Darwin'] };
       default:
         return { output: ['Unknown System'] };
     }
@@ -109,6 +230,61 @@ const versionCommand: Command = {
 };
 
 registerCommand(versionCommand);
+
+// Exit command
+const exitCommand: Command = {
+  name: 'exit',
+  aliases: ['quit', 'logout', 'bye'],
+  description: 'Exit the terminal (simulated)',
+  usage: 'exit',
+  handler: (ctx: CommandContext): CommandResult => {
+    const { system } = ctx;
+    const isDos = system === 'dos' || system === 'win95';
+
+    return {
+      output: [
+        '',
+        isDos
+          ? 'Type EXIT to quit and return to Windows.'
+          : 'logout',
+        '',
+        '[This is a virtual terminal - use the X button to close]',
+      ],
+    };
+  },
+};
+
+registerCommand(exitCommand);
+
+// About command
+const aboutCommand: Command = {
+  name: 'about',
+  aliases: ['credits'],
+  description: 'About this terminal',
+  usage: 'about',
+  handler: (): CommandResult => {
+    return {
+      output: [
+        '',
+        '  ╔════════════════════════════════════════════════════╗',
+        '  ║                                                    ║',
+        '  ║   CataChess Virtual Terminal                       ║',
+        '  ║   Version 1.0.0                                    ║',
+        '  ║                                                    ║',
+        '  ║   A retro terminal emulator for the modern web.    ║',
+        '  ║   Supports MS-DOS, Windows 95, Linux, and macOS    ║',
+        '  ║   terminal styles.                                 ║',
+        '  ║                                                    ║',
+        '  ║   Made with nostalgia and love for the 90s.        ║',
+        '  ║                                                    ║',
+        '  ╚════════════════════════════════════════════════════╝',
+        '',
+      ],
+    };
+  },
+};
+
+registerCommand(aboutCommand);
 
 // Parse command line into command, args, and flags
 function parseCommandLine(input: string): { command: string; args: string[]; flags: Record<string, boolean | string> } {
@@ -122,11 +298,14 @@ function parseCommandLine(input: string): { command: string; args: string[]; fla
     if (part.startsWith('--')) {
       const [key, value] = part.slice(2).split('=');
       flags[key] = value || true;
-    } else if (part.startsWith('-')) {
-      // Handle combined flags like -la
+    } else if (part.startsWith('-') && part.length > 1 && !part.match(/^-\d/)) {
+      // Handle combined flags like -la, but not negative numbers
       for (const char of part.slice(1)) {
         flags[char] = true;
       }
+    } else if (part.startsWith('/') && (command === 'dir' || command === 'doskey')) {
+      // DOS-style flags
+      flags[part.slice(1).toLowerCase()] = true;
     } else {
       args.push(part);
     }
@@ -151,7 +330,7 @@ export function executeCommand(
   const cmd = commands.get(command);
   if (!cmd) {
     const errorMsg = system === 'dos' || system === 'win95'
-      ? 'Bad command or file name'
+      ? `'${command}' is not recognized as an internal or external command,\noperable program or batch file.`
       : `${command}: command not found`;
     return { output: [], error: errorMsg };
   }
@@ -179,4 +358,8 @@ export function getAvailableCommands(): Command[] {
   }
 
   return result;
+}
+
+export function getCommand(name: string): Command | undefined {
+  return commands.get(name.toLowerCase());
 }

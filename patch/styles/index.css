@@ -274,21 +274,6 @@
   font-size: 12px;
 }
 
-.patch-analysis-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.patch-analysis-controls button {
-  border: 1px solid #242424;
-  background: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
 .patch-study-main {
   flex: 1;
   display: flex;

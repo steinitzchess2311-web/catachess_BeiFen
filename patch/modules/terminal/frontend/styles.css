@@ -412,3 +412,91 @@
 .terminal-window-minimized-icon {
   font-weight: bold;
 }
+
+/* =============================================================================
+   Terminal Launcher Button (Fixed Bottom-Right)
+   ============================================================================= */
+
+.terminal-launcher {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+
+  /* Retro terminal look */
+  background: #1a1a1a;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.15s ease;
+}
+
+.terminal-launcher:hover,
+.terminal-launcher.is-hovered {
+  background: #2a2a2a;
+  transform: scale(1.05);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 255, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.terminal-launcher:active {
+  transform: scale(0.95);
+}
+
+.terminal-launcher-icon {
+  font-family: "VT323", "Courier New", monospace;
+  font-size: 22px;
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+  user-select: none;
+}
+
+.terminal-launcher:hover .terminal-launcher-icon {
+  text-shadow: 0 0 12px rgba(0, 255, 0, 0.8);
+}
+
+/* Pulse animation when idle */
+@keyframes terminal-pulse {
+  0%, 100% {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(0, 255, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+.terminal-launcher {
+  animation: terminal-pulse 3s ease-in-out infinite;
+}
+
+.terminal-launcher:hover {
+  animation: none;
+}
+
+/* Alternative icon style - uncomment to use */
+/*
+.terminal-launcher-icon::before {
+  content: "⬛";
+  position: absolute;
+  font-size: 28px;
+  color: #333;
+}
+*/
