@@ -9,7 +9,7 @@ export interface StudyBoardProps {
   boardWidth?: number;
 }
 
-export function StudyBoard({ className, boardWidth = 400 }: StudyBoardProps) {
+export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
   const { state, addMove, setError, selectNode } = useStudy();
 
   const moveToStart = useCallback(() => {
