@@ -73,13 +73,13 @@
 
 .patch-study-layout {
   display: flex;
-  flex: 0 0 820px;
+  flex: 0 0 780px;
   gap: 16px;
   border: 1px solid #000;
   border-radius: 6px;
   padding: 12px;
   min-height: 0;
-  height: 820px;
+  height: 780px;
   overflow: hidden;
   box-sizing: border-box;
 }
