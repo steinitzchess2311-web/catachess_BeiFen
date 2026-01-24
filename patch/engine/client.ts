@@ -12,7 +12,21 @@ function resolveEnv(name: string): string | undefined {
   }
 }
 
-const API_BASE = resolveEnv('VITE_API_BASE') || '';
+function resolveApiBase(): string {
+  const envBase = resolveEnv('VITE_API_BASE');
+  if (envBase) return envBase;
+  try {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:7878';
+    }
+  } catch {
+    // ignore
+  }
+  return 'https://api.catachess.com';
+}
+
+const API_BASE = resolveApiBase();
 
 export async function analyzeWithFallback(
   fen: string,
