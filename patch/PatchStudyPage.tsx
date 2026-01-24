@@ -8,6 +8,7 @@ import { CommentBox } from './CommentBox';
 import { api } from '@ui/assets/api';
 import { createEmptyTree } from './tree/StudyTree';
 import { TREE_SCHEMA_VERSION } from './tree/type';
+import { TerminalLauncher } from './modules/terminal';
 
 export interface PatchStudyPageProps {
   className?: string;
@@ -263,6 +264,7 @@ export function PatchStudyPage(props: PatchStudyPageProps) {
   return (
     <StudyProvider>
       <StudyPageContent {...props} />
+      <TerminalLauncher />
     </StudyProvider>
   );
 }
