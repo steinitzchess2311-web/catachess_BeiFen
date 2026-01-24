@@ -73,7 +73,7 @@
 
 .patch-study-layout {
   display: flex;
-  flex: 1;
+  flex: 0 0 900px;
   gap: 16px;
   border: 1px solid #000;
   border-radius: 6px;
