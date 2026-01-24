@@ -50,9 +50,13 @@ class EngineClient:
             if resp.status_code == 429:
                 # Rate limit
                 logger.warning("Lichess Cloud Eval rate limit (429)")
-                if settings.ENGINE_FALLBACK_MODE != "off":
-                    return analyze_legal_moves(fen, depth, multipv)
-                raise ChessEngineError("Rate limit exceeded")
+                try:
+                    return self._analyze_sf(fen, depth, multipv)
+                except Exception as sf_exc:
+                    logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                    if settings.ENGINE_FALLBACK_MODE != "off":
+                        return analyze_legal_moves(fen, depth, multipv)
+                    raise ChessEngineError("Rate limit exceeded")
                 
             if resp.status_code == 404:
                 # Not found (no cloud eval available for this position)
@@ -77,15 +81,23 @@ class EngineClient:
             
         except requests.exceptions.Timeout:
             logger.error(f"Cloud Eval timeout after {self.timeout}s")
-            if settings.ENGINE_FALLBACK_MODE != "off":
-                return analyze_legal_moves(fen, depth, multipv)
-            raise ChessEngineTimeoutError(self.timeout)
+            try:
+                return self._analyze_sf(fen, depth, multipv)
+            except Exception as sf_exc:
+                logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                if settings.ENGINE_FALLBACK_MODE != "off":
+                    return analyze_legal_moves(fen, depth, multipv)
+                raise ChessEngineTimeoutError(self.timeout)
             
         except Exception as e:
             logger.error(f"Cloud Eval failed: {e}")
-            if settings.ENGINE_FALLBACK_MODE != "off":
-                return analyze_legal_moves(fen, depth, multipv)
-            raise ChessEngineError(f"Engine call failed: {str(e)}")
+            try:
+                return self._analyze_sf(fen, depth, multipv)
+            except Exception as sf_exc:
+                logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                if settings.ENGINE_FALLBACK_MODE != "off":
+                    return analyze_legal_moves(fen, depth, multipv)
+                raise ChessEngineError(f"Engine call failed: {str(e)}")
 
     def _analyze_sf(self, fen: str, depth: int, multipv: int) -> EngineResult:
         logger.info(f"Analyzing (sf.catachess): fen={fen[:50]}..., multipv={multipv}")
