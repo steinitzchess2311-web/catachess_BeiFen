@@ -77,6 +77,8 @@
   border-radius: 6px;
   padding: 12px;
   min-height: 0;
+  height: 720px;
+  overflow: hidden;
 }
 
 .patch-study-footer-row {
