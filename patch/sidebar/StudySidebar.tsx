@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStudy } from '../studyContext';
+import { uciLineToSan } from '../chessJS/uci';
 import { ChapterList } from './ChapterList';
 
 export interface StudySidebarProps {
@@ -40,7 +41,6 @@ export function StudySidebar({
   const [activeTab, setActiveTab] = useState<'chapters' | 'analysis'>('chapters');
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
-  const [autoAnalyze, setAutoAnalyze] = useState(true);
   const [engineEnabled, setEngineEnabled] = useState(true);
   const [lines, setLines] = useState<EngineLine[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
@@ -94,7 +94,7 @@ export function StudySidebar({
   };
 
   useEffect(() => {
-    if (activeTab !== 'analysis' || !engineEnabled || !autoAnalyze) return;
+    if (activeTab !== 'analysis' || !engineEnabled) return;
 
     analyzePosition(state.currentFen);
     if (pollRef.current) window.clearInterval(pollRef.current);
@@ -108,7 +108,7 @@ export function StudySidebar({
         pollRef.current = null;
       }
     };
-  }, [activeTab, engineEnabled, autoAnalyze, state.currentFen, depth, multipv]);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
 
   useEffect(() => {
     if (engineEnabled) return;
@@ -117,14 +117,28 @@ export function StudySidebar({
       pollRef.current = null;
     }
     setStatus('idle');
+    setHealth('down');
   }, [engineEnabled]);
+
+  useEffect(() => {
+    if (activeTab !== 'analysis' || !engineEnabled) return;
+    setLines([]);
+    setStatus('idle');
+    setError(null);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
 
   const renderAnalysis = () => (
     <div className="patch-analysis-panel">
       <div className="patch-analysis-status">
         <span className={`patch-analysis-badge is-${status}`}>{status}</span>
         <span className="patch-analysis-health">
-          {health === 'ok' ? 'Engine OK' : health === 'down' ? 'Engine Down' : 'Engine Unknown'}
+          {!engineEnabled
+            ? 'Engine Off'
+            : health === 'ok'
+              ? 'Engine OK'
+              : health === 'down'
+                ? 'Engine Down'
+                : 'Engine Unknown'}
         </span>
         {lastUpdated && (
           <span className="patch-analysis-updated">
@@ -135,12 +149,20 @@ export function StudySidebar({
       {error && <div className="patch-analysis-error">{error}</div>}
       <div className="patch-analysis-lines">
         {lines.length === 0 && <div className="patch-analysis-empty">No analysis yet.</div>}
-        {lines.map((line) => (
+        {lines.map((line) => {
+          const sanLine = uciLineToSan(line.pv || [], state.currentFen);
+          const sanMoves = sanLine
+            .map((step) => step.san)
+            .filter((move): move is string => Boolean(move));
+          return (
           <div key={`pv-${line.multipv}`} className="patch-analysis-line">
             <div className="patch-analysis-score">{formatScore(line.score)}</div>
-            <div className="patch-analysis-pv">{line.pv?.join(' ')}</div>
+            <div className="patch-analysis-pv">
+              {sanMoves.length > 0 ? sanMoves.join(' ') : line.pv?.join(' ')}
+            </div>
           </div>
-        ))}
+        );
+        })}
       </div>
       <div className="patch-analysis-controls">
         <button
@@ -209,14 +231,6 @@ export function StudySidebar({
                 type="checkbox"
                 checked={engineEnabled}
                 onChange={(e) => setEngineEnabled(e.target.checked)}
-              />
-            </label>
-            <label>
-              Auto
-              <input
-                type="checkbox"
-                checked={autoAnalyze}
-                onChange={(e) => setAutoAnalyze(e.target.checked)}
               />
             </label>
           </div>
