@@ -58,6 +58,8 @@ export {
   replayMove,
   replayMoves,
 } from './chessJS/replay';
+export { uciToSan, uciLineToSan } from './chessJS/uci';
+export type { UciToSanResult } from './chessJS/uci';
 export type {
   ReplayResult,
   ValidateMoveResult,
