@@ -41,14 +41,32 @@ class TaggerStorageConfig:
     """Tagger 专用存储配置（来自 Stage 03）"""
     BUCKET_NAME = "catachess-pgn"
     PARSER_VERSION = "1.0.0"
+    ENV_PREFIX = "TAGGER_R2"
 
     @classmethod
     def get_config(cls) -> StorageConfig:
-        """获取配置，强制使用 tagger bucket"""
-        config = StorageConfig.from_env()
-        # 覆盖 bucket 为 tagger 专用
-        config.bucket = cls.BUCKET_NAME
-        return config
+        """
+        获取 tagger 专用存储配置。
+
+        优先读取 TAGGER_R2_* 环境变量，若无则从通用 R2_* 读取并使用专用 bucket。
+        """
+        import os
+        # 优先使用 tagger 专用环境变量
+        try:
+            return StorageConfig.from_env(prefix=cls.ENV_PREFIX)
+        except ValueError:
+            pass
+
+        # 回退：使用通用配置但创建新实例指定 tagger bucket
+        base = StorageConfig.from_env()
+        return StorageConfig(
+            endpoint=base.endpoint,
+            bucket=os.getenv("TAGGER_R2_BUCKET", cls.BUCKET_NAME),
+            access_key_id=base.access_key_id,
+            secret_access_key=base.secret_access_key,
+            region=base.region,
+            account_id=base.account_id,
+        )
 
 
 class TaggerStorage:

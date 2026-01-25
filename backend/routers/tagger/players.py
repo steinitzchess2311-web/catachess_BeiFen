@@ -79,6 +79,7 @@ async def get_upload_status(player_id: uuid.UUID, upload_id: uuid.UUID, svc: Tag
     return UploadStatusResponse(
         upload_id=info["id"], status=info["status"], processed_positions=info["processed_positions"],
         failed_games_count=info["failed_games_count"], last_updated=info["last_updated"],
+        needs_confirmation=info["needs_confirmation"], match_candidates=info["match_candidates"],
     )
 
 

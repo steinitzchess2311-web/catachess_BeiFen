@@ -304,6 +304,7 @@ function MoveBranch({
             className="variation-wrapper"
             style={{ marginBottom: '4px' }}
             onContextMenu={(event) => onContextMenu(vId, event)}
+            onDoubleClick={(event) => onContextMenu(vId, event)}
           >
             <button
               type="button"

@@ -54,12 +54,14 @@ class UploadResponse(BaseModel):
 
 
 class UploadStatusResponse(BaseModel):
-    """上传状态响应"""
+    """上传状态响应（最小集，来自 Stage 05）"""
     upload_id: uuid.UUID
     status: str
     processed_positions: int
     failed_games_count: int
     last_updated: datetime
+    needs_confirmation: bool = False
+    match_candidates: list[dict] = Field(default_factory=list)
 
 
 class UploadListResponse(BaseModel):
