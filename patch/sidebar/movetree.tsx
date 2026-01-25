@@ -93,6 +93,7 @@ export function MoveTree({ className }: MoveTreeProps) {
 
   const handleContainerContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
+    event.stopPropagation();
   };
 
   const handleContextMenu = (nodeId: string, event: React.MouseEvent) => {
@@ -531,6 +532,10 @@ function MoveItem({
       onClick={(e) => {
         e.stopPropagation();
         onSelect(nodeId);
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onContextMenu(nodeId, e);
       }}
       onContextMenu={(e) => onContextMenu(nodeId, e)}
       style={{

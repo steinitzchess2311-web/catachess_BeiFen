@@ -5,7 +5,7 @@
 ### 1. Bucket 配置
 | 项目 | 值 |
 |------|------|
-| Bucket 名称 | catachess-pgn |
+| Bucket 名称 | catachess-pgn（由 config 控制） |
 | 权限 | 仅后端服务写入/读取 |
 
 ### 2. Key 规范
@@ -15,21 +15,30 @@
 | 元数据 | players/{player_id}/{upload_id}/meta.json |
 
 ### 3. meta.json 内容
-- checksum：文件校验和
+- checksum：SHA256 校验和
 - original_filename：原始文件名
 - upload_user_id：上传用户 ID
-- uploaded_at：上传时间
+- uploaded_at：上传时间（ISO 格式）
 - parser_version：解析器版本
 
 ### 4. 重算与版本规则
 - 不覆盖 raw.pgn
 - 重算时写新的 upload_id 目录
 
+## 代码实现
+
+| 文件 | 行数 | 职责 |
+|------|------|------|
+| backend/storage/tagger/__init__.py | 11 | 模块导出 |
+| backend/storage/tagger/keys.py | 77 | Key 生成规则 |
+| backend/storage/tagger/operations.py | 148 | 存储操作封装 |
+
 ## Checklist 完成状态
 - [x] R2 bucket 名称与权限确认
 - [x] Key 规范确认
 - [x] meta.json 内容确认
 - [x] 重算不覆盖规则确认
+- [x] **代码已实现**
 
 ## 下一步
 进入 Stage 04：Postgres 表结构与索引
