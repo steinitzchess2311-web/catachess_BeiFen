@@ -82,6 +82,10 @@ async def startup_event():
 origins = settings.cors_origins_list
 origin_regex = settings.CORS_ORIGIN_REGEX or None
 allow_credentials = True
+if "https://catachess.com" not in origins:
+    origins.append("https://catachess.com")
+if "https://www.catachess.com" not in origins:
+    origins.append("https://www.catachess.com")
 if "*" in origins:
     origins = ["*"]
     allow_credentials = False
