@@ -1,12 +1,14 @@
 """
 Tagger Players Router - 棋手与上传 API
 """
+import re
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status, Request, Response
 from sqlalchemy.orm import Session
 
 from modules.tagger.db import get_tagger_db
 from modules.tagger import TaggerService
+from core.config import settings
 from schemas.tagger import (
     PlayerCreate, PlayerResponse, PlayerListResponse,
     UploadResponse, UploadStatusResponse, UploadListResponse,
@@ -19,6 +21,26 @@ router = APIRouter()
 
 def get_service(db: Session = Depends(get_tagger_db)) -> TaggerService:
     return TaggerService(db)
+
+def _cors_headers_for_request(request: Request) -> dict[str, str]:
+    origin = request.headers.get("origin")
+    if not origin:
+        return {}
+    allowed = origin in settings.cors_origins_list
+    if not allowed and settings.CORS_ORIGIN_REGEX:
+        try:
+            allowed = re.match(settings.CORS_ORIGIN_REGEX, origin) is not None
+        except re.error:
+            allowed = False
+    if not allowed:
+        return {}
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization,Content-Type",
+        "Vary": "Origin",
+    }
 
 
 # === Player Endpoints ===
@@ -53,13 +75,22 @@ async def upload_pgn(
     player_id: uuid.UUID,
     file: UploadFile = File(...),
     svc: TaggerService = Depends(get_service),
+    request: Request = None,
+    response: Response = None,
 ):
     if not svc.get_player(player_id):
         raise HTTPException(404, "Player not found")
     content = await file.read()
     upload_user_id = uuid.uuid4()  # TODO: 从 auth 获取
     upload = svc.create_upload(player_id, content, file.filename or "upload.pgn", upload_user_id)
+    if response is not None and request is not None:
+        response.headers.update(_cors_headers_for_request(request))
     return UploadResponse(**svc.get_upload_status(upload.id))
+
+
+@router.options("/players/{player_id}/uploads")
+async def upload_pgn_options(player_id: uuid.UUID, request: Request):
+    return Response(status_code=204, headers=_cors_headers_for_request(request))
 
 
 @router.get("/players/{player_id}/uploads", response_model=UploadListResponse)
