@@ -2,13 +2,19 @@ export class ApiClient {
     private static instance: ApiClient;
     private baseURL: string;
 
+    private static resolveApiBase(): string {
+        const envBase = import.meta.env.VITE_API_BASE as string | undefined;
+        if (envBase) return envBase;
+        const host = window.location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return 'http://localhost:8000';
+        }
+        return 'https://api.catachess.com';
+    }
+
     private constructor() {
-        // Automatically determine base URL
-        // In development (localhost), use localhost:8000
-        // In production, use the production API URL
-        this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000'
-            : 'https://api.catachess.com';
+        // Automatically determine base URL, with env override
+        this.baseURL = ApiClient.resolveApiBase();
     }
 
     public static getInstance(): ApiClient {

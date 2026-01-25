@@ -1,10 +1,13 @@
 import { api } from "@ui/assets/api";
 
-const resolveBaseURL = () =>
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
+const resolveBaseURL = () => {
+  const envBase = import.meta.env.VITE_API_BASE as string | undefined;
+  if (envBase) return envBase;
+  return window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
     ? "http://localhost:8000"
     : "https://api.catachess.com";
+};
 
 export type Player = {
   id: string;
