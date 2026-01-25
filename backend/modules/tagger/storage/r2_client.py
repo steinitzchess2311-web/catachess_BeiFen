@@ -1,7 +1,7 @@
 """
 Tagger Storage - Pipeline 存储调度
 
-职责（来自 Stage 02）：
+职责（来自 Stage 03）：
 - R2 存储调度
 - 元数据管理
 """
@@ -39,7 +39,7 @@ class TaggerKeyBuilder:
 
 class TaggerStorageConfig:
     """Tagger 专用存储配置（来自 Stage 03）"""
-    BUCKET_NAME = "catachess-pgn"
+    BUCKET_NAME = "catachess-tagger"
     PARSER_VERSION = "1.0.0"
     ENV_PREFIX = "TAGGER_R2"
 
@@ -51,6 +51,26 @@ class TaggerStorageConfig:
         优先读取 TAGGER_R2_* 环境变量，若无则从通用 R2_* 读取并使用专用 bucket。
         """
         import os
+        # 新增：支持 Railway 风格的 R2_TAGGER_* 变量
+        r2_tagger_bucket = os.getenv("R2_TAGGER")
+        r2_tagger_access = os.getenv("R2_TAGGER_ACCESS_KEY")
+        r2_tagger_secret = os.getenv("R2_TAGGER_SECRET_KEY")
+        if r2_tagger_bucket and r2_tagger_access and r2_tagger_secret:
+            endpoint = (
+                os.getenv("R2_TAGGER_ENDPOINT")
+                or os.getenv("TAGGER_R2_ENDPOINT")
+                or os.getenv("R2_ENDPOINT")
+            )
+            if endpoint:
+                return StorageConfig(
+                    endpoint=endpoint,
+                    bucket=r2_tagger_bucket,
+                    access_key_id=r2_tagger_access,
+                    secret_access_key=r2_tagger_secret,
+                    region=os.getenv("R2_TAGGER_REGION", "auto"),
+                    account_id=os.getenv("R2_TAGGER_ACCOUNT_ID"),
+                )
+
         # 优先使用 tagger 专用环境变量
         try:
             return StorageConfig.from_env(prefix=cls.ENV_PREFIX)

@@ -1,0 +1,481 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Spectral:wght@400;600&display=swap");
+
+:root {
+  --tagger-bg: #0f1216;
+  --tagger-bg-soft: #151b22;
+  --tagger-accent: #f2b33d;
+  --tagger-accent-2: #4fc3d4;
+  --tagger-text: #f7f2e8;
+  --tagger-muted: #98a0a8;
+  --tagger-card: #1b222b;
+  --tagger-border: rgba(255, 255, 255, 0.08);
+}
+
+.tagger-page {
+  min-height: calc(100vh - 80px);
+  padding: 48px 6vw 96px;
+  background: radial-gradient(circle at top, #1f2732 0%, #0f1216 55%);
+  color: var(--tagger-text);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.tagger-page::before,
+.tagger-page::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(0);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.tagger-page::before {
+  width: 420px;
+  height: 420px;
+  right: -140px;
+  top: -140px;
+  background: radial-gradient(circle, rgba(79, 195, 212, 0.25), transparent 70%);
+}
+
+.tagger-page::after {
+  width: 320px;
+  height: 320px;
+  left: -120px;
+  bottom: -120px;
+  background: radial-gradient(circle, rgba(242, 179, 61, 0.2), transparent 70%);
+}
+
+.tagger-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tagger-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  font-size: 0.7rem;
+  color: var(--tagger-accent);
+}
+
+.tagger-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: stretch;
+  margin-bottom: 48px;
+  animation: taggerReveal 0.7s ease-out;
+}
+
+.tagger-hero-copy h1,
+.tagger-detail-hero h1 {
+  font-family: "Spectral", "Times New Roman", serif;
+  font-size: clamp(2.4rem, 3vw, 3.2rem);
+  margin: 12px 0;
+}
+
+.tagger-hero-copy p {
+  color: var(--tagger-muted);
+  max-width: 520px;
+  font-size: 1.05rem;
+}
+
+.tagger-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+  animation: taggerReveal 0.7s ease-out 0.1s both;
+}
+
+.tagger-card {
+  background: var(--tagger-card);
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid var(--tagger-border);
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 16px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tagger-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.35);
+}
+
+.tagger-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tagger-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tagger-chip {
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(79, 195, 212, 0.4);
+  color: var(--tagger-accent-2);
+}
+
+.tagger-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tagger-card-label {
+  color: var(--tagger-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tagger-card-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tagger-card-foot {
+  font-size: 0.8rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-panel {
+  background: var(--tagger-card);
+  padding: 22px;
+  border-radius: 18px;
+  border: 1px solid var(--tagger-border);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.3);
+}
+
+.tagger-panel h2 {
+  margin-top: 0;
+}
+
+.tagger-panel-wide {
+  display: grid;
+  gap: 18px;
+}
+
+.tagger-form {
+  display: grid;
+  gap: 18px;
+}
+
+.tagger-form label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--tagger-muted);
+}
+
+.tagger-form input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 6px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: #0f141a;
+  color: var(--tagger-text);
+  font-size: 0.95rem;
+}
+
+.tagger-form button,
+.tagger-actions button,
+.tagger-back,
+.tagger-confirm {
+  background: var(--tagger-accent);
+  color: #141414;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tagger-form button:hover,
+.tagger-actions button:hover,
+.tagger-back:hover,
+.tagger-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(242, 179, 61, 0.25);
+}
+
+.tagger-upload {
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  padding: 28px;
+  border-radius: 16px;
+  background: rgba(15, 18, 22, 0.6);
+  cursor: pointer;
+}
+
+.tagger-upload input {
+  display: none;
+}
+
+.tagger-upload-meta {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.tagger-log {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 15, 19, 0.7);
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.tagger-log span {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.65rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-log-line {
+  color: var(--tagger-text);
+}
+
+.tagger-log-line.muted {
+  color: var(--tagger-muted);
+}
+
+.tagger-upload-meta div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.tagger-warning {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(242, 179, 61, 0.12);
+  border: 1px solid rgba(242, 179, 61, 0.2);
+  border-radius: 12px;
+  color: var(--tagger-accent);
+}
+
+.tagger-detail-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  animation: taggerReveal 0.6s ease-out;
+}
+
+.tagger-status {
+  background: var(--tagger-card);
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--tagger-border);
+  display: grid;
+  gap: 6px;
+}
+
+.tagger-status span {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.7rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-status strong {
+  font-size: 1.2rem;
+}
+
+.tagger-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+  gap: 24px;
+}
+
+.tagger-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tagger-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tagger-tabs button {
+  border: 1px solid var(--tagger-border);
+  background: transparent;
+  color: var(--tagger-muted);
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.tagger-tabs button.active {
+  background: var(--tagger-accent);
+  color: #141414;
+  border-color: transparent;
+}
+
+.tagger-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-table {
+  display: grid;
+  gap: 8px;
+}
+
+.tagger-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.6fr 0.6fr;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tagger-row-head {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--tagger-muted);
+  background: transparent;
+  border: none;
+}
+
+.tagger-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.tagger-back {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--tagger-text);
+  padding: 8px 14px;
+}
+
+.tagger-empty,
+.tagger-loading {
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 18px;
+  text-align: center;
+  border: 1px dashed var(--tagger-border);
+}
+
+.tagger-progress {
+  margin-top: 16px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tagger-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tagger-accent), var(--tagger-accent-2));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.tagger-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 10, 0.7);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.tagger-modal {
+  background: var(--tagger-card);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--tagger-border);
+  max-width: 420px;
+  display: grid;
+  gap: 12px;
+}
+
+.tagger-modal button {
+  justify-self: end;
+}
+
+.tagger-modal-list {
+  font-size: 0.85rem;
+  color: var(--tagger-muted);
+  display: grid;
+  gap: 8px;
+}
+
+.tagger-confirm {
+  margin-top: 18px;
+}
+
+.tagger-error {
+  margin-top: 12px;
+  color: #ff7a7a;
+}
+
+@keyframes taggerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .tagger-hero,
+  .tagger-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .tagger-panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tagger-detail-hero {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .tagger-page {
+    padding: 32px 5vw 72px;
+  }
+
+  .tagger-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .tagger-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status
 from sqlalchemy.orm import Session
 
-from core.db.deps import get_db
+from modules.tagger.db import get_tagger_db
 from modules.tagger import TaggerService
 from schemas.tagger import (
     PlayerCreate, PlayerResponse, PlayerListResponse,
@@ -17,7 +17,7 @@ from schemas.tagger import (
 router = APIRouter()
 
 
-def get_service(db: Session = Depends(get_db)) -> TaggerService:
+def get_service(db: Session = Depends(get_tagger_db)) -> TaggerService:
     return TaggerService(db)
 
 

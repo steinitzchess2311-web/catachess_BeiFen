@@ -17,6 +17,14 @@ Required:
 Notes:
 - This is the ONLY required Postgres variable for workspace DB.
 
+### 1.1 Tagger Postgres (tagger data)
+
+Required:
+- TAGGER_DATABASE_URL
+  - Example: postgresql+asyncpg://user:pass@host:5432/tagger_db
+  - Used by:
+    - backend/modules/tagger/db.py
+
 ## 2) R2 (PGN and artifacts)
 
 There are two R2 env naming schemes in the repo. Both are used.
@@ -32,6 +40,19 @@ Used by:
 - backend/modules/workspace/storage/r2_client.py
 - backend/modules/workspace/domain/services/pgn_sync_service.py
 - backend/modules/workspace/domain/services/chapter_import_service.py
+
+### 2.1.1 Tagger R2 (modules/tagger/storage.py)
+Required (Railway):
+- R2_TAGGER
+- R2_TAGGER_ACCESS_KEY
+- R2_TAGGER_SECRET_KEY
+- R2_ENDPOINT
+
+Alternate (preferred in code):
+- TAGGER_R2_ENDPOINT
+- TAGGER_R2_BUCKET
+- TAGGER_R2_ACCESS_KEY_ID (or TAGGER_R2_ACCESS_KEY)
+- TAGGER_R2_SECRET_ACCESS_KEY (or TAGGER_R2_SECRET_KEY)
 
 ### 2.2 Scan script (backend/scripts/scan_pgn_integrity.py)
 Required:
@@ -83,12 +104,19 @@ Used by:
 
 Postgres:
 - Print DATABASE_URL: echo $DATABASE_URL
+- Print TAGGER_DATABASE_URL: echo $TAGGER_DATABASE_URL
 
 R2 (workspace client):
 - echo $R2_ENDPOINT
 - echo $R2_ACCESS_KEY
 - echo $R2_SECRET_KEY
 - echo $R2_BUCKET
+
+R2 (tagger):
+- echo $R2_TAGGER
+- echo $R2_TAGGER_ACCESS_KEY
+- echo $R2_TAGGER_SECRET_KEY
+- echo $R2_ENDPOINT
 
 R2 (scan script):
 - echo $R2_ENDPOINT
@@ -101,4 +129,3 @@ Engine:
 
 PGN v2:
 - echo $PGN_V2_ENABLED
-

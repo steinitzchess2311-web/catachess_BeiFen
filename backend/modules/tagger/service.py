@@ -18,6 +18,7 @@ from sqlalchemy import select, func
 from models.tagger import PlayerProfile, PgnUpload, PgnGame, FailedGame, TagStat
 from modules.tagger.errors import UploadStatus
 from modules.tagger.storage import TaggerStorage
+from modules.tagger.pipeline.pipeline import TaggerPipeline
 
 
 def normalize_name(name: str) -> str:
@@ -92,7 +93,13 @@ class TaggerService:
         """触发解析 pipeline（Stage 06 实现具体逻辑）"""
         upload.status = UploadStatus.PROCESSING.value
         self.db.commit()
-        # TODO: Stage 06 - 调用 pipeline 解析 PGN
+        pipeline = TaggerPipeline(self.db, self._storage)
+        player = self.get_player(upload.player_id)
+        if not player:
+            upload.status = UploadStatus.FAILED.value
+            self.db.commit()
+            return
+        pipeline.process_upload(upload, player)
 
     def get_upload(self, upload_id: uuid.UUID) -> Optional[PgnUpload]:
         return self.db.get(PgnUpload, upload_id)

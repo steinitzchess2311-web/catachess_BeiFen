@@ -83,7 +83,7 @@
 ## 3. 存储设计
 
 ### 3.1 R2（原始 PGN）
-- 新建 bucket：`catachess-pgn`
+- 新建 bucket：`catachess-tagger`
 - 路径规范：
   - `players/{player_id}/{upload_id}/raw.pgn`
   - `players/{player_id}/{upload_id}/meta.json`

@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     # For Railway: DATABASE_URL is automatically provided
     # For local dev: Set DATABASE_URL in .env file
     DATABASE_URL: str = ""
+    # Tagger-specific database (separate from workspace DB)
+    TAGGER_DATABASE_URL: str = ""
 
     # ===== security =====
     # SECURITY FIX: JWT_SECRET_KEY must be set via environment variable
