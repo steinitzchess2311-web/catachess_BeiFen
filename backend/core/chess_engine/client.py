@@ -25,6 +25,10 @@ class EngineClient:
         depth: int = 15,
         multipv: int = 3,
     ) -> EngineResult:
+        if settings.ENGINE_DISABLE_CLOUD:
+            logger.info("Cloud Eval disabled; using sf.catachess")
+            return self._analyze_sf(fen, depth, multipv)
+
         logger.info(f"Analyzing (Cloud Eval): fen={fen[:50]}..., multipv={multipv}")
         
         try:
