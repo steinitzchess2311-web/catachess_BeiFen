@@ -398,9 +398,14 @@
 
 .study-board-nav {
   display: flex;
-  gap: 10px;
   justify-content: flex-end;
   width: 100%;
+  align-self: stretch;
+}
+
+.study-board-nav-group {
+  display: flex;
+  gap: 10px;
 }
 
 .study-board-nav-button {

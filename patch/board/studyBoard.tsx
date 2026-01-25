@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useStudy } from '../studyContext';
 import { getMoveSan } from '../chessJS/replay';
@@ -12,6 +12,10 @@ export interface StudyBoardProps {
 export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
   const { state, addMove, setError, selectNode } = useStudy();
   const [orientation, setOrientation] = useState<'white' | 'black'>('white');
+  const isFlipped = orientation === 'black';
+  const toggleFlip = useCallback(() => {
+    setOrientation((prev) => (prev === 'white' ? 'black' : 'white'));
+  }, []);
 
   const moveToStart = useCallback(() => {
     selectNode(state.tree.rootId);
@@ -38,6 +42,43 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
     const lastNode = mainline[mainline.length - 1];
     selectNode(lastNode.id);
   }, [selectNode, state.tree]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.closest('input, textarea, [contenteditable="true"]') || target.isContentEditable)) {
+        return;
+      }
+      switch (event.key) {
+        case 'f':
+        case 'F':
+          event.preventDefault();
+          toggleFlip();
+          break;
+        case 'ArrowLeft':
+        case 'Backspace':
+          event.preventDefault();
+          moveToPrev();
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          moveToNext();
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          moveToStart();
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          moveToEnd();
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [moveToEnd, moveToNext, moveToPrev, moveToStart, toggleFlip]);
 
   const onPieceDrop = useCallback(
     (sourceSquare: string, targetSquare: string, piece: string) => {
@@ -85,17 +126,19 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
         />
       </div>
       <div className="study-board-nav">
-        <button type="button" className="study-board-nav-button" onClick={moveToStart}>|&lt;</button>
-        <button type="button" className="study-board-nav-button" onClick={moveToPrev}>&lt;</button>
-        <button type="button" className="study-board-nav-button" onClick={moveToNext}>&gt;</button>
-        <button type="button" className="study-board-nav-button" onClick={moveToEnd}>&gt;|</button>
-        <button
-          type="button"
-          className="study-board-nav-button"
-          onClick={() => setOrientation((prev) => (prev === 'white' ? 'black' : 'white'))}
-        >
-          Flip
-        </button>
+        <div className="study-board-nav-group">
+          <button type="button" className="study-board-nav-button" onClick={moveToStart}>|&lt;</button>
+          <button type="button" className="study-board-nav-button" onClick={moveToPrev}>&lt;</button>
+          <button type="button" className="study-board-nav-button" onClick={moveToNext}>&gt;</button>
+          <button type="button" className="study-board-nav-button" onClick={moveToEnd}>&gt;|</button>
+          <button
+            type="button"
+            className="study-board-nav-button"
+            onClick={toggleFlip}
+          >
+            Flip
+          </button>
+        </div>
       </div>
     </div>
   );
