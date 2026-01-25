@@ -209,6 +209,13 @@
   box-shadow: 0 12px 30px rgba(242, 179, 61, 0.25);
 }
 
+.tagger-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+  transform: none;
+}
+
 .tagger-upload {
   display: grid;
   place-items: center;
@@ -456,6 +463,9 @@
 .tagger-failed {
   display: grid;
   gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .tagger-failed-row {
@@ -476,6 +486,24 @@
 
 .tagger-failed-msg {
   color: var(--tagger-muted);
+}
+
+.tagger-recompute {
+  background: #2f3b4c;
+  color: #f4f7fb;
+}
+
+.tagger-recompute:hover {
+  box-shadow: 0 12px 30px rgba(47, 59, 76, 0.35);
+}
+
+.tagger-delete {
+  background: #d46a6a;
+  color: #141414;
+}
+
+.tagger-delete:hover {
+  box-shadow: 0 12px 30px rgba(212, 106, 106, 0.35);
 }
 
 .tagger-muted {

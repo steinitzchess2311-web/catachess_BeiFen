@@ -47,6 +47,11 @@ class UploadResponse(BaseModel):
     failed_games_count: int = 0
     total_games: int = 0
     processed_games: int = 0
+    duplicate_games: int = 0
+    last_game_index: int | None = None
+    last_game_status: str | None = None
+    last_game_move_count: int | None = None
+    last_game_color: str | None = None
     last_updated: datetime
     needs_confirmation: bool = False
     match_candidates: list[dict] = Field(default_factory=list)
@@ -63,6 +68,11 @@ class UploadStatusResponse(BaseModel):
     failed_games_count: int
     total_games: int
     processed_games: int
+    duplicate_games: int
+    last_game_index: int | None = None
+    last_game_status: str | None = None
+    last_game_move_count: int | None = None
+    last_game_color: str | None = None
     last_updated: datetime
     needs_confirmation: bool = False
     match_candidates: list[dict] = Field(default_factory=list)

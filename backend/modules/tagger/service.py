@@ -51,6 +51,35 @@ class TaggerService:
         ).all()
         return list(players), total or 0
 
+    def delete_player(self, player_id: uuid.UUID) -> bool:
+        player = self.get_player(player_id)
+        if not player:
+            return False
+        self.db.query(FailedGame).filter(FailedGame.player_id == player_id).delete(synchronize_session=False)
+        self.db.query(PgnGame).filter(PgnGame.player_id == player_id).delete(synchronize_session=False)
+        self.db.query(PgnUpload).filter(PgnUpload.player_id == player_id).delete(synchronize_session=False)
+        self.db.query(TagStat).filter(TagStat.player_id == player_id).delete(synchronize_session=False)
+        self.db.delete(player)
+        self.db.commit()
+        return True
+
+    def recompute_player(self, player_id: uuid.UUID) -> list[PgnUpload]:
+        player = self.get_player(player_id)
+        if not player:
+            return []
+        self.db.query(FailedGame).filter(FailedGame.player_id == player_id).delete(synchronize_session=False)
+        self.db.query(PgnGame).filter(PgnGame.player_id == player_id).delete(synchronize_session=False)
+        self.db.query(TagStat).filter(TagStat.player_id == player_id).delete(synchronize_session=False)
+        uploads = self.list_uploads(player_id)
+        for upload in uploads:
+            upload.status = UploadStatus.PENDING.value
+            upload.checkpoint_state = None
+            upload.updated_at = datetime.utcnow()
+        self.db.commit()
+        for upload in uploads:
+            self._trigger_pipeline(upload)
+        return uploads
+
     # === Upload Operations ===
 
     def create_upload(
@@ -125,6 +154,11 @@ class TaggerService:
             "failed_games_count": failed_count,
             "total_games": checkpoint_state.get("total_games", 0),
             "processed_games": checkpoint_state.get("processed_games", 0),
+            "duplicate_games": checkpoint_state.get("duplicate_games", 0),
+            "last_game_index": checkpoint_state.get("last_game_index"),
+            "last_game_status": checkpoint_state.get("last_game_status"),
+            "last_game_move_count": checkpoint_state.get("last_game_move_count"),
+            "last_game_color": checkpoint_state.get("last_game_color"),
             "last_updated": upload.updated_at,
             "needs_confirmation": upload.status == UploadStatus.NEEDS_CONFIRMATION.value,
             "match_candidates": checkpoint_state.get("candidates", []),

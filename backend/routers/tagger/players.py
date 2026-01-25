@@ -68,6 +68,22 @@ async def get_player(player_id: uuid.UUID, svc: TaggerService = Depends(get_serv
     return player
 
 
+@router.delete("/players/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_player(player_id: uuid.UUID, svc: TaggerService = Depends(get_service)):
+    if not svc.delete_player(player_id):
+        raise HTTPException(404, "Player not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/players/{player_id}/recompute", response_model=UploadListResponse)
+async def recompute_player(player_id: uuid.UUID, svc: TaggerService = Depends(get_service)):
+    if not svc.get_player(player_id):
+        raise HTTPException(404, "Player not found")
+    uploads = svc.recompute_player(player_id)
+    items = [svc.get_upload_status(u.id) for u in uploads]
+    return UploadListResponse(uploads=[UploadResponse(**i) for i in items if i], total=len(items))
+
+
 # === Upload Endpoints ===
 
 @router.post("/players/{player_id}/uploads", response_model=UploadResponse)
@@ -110,7 +126,10 @@ async def get_upload_status(player_id: uuid.UUID, upload_id: uuid.UUID, svc: Tag
     return UploadStatusResponse(
         upload_id=info["id"], status=info["status"], processed_positions=info["processed_positions"],
         failed_games_count=info["failed_games_count"], total_games=info["total_games"],
-        processed_games=info["processed_games"], last_updated=info["last_updated"],
+        processed_games=info["processed_games"], duplicate_games=info["duplicate_games"],
+        last_game_index=info["last_game_index"], last_game_status=info["last_game_status"],
+        last_game_move_count=info["last_game_move_count"], last_game_color=info["last_game_color"],
+        last_updated=info["last_updated"],
         needs_confirmation=info["needs_confirmation"], match_candidates=info["match_candidates"],
     )
 

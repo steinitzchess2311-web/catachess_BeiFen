@@ -24,6 +24,11 @@ export type Upload = {
   failed_games_count: number;
   total_games?: number;
   processed_games?: number;
+  duplicate_games?: number;
+  last_game_index?: number | null;
+  last_game_status?: string | null;
+  last_game_move_count?: number | null;
+  last_game_color?: string | null;
   last_updated: string;
   needs_confirmation: boolean;
   match_candidates: Array<Record<string, any>>;
@@ -80,6 +85,12 @@ export const taggerApi = {
   },
   async getPlayer(id: string) {
     return api.get(`/api/tagger/players/${id}`);
+  },
+  async deletePlayer(id: string) {
+    return api.delete(`/api/tagger/players/${id}`);
+  },
+  async recomputePlayer(id: string) {
+    return api.post(`/api/tagger/players/${id}/recompute`);
   },
   async listUploads(playerId: string) {
     return api.get(`/api/tagger/players/${playerId}/uploads`);

@@ -6,6 +6,15 @@ import ConfirmMatchModal from "../components/ConfirmMatchModal";
 import { taggerApi, Player, Upload, StatsList, FailedGameItem } from "../api/taggerApi";
 import "../styles/tagger.css";
 
+type LogMeta = {
+  started?: boolean;
+  analysisStarted?: boolean;
+  totalLogged?: boolean;
+  lastProcessed?: number;
+  lastDuplicate?: number;
+  statusLogged?: string;
+};
+
 const PlayerDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,6 +25,7 @@ const PlayerDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"total" | "white" | "black">("total");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [recomputing, setRecomputing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -23,7 +33,13 @@ const PlayerDetail: React.FC = () => {
   const clearTaggerCache = () => {
     const keys = Object.keys(sessionStorage);
     keys.forEach((key) => {
-      if (key.startsWith("tagger-log-") || key.startsWith("tagger-failed-") || key.startsWith("tagger-proc-") || key.startsWith("tagger-failed-ids-")) {
+      if (
+        key.startsWith("tagger-log-") ||
+        key.startsWith("tagger-log-pending-") ||
+        key.startsWith("tagger-failed-") ||
+        key.startsWith("tagger-meta-") ||
+        key.startsWith("tagger-failed-ids-")
+      ) {
         sessionStorage.removeItem(key);
       }
     });
@@ -51,6 +67,83 @@ const PlayerDetail: React.FC = () => {
     clearTaggerCache();
   }, []);
 
+  const updateLogCache = (upload: Upload) => {
+    const logKey = `tagger-log-${upload.id}`;
+    const metaKey = `tagger-meta-${upload.id}`;
+    const logs = readCache<string[]>(logKey, []);
+    const meta = readCache<LogMeta>(metaKey, {});
+
+    if (!meta.started) {
+      if (!logs.includes("Upload started.")) {
+        logs.push("Upload started.");
+      }
+      meta.started = true;
+    }
+
+    if (!meta.analysisStarted && upload.status === "processing") {
+      logs.push("Analysis started.");
+      meta.analysisStarted = true;
+    }
+
+    if (!meta.totalLogged && upload.total_games && upload.total_games > 0) {
+      logs.push(`PGN parsed: total games = ${upload.total_games}.`);
+      meta.totalLogged = true;
+    }
+
+    if (typeof upload.duplicate_games === "number") {
+      const previousDup = meta.lastDuplicate || 0;
+      if (upload.duplicate_games > previousDup) {
+        const delta = upload.duplicate_games - previousDup;
+        logs.push(`Duplicates detected: +${delta} (total ${upload.duplicate_games}).`);
+        if (upload.total_games) {
+          const remaining = Math.max(upload.total_games - upload.duplicate_games, 0);
+          logs.push(`Games to analyze: ${remaining}.`);
+        }
+        meta.lastDuplicate = upload.duplicate_games;
+      }
+    }
+
+    const processed = upload.processed_games ?? 0;
+    let lastProcessed = meta.lastProcessed || 0;
+    if (processed < lastProcessed) {
+      logs.length = 0;
+      meta.started = false;
+      meta.analysisStarted = false;
+      meta.totalLogged = false;
+      meta.lastDuplicate = 0;
+      meta.lastProcessed = 0;
+      meta.statusLogged = undefined;
+      lastProcessed = 0;
+    }
+    if (processed > lastProcessed) {
+      for (let i = lastProcessed + 1; i <= processed; i += 1) {
+        if (i === processed && upload.last_game_index === processed) {
+          const status = upload.last_game_status || "processed";
+          if (status === "duplicate") {
+            logs.push(`Game ${i}: skipped (duplicate).`);
+          } else if (status === "processed") {
+            const moves = upload.last_game_move_count ?? 0;
+            const color = upload.last_game_color || "unknown";
+            logs.push(`Game ${i}: analyzed (moves=${moves}, color=${color}).`);
+          } else {
+            logs.push(`Game ${i}: ${status}.`);
+          }
+        } else {
+          logs.push(`Game ${i}: processed.`);
+        }
+      }
+      meta.lastProcessed = processed;
+    }
+
+    if (upload.status && upload.status !== "processing" && meta.statusLogged !== upload.status) {
+      logs.push(`Upload status: ${upload.status}.`);
+      meta.statusLogged = upload.status;
+    }
+
+    writeCache(logKey, logs);
+    writeCache(metaKey, meta);
+  };
+
   const fetchAll = async () => {
     if (!id) return;
     setLoading(true);
@@ -67,46 +160,53 @@ const PlayerDetail: React.FC = () => {
       const currentUpload = uploadsRes.uploads?.[0];
       if (currentUpload?.id) {
         const logKey = `tagger-log-${currentUpload.id}`;
-        const procKey = `tagger-proc-${currentUpload.id}`;
+        const pendingLogKey = `tagger-log-pending-${id}`;
         const failedKey = `tagger-failed-${currentUpload.id}`;
         const failedIdsKey = `tagger-failed-ids-${currentUpload.id}`;
 
+        const pendingLogs = readCache<string[]>(pendingLogKey, []);
+        if (pendingLogs.length) {
+          const existingLogs = readCache<string[]>(logKey, []);
+          writeCache(logKey, [...pendingLogs, ...existingLogs]);
+          sessionStorage.removeItem(pendingLogKey);
+        }
+
         const cachedLogs = readCache<string[]>(logKey, []);
-        const lastProcessed = readCache<number>(procKey, 0);
-        if (currentUpload.processed_games && currentUpload.processed_games > lastProcessed) {
-          const nextLogs = [...cachedLogs];
-          for (let i = lastProcessed + 1; i <= currentUpload.processed_games; i += 1) {
-            nextLogs.push(`Game ${i}: processed`);
-          }
-          writeCache(logKey, nextLogs);
-          writeCache(procKey, currentUpload.processed_games);
+        if (cachedLogs.length || currentUpload.status === "processing") {
+          updateLogCache(currentUpload);
         }
 
         const cachedFailed = readCache<FailedGameItem[]>(failedKey, []);
         const cachedFailedIds = new Set(readCache<number[]>(failedIdsKey, []));
-        try {
-          const failed = await taggerApi.getFailedGames(id, currentUpload.id);
-          const newFailed: FailedGameItem[] = [];
-          failed.failed_games?.forEach((item) => {
-            if (!cachedFailedIds.has(item.game_index)) {
-              cachedFailedIds.add(item.game_index);
-              newFailed.push(item);
+        const shouldFetchFailed =
+          cachedFailed.length > 0 || currentUpload.status === "processing";
+        if (shouldFetchFailed) {
+          try {
+            const failed = await taggerApi.getFailedGames(id, currentUpload.id);
+            const newFailed: FailedGameItem[] = [];
+            failed.failed_games?.forEach((item) => {
+              if (!cachedFailedIds.has(item.game_index)) {
+                cachedFailedIds.add(item.game_index);
+                newFailed.push(item);
+              }
+            });
+            if (newFailed.length) {
+              const merged = [...cachedFailed, ...newFailed];
+              writeCache(failedKey, merged);
+              writeCache(failedIdsKey, Array.from(cachedFailedIds));
+              const logKeyValue = readCache<string[]>(logKey, []);
+              const updatedLogs = [
+                ...logKeyValue,
+                ...newFailed.map((item) => `Game ${item.game_index}: failed (${item.error_code}).`),
+              ];
+              writeCache(logKey, updatedLogs);
             }
-          });
-          if (newFailed.length) {
-            const merged = [...cachedFailed, ...newFailed];
-            writeCache(failedKey, merged);
-            writeCache(failedIdsKey, Array.from(cachedFailedIds));
-            const logKeyValue = readCache<string[]>(logKey, []);
-            const updatedLogs = [
-              ...logKeyValue,
-              ...newFailed.map((item) => `Game ${item.game_index}: failed (${item.error_code})`),
-            ];
-            writeCache(logKey, updatedLogs);
+            setFailedGames(readCache<FailedGameItem[]>(failedKey, []));
+          } catch {
+            setFailedGames(readCache<FailedGameItem[]>(failedKey, []));
           }
-          setFailedGames(readCache<FailedGameItem[]>(failedKey, []));
-        } catch {
-          setFailedGames(readCache<FailedGameItem[]>(failedKey, []));
+        } else {
+          setFailedGames([]);
         }
       } else {
         setFailedGames([]);
@@ -138,7 +238,9 @@ const PlayerDetail: React.FC = () => {
   const candidates = uploads[0]?.match_candidates ?? [];
   const logs = uploads[0]?.id
     ? readCache<string[]>(`tagger-log-${uploads[0].id}`, [])
-    : [];
+    : id
+      ? readCache<string[]>(`tagger-log-pending-${id}`, [])
+      : [];
 
   const handleUpload = async (file: File) => {
     if (!id) return;
@@ -147,6 +249,7 @@ const PlayerDetail: React.FC = () => {
     setError("");
     try {
       clearTaggerCache();
+      writeCache(`tagger-log-pending-${id}`, ["Upload started."]);
       await taggerApi.uploadPgn(id, file, (value) => setUploadProgress(value));
       setUploadProgress(100);
       await fetchAll();
@@ -154,6 +257,42 @@ const PlayerDetail: React.FC = () => {
       setError(err?.message || "Upload failed.");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    const confirmed = window.confirm("Delete this player profile? This cannot be undone.");
+    if (!confirmed) return;
+    setError("");
+    try {
+      await taggerApi.deletePlayer(id);
+      navigate("/players");
+    } catch (err: any) {
+      setError(err?.message || "Delete failed.");
+    }
+  };
+
+  const handleRecompute = async () => {
+    if (!id) return;
+    const confirmed = window.confirm("Recompute all stats? This will overwrite existing results.");
+    if (!confirmed) return;
+    setError("");
+    setRecomputing(true);
+    try {
+      if (uploads[0]?.id) {
+        sessionStorage.removeItem(`tagger-log-${uploads[0].id}`);
+        sessionStorage.removeItem(`tagger-meta-${uploads[0].id}`);
+        sessionStorage.removeItem(`tagger-failed-${uploads[0].id}`);
+        sessionStorage.removeItem(`tagger-failed-ids-${uploads[0].id}`);
+      }
+      sessionStorage.removeItem(`tagger-log-pending-${id}`);
+      await taggerApi.recomputePlayer(id);
+      await fetchAll();
+    } catch (err: any) {
+      setError(err?.message || "Recompute failed.");
+    } finally {
+      setRecomputing(false);
     }
   };
 
@@ -251,6 +390,12 @@ const PlayerDetail: React.FC = () => {
           <div className="tagger-actions">
             <button onClick={() => handleExport("csv")}>Export CSV</button>
             <button onClick={() => handleExport("json")}>Export JSON</button>
+            <button className="tagger-recompute" onClick={handleRecompute} disabled={recomputing}>
+              {recomputing ? "Recomputing..." : "Recompute Stats"}
+            </button>
+            <button className="tagger-delete" onClick={handleDelete} disabled={recomputing || uploading}>
+              Delete Player
+            </button>
           </div>
           {error && <div className="tagger-error">{error}</div>}
         </div>

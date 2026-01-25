@@ -32,7 +32,14 @@ class TaggerPipeline:
         self._storage = storage or TaggerStorage()
         self._repo = TaggerRepo(db)
 
+    def _update_checkpoint(self, upload: PgnUpload, updates: Dict[str, object]) -> None:
+        state = dict(upload.checkpoint_state or {})
+        state.update(updates)
+        upload.checkpoint_state = state
+        self._db.commit()
+
     def process_upload(self, upload: PgnUpload, player: PlayerProfile) -> None:
+        logger.info("Tagger upload started: upload_id=%s player_id=%s", upload.id, player.id)
         upload.status = UploadStatus.PROCESSING.value
         self._db.commit()
 
@@ -48,11 +55,16 @@ class TaggerPipeline:
         candidates: List[Dict[str, str]] = []
         total_games = len(games)
         processed_games = 0
-        state = upload.checkpoint_state or {}
-        state["total_games"] = total_games
-        state["processed_games"] = processed_games
-        upload.checkpoint_state = state
-        self._db.commit()
+        self._update_checkpoint(upload, {
+            "total_games": total_games,
+            "processed_games": processed_games,
+            "duplicate_games": 0,
+            "last_game_index": None,
+            "last_game_status": None,
+            "last_game_move_count": None,
+            "last_game_color": None,
+        })
+        logger.info("PGN parsed: total_games=%s upload_id=%s", total_games, upload.id)
 
         for idx, game in enumerate(games, start=1):
             headers = game.headers
@@ -79,10 +91,19 @@ class TaggerPipeline:
                     error_message=error_code.get_message(),
                 )
                 processed_games += 1
-                state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "last_game_index": idx,
+                    "last_game_status": error_code.value,
+                    "last_game_move_count": 0,
+                    "last_game_color": None,
+                })
+                logger.info(
+                    "Game %s failed: %s upload_id=%s",
+                    idx,
+                    error_code.value,
+                    upload.id,
+                )
                 continue
 
             moves_uci = [m.uci() for m in game.moves]
@@ -92,9 +113,16 @@ class TaggerPipeline:
             if existing:
                 processed_games += 1
                 state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                duplicate_games = int(state.get("duplicate_games", 0)) + 1
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "duplicate_games": duplicate_games,
+                    "last_game_index": idx,
+                    "last_game_status": "duplicate",
+                    "last_game_move_count": len(moves_uci),
+                    "last_game_color": match.color,
+                })
+                logger.info("Game %s skipped (duplicate) upload_id=%s", idx, upload.id)
                 continue
 
             try:
@@ -113,10 +141,14 @@ class TaggerPipeline:
                     error_message=str(exc),
                 )
                 processed_games += 1
-                state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "last_game_index": idx,
+                    "last_game_status": TaggerErrorCode.ILLEGAL_MOVE.value,
+                    "last_game_move_count": 0,
+                    "last_game_color": match.color,
+                })
+                logger.info("Game %s failed: illegal_move upload_id=%s", idx, upload.id)
                 continue
             except requests.Timeout as exc:
                 had_errors = True
@@ -132,10 +164,14 @@ class TaggerPipeline:
                     error_message=str(exc),
                 )
                 processed_games += 1
-                state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "last_game_index": idx,
+                    "last_game_status": TaggerErrorCode.ENGINE_TIMEOUT.value,
+                    "last_game_move_count": 0,
+                    "last_game_color": match.color,
+                })
+                logger.info("Game %s failed: engine_timeout upload_id=%s", idx, upload.id)
                 continue
             except requests.RequestException as exc:
                 had_errors = True
@@ -151,10 +187,14 @@ class TaggerPipeline:
                     error_message=str(exc),
                 )
                 processed_games += 1
-                state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "last_game_index": idx,
+                    "last_game_status": TaggerErrorCode.ENGINE_503.value,
+                    "last_game_move_count": 0,
+                    "last_game_color": match.color,
+                })
+                logger.info("Game %s failed: engine_503 upload_id=%s", idx, upload.id)
                 continue
             except Exception as exc:
                 had_errors = True
@@ -170,10 +210,14 @@ class TaggerPipeline:
                     error_message=str(exc),
                 )
                 processed_games += 1
-                state = upload.checkpoint_state or {}
-                state["processed_games"] = processed_games
-                upload.checkpoint_state = state
-                self._db.commit()
+                self._update_checkpoint(upload, {
+                    "processed_games": processed_games,
+                    "last_game_index": idx,
+                    "last_game_status": TaggerErrorCode.UNKNOWN_ERROR.value,
+                    "last_game_move_count": 0,
+                    "last_game_color": match.color,
+                })
+                logger.info("Game %s failed: unknown_error upload_id=%s", idx, upload.id)
                 continue
 
             pgn_game = PgnGame(
@@ -189,14 +233,25 @@ class TaggerPipeline:
             self._repo.add_pgn_game(pgn_game)
             any_success = True
             processed_games += 1
-            state = upload.checkpoint_state or {}
-            state["processed_games"] = processed_games
-            upload.checkpoint_state = state
-            self._db.commit()
+            self._update_checkpoint(upload, {
+                "processed_games": processed_games,
+                "last_game_index": idx,
+                "last_game_status": "processed",
+                "last_game_move_count": move_count,
+                "last_game_color": match.color,
+            })
+            logger.info(
+                "Game %s processed: moves=%s color=%s upload_id=%s",
+                idx,
+                move_count,
+                match.color,
+                upload.id,
+            )
 
         if candidates:
             state = upload.checkpoint_state or {}
-            state["candidates"] = candidates
+            existing_candidates = list(state.get("candidates", []))
+            state["candidates"] = existing_candidates + candidates
             upload.checkpoint_state = state
 
         if any_success:
@@ -213,6 +268,7 @@ class TaggerPipeline:
 
         upload.updated_at = datetime.utcnow()
         self._db.commit()
+        logger.info("Tagger upload completed: upload_id=%s status=%s", upload.id, upload.status)
 
     def _process_game_moves(self, board: chess.Board, moves: list[chess.Move], color: str, stats: StatsAccumulator) -> int:
         player_is_white = color == "white"
