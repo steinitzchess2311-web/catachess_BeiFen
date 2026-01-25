@@ -117,14 +117,17 @@ class TaggerService:
             select(func.count(FailedGame.id)).where(FailedGame.upload_id == upload_id)
         ) or 0
 
+        checkpoint_state = upload.checkpoint_state or {}
         return {
             "id": upload.id,
             "status": upload.status,
             "processed_positions": processed,
             "failed_games_count": failed_count,
+            "total_games": checkpoint_state.get("total_games", 0),
+            "processed_games": checkpoint_state.get("processed_games", 0),
             "last_updated": upload.updated_at,
             "needs_confirmation": upload.status == UploadStatus.NEEDS_CONFIRMATION.value,
-            "match_candidates": (upload.checkpoint_state or {}).get("candidates", []),
+            "match_candidates": checkpoint_state.get("candidates", []),
         }
 
     # === Failed Games ===

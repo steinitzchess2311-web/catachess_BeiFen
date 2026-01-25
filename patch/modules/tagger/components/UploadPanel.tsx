@@ -9,6 +9,9 @@ type UploadPanelProps = {
   onUpload: (file: File) => void;
   uploading: boolean;
   logs: string[];
+  uploadProgress: number;
+  processedGames: number;
+  totalGames: number;
 };
 
 const UploadPanel: React.FC<UploadPanelProps> = ({
@@ -19,8 +22,12 @@ const UploadPanel: React.FC<UploadPanelProps> = ({
   onUpload,
   uploading,
   logs,
+  uploadProgress,
+  processedGames,
+  totalGames,
 }) => {
-  const percent = Math.min(100, processedPositions ? 100 : 12);
+  const processingPercent =
+    totalGames > 0 ? Math.round((processedGames / totalGames) * 100) : 0;
 
   return (
     <div className="tagger-panel">
@@ -37,7 +44,22 @@ const UploadPanel: React.FC<UploadPanelProps> = ({
         />
         <span>{uploading ? "Uploading..." : "Drag or select PGN"}</span>
       </label>
-      <ProgressBar value={percent} />
+      <div className="tagger-progress-block">
+        <div className="tagger-progress-label">
+          <span>PGN Upload</span>
+          <span>{uploadProgress}%</span>
+        </div>
+        <ProgressBar value={uploadProgress} />
+      </div>
+      <div className="tagger-progress-block">
+        <div className="tagger-progress-label">
+          <span>Processed Games</span>
+          <span>
+            {totalGames > 0 ? `${processedGames}/${totalGames}` : "0/0"}
+          </span>
+        </div>
+        <ProgressBar value={processingPercent} />
+      </div>
       <div className="tagger-upload-meta">
         <div>
           <span>Status</span>

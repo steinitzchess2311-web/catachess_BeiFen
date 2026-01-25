@@ -45,6 +45,8 @@ class UploadResponse(BaseModel):
     status: str
     processed_positions: int = 0
     failed_games_count: int = 0
+    total_games: int = 0
+    processed_games: int = 0
     last_updated: datetime
     needs_confirmation: bool = False
     match_candidates: list[dict] = Field(default_factory=list)
@@ -59,6 +61,8 @@ class UploadStatusResponse(BaseModel):
     status: str
     processed_positions: int
     failed_games_count: int
+    total_games: int
+    processed_games: int
     last_updated: datetime
     needs_confirmation: bool = False
     match_candidates: list[dict] = Field(default_factory=list)

@@ -19,6 +19,8 @@ export type Upload = {
   status: string;
   processed_positions: number;
   failed_games_count: number;
+  total_games?: number;
+  processed_games?: number;
   last_updated: string;
   needs_confirmation: boolean;
   match_candidates: Array<Record<string, any>>;
@@ -85,22 +87,39 @@ export const taggerApi = {
   async getFailedGames(playerId: string, uploadId: string) {
     return api.get(`/api/tagger/players/${playerId}/uploads/${uploadId}/failed`);
   },
-  async uploadPgn(playerId: string, file: File) {
+  async uploadPgn(playerId: string, file: File, onProgress?: (value: number) => void) {
     const token =
       localStorage.getItem("catachess_token") ||
       sessionStorage.getItem("catachess_token");
     const formData = new FormData();
     formData.append("file", file);
-    const response = await fetch(`${resolveBaseURL()}/api/tagger/players/${playerId}/uploads`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      body: formData,
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${resolveBaseURL()}/api/tagger/players/${playerId}/uploads`, true);
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress(percent);
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch {
+            resolve({});
+          }
+        } else {
+          reject(new Error("Upload failed"));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Upload failed"));
+      xhr.send(formData);
     });
-    if (!response.ok) {
-      const message = await response.json().catch(() => ({}));
-      throw new Error(message?.detail || "Upload failed");
-    }
-    return response.json();
   },
   async exportStats(playerId: string, format: "csv" | "json") {
     const token =

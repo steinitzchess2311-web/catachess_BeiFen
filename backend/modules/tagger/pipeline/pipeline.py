@@ -46,6 +46,13 @@ class TaggerPipeline:
         had_errors = False
         any_success = False
         candidates: List[Dict[str, str]] = []
+        total_games = len(games)
+        processed_games = 0
+        state = upload.checkpoint_state or {}
+        state["total_games"] = total_games
+        state["processed_games"] = processed_games
+        upload.checkpoint_state = state
+        self._db.commit()
 
         for idx, game in enumerate(games, start=1):
             headers = game.headers
@@ -71,6 +78,11 @@ class TaggerPipeline:
                     error_code=error_code,
                     error_message=error_code.get_message(),
                 )
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
 
             moves_uci = [m.uci() for m in game.moves]
@@ -78,6 +90,11 @@ class TaggerPipeline:
 
             existing = self._repo.get_existing_game_id(player.id, game_hash)
             if existing:
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
 
             try:
@@ -95,6 +112,11 @@ class TaggerPipeline:
                     error_code=TaggerErrorCode.ILLEGAL_MOVE,
                     error_message=str(exc),
                 )
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
             except requests.Timeout as exc:
                 had_errors = True
@@ -109,6 +131,11 @@ class TaggerPipeline:
                     error_code=TaggerErrorCode.ENGINE_TIMEOUT,
                     error_message=str(exc),
                 )
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
             except requests.RequestException as exc:
                 had_errors = True
@@ -123,6 +150,11 @@ class TaggerPipeline:
                     error_code=TaggerErrorCode.ENGINE_503,
                     error_message=str(exc),
                 )
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
             except Exception as exc:
                 had_errors = True
@@ -137,6 +169,11 @@ class TaggerPipeline:
                     error_code=TaggerErrorCode.UNKNOWN_ERROR,
                     error_message=str(exc),
                 )
+                processed_games += 1
+                state = upload.checkpoint_state or {}
+                state["processed_games"] = processed_games
+                upload.checkpoint_state = state
+                self._db.commit()
                 continue
 
             pgn_game = PgnGame(
@@ -151,9 +188,16 @@ class TaggerPipeline:
             )
             self._repo.add_pgn_game(pgn_game)
             any_success = True
+            processed_games += 1
+            state = upload.checkpoint_state or {}
+            state["processed_games"] = processed_games
+            upload.checkpoint_state = state
+            self._db.commit()
 
         if candidates:
-            upload.checkpoint_state = {"candidates": candidates}
+            state = upload.checkpoint_state or {}
+            state["candidates"] = candidates
+            upload.checkpoint_state = state
 
         if any_success:
             self._flush_stats(player, stats)

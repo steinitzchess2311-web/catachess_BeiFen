@@ -219,6 +219,19 @@
   cursor: pointer;
 }
 
+.tagger-progress-block {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.tagger-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--tagger-muted);
+}
+
 .tagger-upload input {
   display: none;
 }
@@ -238,6 +251,8 @@
   display: grid;
   gap: 6px;
   font-size: 0.85rem;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .tagger-log span {

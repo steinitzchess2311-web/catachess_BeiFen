@@ -78,7 +78,8 @@ async def get_upload_status(player_id: uuid.UUID, upload_id: uuid.UUID, svc: Tag
         raise HTTPException(404, "Upload not found")
     return UploadStatusResponse(
         upload_id=info["id"], status=info["status"], processed_positions=info["processed_positions"],
-        failed_games_count=info["failed_games_count"], last_updated=info["last_updated"],
+        failed_games_count=info["failed_games_count"], total_games=info["total_games"],
+        processed_games=info["processed_games"], last_updated=info["last_updated"],
         needs_confirmation=info["needs_confirmation"], match_candidates=info["match_candidates"],
     )
 
