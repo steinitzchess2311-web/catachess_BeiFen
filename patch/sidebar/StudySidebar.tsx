@@ -57,6 +57,9 @@ export function StudySidebar({
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
   const [engineEnabled, setEngineEnabled] = useState(false);
+  const [engineMode, setEngineMode] = useState<'cloud' | 'sf'>('cloud');
+  const [cloudBlocked, setCloudBlocked] = useState(false);
+  const [engineNotice, setEngineNotice] = useState<string | null>(null);
   const [lines, setLines] = useState<EngineLine[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -69,13 +72,14 @@ export function StudySidebar({
 
   const analyzePosition = async (fen: string) => {
     if (!fen || inFlightRef.current) return;
+    if (engineMode === 'cloud' && cloudBlocked) return;
     const now = Date.now();
     if (now < nextAllowedRef.current) return;
     inFlightRef.current = true;
     setStatus('running');
     setError(null);
     try {
-      const result = await analyzeWithFallback(fen, depth, multipv);
+      const result = await analyzeWithFallback(fen, depth, multipv, engineMode);
       setLines(result.lines);
       setSource(result.source);
       setStatus('ready');
@@ -85,9 +89,17 @@ export function StudySidebar({
       if (e?.message?.includes('429')) {
         nextAllowedRef.current = Date.now() + FALLBACK_BACKOFF_MS;
       }
-      setStatus('error');
-      setError(e?.message || 'Engine request failed');
-      setHealth('down');
+      if (engineMode === 'cloud') {
+        setCloudBlocked(true);
+        setEngineNotice('Cloud Eval unavailable. Please select SFCata engine.');
+        setStatus('error');
+        setError(e?.message || 'Engine request failed');
+        setHealth('down');
+      } else {
+        setStatus('error');
+        setError(e?.message || 'Engine request failed');
+        setHealth('down');
+      }
     } finally {
       inFlightRef.current = false;
     }
@@ -108,7 +120,7 @@ export function StudySidebar({
         pollRef.current = null;
       }
     };
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv, engineMode, cloudBlocked]);
 
   useEffect(() => {
     if (engineEnabled) return;
@@ -122,6 +134,8 @@ export function StudySidebar({
     setError(null);
     setLastUpdated(null);
     setSource(null);
+    setCloudBlocked(false);
+    setEngineNotice(null);
   }, [engineEnabled]);
 
   useEffect(() => {
@@ -130,7 +144,9 @@ export function StudySidebar({
     setStatus('idle');
     setError(null);
     setSource(null);
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
+    setCloudBlocked(false);
+    setEngineNotice(null);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv, engineMode]);
 
   const renderAnalysis = () => (
     <div className="patch-analysis-panel">
@@ -152,7 +168,8 @@ export function StudySidebar({
           </span>
         )}
       </div>
-      {error && <div className="patch-analysis-error">{error}</div>}
+      {engineNotice && <div className="patch-analysis-error">{engineNotice}</div>}
+      {!engineNotice && error && <div className="patch-analysis-error">{error}</div>}
       <div className="patch-analysis-lines">
         {!engineEnabled && (
           <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
@@ -228,6 +245,20 @@ export function StudySidebar({
             </label>
             <label>
               Engine
+              <select
+                value={engineMode}
+                onChange={(e) => {
+                  setEngineMode(e.target.value as 'cloud' | 'sf');
+                  setCloudBlocked(false);
+                  setEngineNotice(null);
+                }}
+              >
+                <option value="cloud">Lichess Cloud</option>
+                <option value="sf">SFCata</option>
+              </select>
+            </label>
+            <label>
+              Enabled
               <input
                 type="checkbox"
                 checked={engineEnabled}

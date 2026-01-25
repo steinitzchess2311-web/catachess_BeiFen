@@ -28,31 +28,42 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
+function mapBackendSource(source: string | undefined): EngineAnalysis['source'] {
+  if (!source) return 'backend';
+  if (source === 'SFCata') return 'sf-catachess';
+  if (source === 'CloudEval') return 'lichess-cloud';
+  if (source === 'Fallback') return 'backend';
+  return 'backend';
+}
+
 export async function analyzeWithFallback(
   fen: string,
   depth: number,
-  multipv: number
+  multipv: number,
+  engine: 'cloud' | 'sf'
 ): Promise<EngineAnalysis> {
-  const params = new URLSearchParams({
-    fen,
-    multiPv: String(multipv),
-  });
-  const lichessResp = await fetch(`${LICHESS_URL}?${params.toString()}`);
-
-  if (lichessResp.status === 404 || lichessResp.status === 429) {
+  if (engine === 'sf') {
     const resp = await fetch(`${API_BASE}/api/engine/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fen, depth, multipv }),
+      body: JSON.stringify({ fen, depth, multipv, engine: 'sf' }),
     });
     if (!resp.ok) {
       const text = await resp.text();
       throw new Error(text || `Engine error (${resp.status})`);
     }
     const data = await resp.json();
-    return { source: 'backend', lines: Array.isArray(data.lines) ? data.lines : [] };
+    return {
+      source: mapBackendSource(data.source),
+      lines: Array.isArray(data.lines) ? data.lines : [],
+    };
   }
 
+  const params = new URLSearchParams({
+    fen,
+    multiPv: String(multipv),
+  });
+  const lichessResp = await fetch(`${LICHESS_URL}?${params.toString()}`);
   if (!lichessResp.ok) {
     const text = await lichessResp.text();
     throw new Error(text || `Engine error (${lichessResp.status})`);
