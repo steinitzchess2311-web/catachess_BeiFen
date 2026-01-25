@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 type PlayerCardProps = {
   id: string;
   name: string;
-  aliases: string[];
+  aliases?: string[];
   analyzed: number;
   updatedAt: string;
 };
@@ -32,9 +32,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             {new Date(updatedAt).toLocaleDateString()}
           </span>
         </div>
-      </div>
-      <div className="tagger-card-foot">
-        {aliases?.length ? `Aliases: ${aliases.join(", ")}` : "No aliases yet"}
       </div>
     </Link>
   );

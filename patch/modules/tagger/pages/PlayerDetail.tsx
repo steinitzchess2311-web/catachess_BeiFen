@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import UploadPanel from "../components/UploadPanel";
 import StatsTable from "../components/StatsTable";
 import ConfirmMatchModal from "../components/ConfirmMatchModal";
-import { taggerApi, Player, Upload, StatsList } from "../api/taggerApi";
+import { taggerApi, Player, Upload, StatsList, FailedGameItem } from "../api/taggerApi";
 import "../styles/tagger.css";
 
 const PlayerDetail: React.FC = () => {
@@ -12,6 +12,7 @@ const PlayerDetail: React.FC = () => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [stats, setStats] = useState<StatsList | null>(null);
+  const [failedGames, setFailedGames] = useState<FailedGameItem[]>([]);
   const [activeTab, setActiveTab] = useState<"total" | "white" | "black">("total");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -31,6 +32,7 @@ const PlayerDetail: React.FC = () => {
       setPlayer(playerRes);
       setUploads(uploadsRes.uploads || []);
       setStats(statsRes);
+      setFailedGames([]);
     } catch (err: any) {
       setError(err?.message || "Failed to load player.");
     } finally {
@@ -41,6 +43,27 @@ const PlayerDetail: React.FC = () => {
   useEffect(() => {
     fetchAll();
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !uploads[0]?.id) return;
+    let cancelled = false;
+    const fetchFailed = async () => {
+      try {
+        const failed = await taggerApi.getFailedGames(id, uploads[0].id);
+        if (!cancelled) {
+          setFailedGames(failed.failed_games || []);
+        }
+      } catch {
+        if (!cancelled) {
+          setFailedGames([]);
+        }
+      }
+    };
+    fetchFailed();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, uploads]);
 
   const statusLabel = useMemo(() => uploads[0]?.status || "Idle", [uploads]);
   const activeStats = stats?.[activeTab];
@@ -108,11 +131,7 @@ const PlayerDetail: React.FC = () => {
             ← Players
           </button>
           <h1>{player.display_name}</h1>
-          <p>
-            {player.aliases?.length
-              ? `Aliases: ${player.aliases.join(", ")}`
-              : "No aliases registered yet."}
-          </p>
+          <p>Player profile</p>
         </div>
         <div className="tagger-status">
           <span>Status</span>
@@ -168,6 +187,31 @@ const PlayerDetail: React.FC = () => {
           </div>
           {error && <div className="tagger-error">{error}</div>}
         </div>
+      </div>
+
+      <div className="tagger-panel tagger-panel-wide">
+        <div className="tagger-panel-header">
+          <h2>Failed Games</h2>
+          <span className="tagger-muted">{failedGames.length} items</span>
+        </div>
+        {failedGames.length ? (
+          <div className="tagger-failed">
+            {failedGames.slice(0, 20).map((item) => (
+              <div className="tagger-failed-row" key={`${item.game_index}-${item.error_code}`}>
+                <span>Game {item.game_index}</span>
+                <span className="tagger-failed-code">{item.error_code}</span>
+                <span className="tagger-failed-msg">{item.error_message || "—"}</span>
+              </div>
+            ))}
+            {failedGames.length > 20 && (
+              <div className="tagger-muted">
+                Showing first 20 of {failedGames.length}. Export or retry for full list.
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="tagger-empty">No failed games reported.</div>
+        )}
       </div>
 
       <ConfirmMatchModal

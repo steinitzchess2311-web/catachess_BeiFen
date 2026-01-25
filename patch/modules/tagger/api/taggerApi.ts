@@ -46,6 +46,23 @@ export type StatsList = {
   total?: StatsResponse;
 };
 
+export type FailedGameItem = {
+  game_index: number;
+  headers?: Record<string, string>;
+  player_color?: string | null;
+  move_count: number;
+  error_code: string;
+  error_message?: string | null;
+  retry_count: number;
+  last_attempt_at?: string | null;
+};
+
+export type FailedGamesResponse = {
+  upload_id: string;
+  failed_games: FailedGameItem[];
+  total: number;
+};
+
 export const taggerApi = {
   async listPlayers() {
     return api.get("/api/tagger/players?offset=0&limit=50");
@@ -64,6 +81,9 @@ export const taggerApi = {
   },
   async getStats(playerId: string) {
     return api.get(`/api/tagger/players/${playerId}/stats`);
+  },
+  async getFailedGames(playerId: string, uploadId: string) {
+    return api.get(`/api/tagger/players/${playerId}/uploads/${uploadId}/failed`);
   },
   async uploadPgn(playerId: string, file: File) {
     const token =

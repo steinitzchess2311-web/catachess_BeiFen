@@ -10,7 +10,6 @@ const PlayersIndex: React.FC = () => {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [displayName, setDisplayName] = useState("");
-  const [aliases, setAliases] = useState("");
 
   const fetchPlayers = async () => {
     setLoading(true);
@@ -62,13 +61,8 @@ const PlayersIndex: React.FC = () => {
     setCreating(true);
     setError("");
     try {
-      const aliasList = aliases
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean);
-      await taggerApi.createPlayer(displayName.trim(), aliasList);
+      await taggerApi.createPlayer(displayName.trim(), []);
       setDisplayName("");
-      setAliases("");
       await fetchPlayers();
     } catch (err: any) {
       setError(err?.message || "Failed to create player.");
@@ -96,14 +90,6 @@ const PlayersIndex: React.FC = () => {
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
                 placeholder="e.g. Lou Yiping"
-              />
-            </div>
-            <div>
-              <label>Aliases (comma separated)</label>
-              <input
-                value={aliases}
-                onChange={(event) => setAliases(event.target.value)}
-                placeholder="Optional"
               />
             </div>
             <button type="submit" disabled={creating}>
