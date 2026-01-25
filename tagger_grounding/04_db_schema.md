@@ -17,6 +17,7 @@
 - r2_key_raw
 - checksum
 - status
+- checkpoint_state (jsonb)
 - created_at / updated_at
 
 ### 3) pgn_games
@@ -29,7 +30,21 @@
 - game_result
 - move_count
 
-### 4) tag_stats
+### 4) failed_games
+- id (uuid, pk)
+- player_id (fk)
+- upload_id (fk)
+- game_hash
+- game_index
+- headers (jsonb)
+- player_color
+- move_count
+- error_code
+- error_message
+- retry_count
+- last_attempt_at
+
+### 5) tag_stats
 - player_id (fk)
 - scope (white/black/total)
 - tag_name
@@ -41,7 +56,7 @@
 - stats_version
 - updated_at
 
-### 5) tag_runs (可选)
+### 6) tag_runs (可选)
 - id (uuid)
 - player_id
 - engine_version
@@ -53,6 +68,8 @@
 - pgn_games: unique(player_id, game_hash)
 - pgn_games: index(upload_id)
 - tag_stats: index(player_id, scope)
+- tag_stats: unique(player_id, scope, tag_name, stats_version, engine_version, depth, multipv)
+- failed_games: index(player_id, upload_id)
 
 ## Checklist
 - [ ] 表结构字段确认

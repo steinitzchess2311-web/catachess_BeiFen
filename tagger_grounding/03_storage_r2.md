@@ -22,7 +22,7 @@
 - 重算时写新的 upload_id 目录
 
 ## Checklist
-- [ ] R2 bucket 名称与权限确认
-- [ ] Key 规范确认
-- [ ] meta.json 内容确认
-- [ ] 重算不覆盖规则确认
+- [x] R2 bucket 名称与权限确认
+- [x] Key 规范确认
+- [x] meta.json 内容确认
+- [x] 重算不覆盖规则确认

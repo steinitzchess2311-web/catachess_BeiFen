@@ -5,6 +5,7 @@
 ## 一、去重策略
 - game_hash = 规范化 headers + 主线走子
 - headers 规范化规则：仅 White/Black/Date/Event/Result（以本规则为唯一标准）
+- headers 缺失处理：缺失字段视为空字符串，不跳过该字段
 - 主线走子统一为 UCI（推荐）
 - 存储唯一键：player_id + game_hash
 

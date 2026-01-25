@@ -78,6 +78,7 @@ type StudyAction =
   | { type: 'ADD_MOVE'; san: string }
   | { type: 'SET_COMMENT'; nodeId: string; comment: string }
   | { type: 'DELETE_MOVE'; nodeId: string }
+  | { type: 'PROMOTE_VARIATION'; nodeId: string }
   | { type: 'UNDO' }
   | { type: 'SET_REPLAY_RESULT'; result: ReplayResult }
   | { type: 'SET_ERROR'; error: StudyError }
@@ -345,6 +346,30 @@ function studyReducer(state: StudyState, action: StudyAction): StudyState {
       }
     }
 
+    case 'PROMOTE_VARIATION': {
+      if (action.nodeId === state.tree.rootId) return state;
+      if (!state.tree.nodes[action.nodeId]) return state;
+
+      const snapshot = createSnapshot(state);
+      const treeClone = JSON.parse(JSON.stringify(state.tree));
+      const treeOps = new StudyTree(treeClone);
+
+      try {
+        treeOps.promoteVariation(action.nodeId);
+        return {
+          ...state,
+          tree: treeOps.getData(),
+          isDirty: true,
+          history: [...state.history, snapshot],
+        };
+      } catch (e: any) {
+        return {
+          ...state,
+          error: { type: 'SAVE_ERROR', message: e.message, timestamp: Date.now() },
+        };
+      }
+    }
+
     case 'UNDO': {
       if (state.history.length === 0) return state;
       const previous = state.history[state.history.length - 1];
@@ -413,6 +438,7 @@ export interface StudyContextValue {
   addMove: (san: string) => void;
   setComment: (nodeId: string, comment: string) => void;
   deleteMove: (nodeId: string) => void;
+  promoteVariation: (nodeId: string) => void;
   undo: () => void;
   saveTree: () => Promise<void>;
   loadTreeFromServer: () => Promise<void>;
@@ -431,6 +457,7 @@ const defaultContextValue: StudyContextValue = {
   addMove: () => {},
   setComment: () => {},
   deleteMove: () => {},
+  promoteVariation: () => {},
   undo: () => {},
   saveTree: async () => {},
   loadTreeFromServer: async () => {},
@@ -515,6 +542,10 @@ export function StudyProvider({ children }: StudyProviderProps) {
     dispatch({ type: 'DELETE_MOVE', nodeId });
   }, []);
 
+  const promoteVariation = useCallback((nodeId: string) => {
+    dispatch({ type: 'PROMOTE_VARIATION', nodeId });
+  }, []);
+
   const undo = useCallback(() => {
     dispatch({ type: 'UNDO' });
   }, []);
@@ -587,6 +618,7 @@ export function StudyProvider({ children }: StudyProviderProps) {
     addMove,
     setComment,
     deleteMove,
+    promoteVariation,
     undo,
     saveTree,
     loadTreeFromServer,

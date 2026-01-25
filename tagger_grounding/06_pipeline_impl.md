@@ -17,9 +17,20 @@
 - 变体全部忽略（v1）。
 
 ## 三、统计写入策略
-- 推荐“先累加到内存，再一次性写入”。\n- 锁策略：按 player_id + upload_id 维度做细粒度锁，避免不同上传互相阻塞。\n- 写入时使用事务：校验去重表后再写入统计增量。
+- 推荐“先累加到内存，再一次性写入”。
+- 锁策略：按 player_id + upload_id 维度做细粒度锁，避免不同上传互相阻塞。
+- 写入时使用事务：校验去重表后再写入统计增量。
 
-## 四、任务分片与断点续跑\n- 每批处理固定盘数（如 50 盘一批）。\n- 每批结束写入 checkpoint（已处理 game_hash 列表）。\n- worker 中断后从 checkpoint 继续。
+## 四、任务分片与断点续跑
+- 每批处理固定盘数（如 50 盘一批）。
+- 每批结束写入 checkpoint。
+- worker 中断后从 checkpoint 继续。
+
+## 五、checkpoint 落地规则（必须固定）
+- 存储位置：Postgres 表 `pgn_uploads` 新增字段 `checkpoint_state`（jsonb）。
+- 内容：last_game_index、processed_game_hashes（最近 N 条）、updated_at。
+- 过期策略：upload 完成后清理 checkpoint_state。
+- 大文件策略：processed_game_hashes 仅保留最近 N 条，完整去重由 `pgn_games` 表保障。
 
 ## Checklist
 - [ ] R2 读取流程定义清晰

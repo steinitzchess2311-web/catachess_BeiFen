@@ -12,8 +12,26 @@ export interface MoveTreeProps {
  * Supports recursive rendering of mainline and variations.
  */
 export function MoveTree({ className }: MoveTreeProps) {
-  const { state, selectNode, selectChapter, loadTreeFromServer, loadTree, setError, clearError, saveTree } = useStudy();
+  const {
+    state,
+    selectNode,
+    selectChapter,
+    loadTreeFromServer,
+    loadTree,
+    setError,
+    clearError,
+    saveTree,
+    deleteMove,
+    promoteVariation,
+  } = useStudy();
   const [collapsedVariations, setCollapsedVariations] = React.useState<Set<string>>(new Set());
+  const [menuState, setMenuState] = React.useState<{
+    nodeId: string;
+    x: number;
+    y: number;
+    canPromote: boolean;
+  } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
   const { tree, cursorNodeId } = state;
 
   const handleReload = () => {
@@ -73,6 +91,38 @@ export function MoveTree({ className }: MoveTreeProps) {
     selectNode(nodeId);
   };
 
+  const handleContextMenu = (nodeId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const node = tree.nodes[nodeId];
+    const parentId = node?.parentId;
+    const canPromote = Boolean(
+      parentId && tree.nodes[parentId]?.children?.[0] && tree.nodes[parentId]?.children[0] !== nodeId
+    );
+    setMenuState({
+      nodeId,
+      x: event.clientX,
+      y: event.clientY,
+      canPromote,
+    });
+  };
+
+  React.useEffect(() => {
+    if (!menuState) return;
+    const handleClose = () => setMenuState(null);
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuState(null);
+    };
+    window.addEventListener('click', handleClose);
+    window.addEventListener('scroll', handleClose, true);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('click', handleClose);
+      window.removeEventListener('scroll', handleClose, true);
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [menuState]);
+
   const toggleVariation = (nodeId: string) => {
     setCollapsedVariations((prev) => {
       const next = new Set(prev);
@@ -127,9 +177,67 @@ export function MoveTree({ className }: MoveTreeProps) {
             rootId={tree.rootId}
             collapsedVariations={collapsedVariations}
             onToggleVariation={toggleVariation}
+            onContextMenu={handleContextMenu}
           />
         )}
       </div>
+      {menuState && (
+        <div
+          className="patch-context-menu"
+          style={{ top: menuState.y, left: menuState.x }}
+        >
+          <button
+            type="button"
+            className="patch-context-item"
+            disabled={!menuState.canPromote}
+            onClick={() => {
+              promoteVariation(menuState.nodeId);
+              setMenuState(null);
+            }}
+          >
+            Promote to Mainline
+          </button>
+          <button
+            type="button"
+            className="patch-context-item is-danger"
+            onClick={() => {
+              setConfirmDeleteId(menuState.nodeId);
+              setMenuState(null);
+            }}
+          >
+            Delete Branch
+          </button>
+        </div>
+      )}
+      {confirmDeleteId && (
+        <div className="patch-confirm-overlay">
+          <div className="patch-confirm-card">
+            <div className="patch-confirm-title">Delete branch?</div>
+            <div className="patch-confirm-body">
+              This will delete this move and all following moves in this branch.
+            </div>
+            <div className="patch-confirm-actions">
+              <button
+                type="button"
+                className="patch-confirm-btn"
+                onClick={() => setConfirmDeleteId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="patch-confirm-btn is-danger"
+                onClick={() => {
+                  deleteMove(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -145,6 +253,7 @@ interface MoveBranchProps {
   rootId?: string;
   collapsedVariations: Set<string>;
   onToggleVariation: (nodeId: string) => void;
+  onContextMenu: (nodeId: string, event: React.MouseEvent) => void;
 }
 
 /**
@@ -161,6 +270,7 @@ function MoveBranch({
   rootId,
   collapsedVariations,
   onToggleVariation,
+  onContextMenu,
 }: MoveBranchProps) {
   if (!startNodeId) return null;
 
@@ -253,6 +363,7 @@ function MoveBranch({
               onSelect={onSelect}
               isMainline={isMainline}
               prefix={`${moveNumber}.`}
+              onContextMenu={onContextMenu}
             />
             <div />
           </div>
@@ -283,6 +394,7 @@ function MoveBranch({
                 onSelect={onSelect}
                 isMainline={isMainline}
                 prefix={`${moveNumber}...`}
+                onContextMenu={onContextMenu}
               />
             </div>
           </div>
@@ -303,6 +415,7 @@ function MoveBranch({
               onSelect={onSelect}
               isMainline={isMainline}
               prefix={`${moveNumber}.`}
+              onContextMenu={onContextMenu}
             />
             <div />
           </div>
@@ -328,6 +441,7 @@ function MoveBranch({
                 onSelect={onSelect}
                 isMainline={isMainline}
                 prefix={`${moveNumber}...`}
+                onContextMenu={onContextMenu}
               />
             </div>
           </div>
@@ -361,6 +475,7 @@ function MoveBranch({
               onSelect={onSelect}
               isMainline={isMainline}
               prefix={`${moveNumber}...`}
+              onContextMenu={onContextMenu}
             />
           </div>
         </div>
@@ -385,9 +500,18 @@ interface MoveItemProps {
   onSelect: (nodeId: string) => void;
   isMainline: boolean;
   prefix?: string;
+  onContextMenu: (nodeId: string, event: React.MouseEvent) => void;
 }
 
-function MoveItem({ nodeId, nodes, cursorNodeId, onSelect, isMainline, prefix = '' }: MoveItemProps) {
+function MoveItem({
+  nodeId,
+  nodes,
+  cursorNodeId,
+  onSelect,
+  isMainline,
+  prefix = '',
+  onContextMenu,
+}: MoveItemProps) {
   const node = nodes[nodeId];
   if (!node) return null;
 
@@ -400,6 +524,7 @@ function MoveItem({ nodeId, nodes, cursorNodeId, onSelect, isMainline, prefix = 
         e.stopPropagation();
         onSelect(nodeId);
       }}
+      onContextMenu={(e) => onContextMenu(nodeId, e)}
       style={{
         display: 'block',
         width: '100%',
