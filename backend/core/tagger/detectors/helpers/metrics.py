@@ -61,8 +61,27 @@ def evaluation_and_metrics(
     evaluation = ChessEvaluator(board).evaluate()
     comps = evaluation["components"]
 
+    def _to_float(value: Any) -> float:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, dict):
+            for key in ("value", "score", "cp", "centipawn", "raw"):
+                if key in value and isinstance(value[key], (int, float)):
+                    return float(value[key])
+            for v in value.values():
+                if isinstance(v, (int, float)):
+                    return float(v)
+            return 0.0
+        if isinstance(value, (list, tuple)) and value:
+            first = value[0]
+            return float(first) if isinstance(first, (int, float)) else 0.0
+        return 0.0
+
     # Convert to actor's point of view and round to 3 decimals
-    metrics = {key: round(pov(comps[key], actor), 3) for key in STYLE_COMPONENT_KEYS}
+    metrics = {
+        key: round(pov(_to_float(comps.get(key, 0.0)), actor), 3)
+        for key in STYLE_COMPONENT_KEYS
+    }
     opp_metrics = {key: round(-metrics[key], 3) for key in STYLE_COMPONENT_KEYS}
 
     return metrics, opp_metrics, evaluation

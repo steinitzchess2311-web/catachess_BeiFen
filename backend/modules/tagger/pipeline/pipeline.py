@@ -4,6 +4,7 @@ Tagger pipeline orchestration.
 from __future__ import annotations
 
 import logging
+import traceback
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -166,7 +167,11 @@ class TaggerPipeline:
                     upload,
                     f"Game {idx} failed: illegal_move.",
                     level="error",
-                    extra={"error_type": type(exc).__name__, "error_message": str(exc)},
+                    extra={
+                        "error_type": type(exc).__name__,
+                        "error_message": str(exc),
+                        "traceback": traceback.format_exc(),
+                    },
                 )
                 continue
             except requests.Timeout as exc:
@@ -196,7 +201,11 @@ class TaggerPipeline:
                     upload,
                     f"Game {idx} failed: engine_timeout.",
                     level="error",
-                    extra={"error_type": type(exc).__name__, "error_message": str(exc)},
+                    extra={
+                        "error_type": type(exc).__name__,
+                        "error_message": str(exc),
+                        "traceback": traceback.format_exc(),
+                    },
                 )
                 continue
             except requests.RequestException as exc:
@@ -226,7 +235,11 @@ class TaggerPipeline:
                     upload,
                     f"Game {idx} failed: engine_503.",
                     level="error",
-                    extra={"error_type": type(exc).__name__, "error_message": str(exc)},
+                    extra={
+                        "error_type": type(exc).__name__,
+                        "error_message": str(exc),
+                        "traceback": traceback.format_exc(),
+                    },
                 )
                 continue
             except Exception as exc:
@@ -256,7 +269,11 @@ class TaggerPipeline:
                     upload,
                     f"Game {idx} failed: unknown_error.",
                     level="error",
-                    extra={"error_type": type(exc).__name__, "error_message": str(exc)},
+                    extra={
+                        "error_type": type(exc).__name__,
+                        "error_message": str(exc),
+                        "traceback": traceback.format_exc(),
+                    },
                 )
                 continue
 
