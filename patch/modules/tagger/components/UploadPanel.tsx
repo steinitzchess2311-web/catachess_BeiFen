@@ -12,6 +12,8 @@ type UploadPanelProps = {
   uploadProgress: number;
   processedGames: number;
   totalGames: number;
+  taggerMode: "cut" | "blackbox";
+  onTaggerModeChange: (mode: "cut" | "blackbox") => void;
 };
 
 const UploadPanel: React.FC<UploadPanelProps> = ({
@@ -25,6 +27,8 @@ const UploadPanel: React.FC<UploadPanelProps> = ({
   uploadProgress,
   processedGames,
   totalGames,
+  taggerMode,
+  onTaggerModeChange,
 }) => {
   const processingPercent =
     totalGames > 0 ? Math.round((processedGames / totalGames) * 100) : 0;
@@ -32,6 +36,41 @@ const UploadPanel: React.FC<UploadPanelProps> = ({
   return (
     <div className="tagger-panel">
       <h2>Import PGN</h2>
+      <div className="tagger-mode">
+        <div className="tagger-mode-header">
+          <div>
+            <span className="tagger-mode-label">Tagger Mode</span>
+            <p className="tagger-mode-copy">
+              Choose the engine used to generate tags for this upload.
+            </p>
+          </div>
+          <span className="tagger-mode-pill">
+            {taggerMode === "blackbox" ? "Blackbox" : "Cut"}
+          </span>
+        </div>
+        <div className="tagger-mode-options">
+          <button
+            type="button"
+            className={taggerMode === "cut" ? "active" : ""}
+            onClick={() => onTaggerModeChange("cut")}
+            disabled={uploading}
+          >
+            Cut (fast)
+          </button>
+          <button
+            type="button"
+            className={taggerMode === "blackbox" ? "active" : ""}
+            onClick={() => onTaggerModeChange("blackbox")}
+            disabled={uploading}
+          >
+            Blackbox (full)
+          </button>
+        </div>
+        <p className="tagger-mode-help">
+          Cut = current production tagger. Blackbox = full rule_tagger_lichessbot
+          pipeline. Applies to the next upload.
+        </p>
+      </div>
       <label className="tagger-upload">
         <input
           type="file"

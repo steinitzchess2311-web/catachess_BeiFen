@@ -81,6 +81,7 @@ class TaggerService:
         pgn_content: bytes,
         original_filename: str,
         upload_user_id: uuid.UUID,
+        tagger_mode: str = "cut",
     ) -> PgnUpload:
         """创建上传记录，写 R2，触发 pipeline"""
         upload_id = uuid.uuid4()
@@ -96,6 +97,7 @@ class TaggerService:
             r2_key_raw=r2_key_raw,
             checksum=checksum,
             status=UploadStatus.PENDING.value,
+            checkpoint_state={"tagger_mode": tagger_mode},
         )
         self.db.add(upload)
         self.db.commit()
@@ -103,6 +105,7 @@ class TaggerService:
         append_upload_log(self.db, upload, "Upload received.")
         append_upload_log(self.db, upload, "PGN stored in R2.")
         append_upload_log(self.db, upload, "Upload record created.")
+        append_upload_log(self.db, upload, f"Tagger mode: {tagger_mode}.")
 
         # 触发 pipeline（异步，Stage 06 实现）
         self._trigger_pipeline(upload)
@@ -120,7 +123,8 @@ class TaggerService:
             self.db.commit()
             append_upload_log(self.db, upload, "Upload failed: player not found.", level="error")
             return
-        pipeline.process_upload(upload, player)
+        tagger_mode = (upload.checkpoint_state or {}).get("tagger_mode", "cut")
+        pipeline.process_upload(upload, player, tagger_mode=tagger_mode)
 
     def get_upload(self, upload_id: uuid.UUID) -> Optional[PgnUpload]:
         return self.db.get(PgnUpload, upload_id)

@@ -159,6 +159,78 @@
   margin-top: 0;
 }
 
+.tagger-mode {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 15, 19, 0.6);
+}
+
+.tagger-mode-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.tagger-mode-label {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.65rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-mode-copy {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--tagger-muted);
+}
+
+.tagger-mode-pill {
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(79, 195, 212, 0.4);
+  color: var(--tagger-accent-2);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.tagger-mode-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tagger-mode-options button {
+  border: 1px solid var(--tagger-border);
+  background: transparent;
+  color: var(--tagger-muted);
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tagger-mode-options button.active {
+  background: var(--tagger-accent);
+  color: #141414;
+  border-color: transparent;
+}
+
+.tagger-mode-options button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tagger-mode-help {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--tagger-muted);
+}
+
 .tagger-panel-wide {
   display: grid;
   gap: 18px;

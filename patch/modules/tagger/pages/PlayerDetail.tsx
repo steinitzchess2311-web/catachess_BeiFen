@@ -29,6 +29,10 @@ const PlayerDetail: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [taggerMode, setTaggerMode] = useState<"cut" | "blackbox">(() => {
+    const stored = localStorage.getItem("tagger-mode");
+    return stored === "blackbox" ? "blackbox" : "cut";
+  });
 
   const clearTaggerCache = () => {
     const keys = Object.keys(sessionStorage);
@@ -66,6 +70,10 @@ const PlayerDetail: React.FC = () => {
   useEffect(() => {
     clearTaggerCache();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tagger-mode", taggerMode);
+  }, [taggerMode]);
 
   const updateLogCache = (upload: Upload) => {
     const logKey = `tagger-log-${upload.id}`;
@@ -249,8 +257,16 @@ const PlayerDetail: React.FC = () => {
     setError("");
     try {
       clearTaggerCache();
-      writeCache(`tagger-log-pending-${id}`, ["Upload started."]);
-      await taggerApi.uploadPgn(id, file, (value) => setUploadProgress(value));
+      writeCache(`tagger-log-pending-${id}`, [
+        "Upload started.",
+        `Tagger mode: ${taggerMode}.`,
+      ]);
+      await taggerApi.uploadPgn(
+        id,
+        file,
+        (value) => setUploadProgress(value),
+        taggerMode
+      );
       setUploadProgress(100);
       await fetchAll();
     } catch (err: any) {
@@ -355,6 +371,8 @@ const PlayerDetail: React.FC = () => {
           uploadProgress={uploadProgress}
           processedGames={uploads[0]?.processed_games ?? 0}
           totalGames={uploads[0]?.total_games ?? 0}
+          taggerMode={taggerMode}
+          onTaggerModeChange={setTaggerMode}
         />
         <div className="tagger-panel tagger-panel-wide">
           <div className="tagger-panel-header">

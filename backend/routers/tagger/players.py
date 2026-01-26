@@ -3,7 +3,7 @@ Tagger Players Router - 棋手与上传 API
 """
 import re
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, status, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, status, Request, Response
 from sqlalchemy.orm import Session
 
 from modules.tagger.db import get_tagger_db
@@ -90,15 +90,24 @@ async def recompute_player(player_id: uuid.UUID, svc: TaggerService = Depends(ge
 async def upload_pgn(
     player_id: uuid.UUID,
     file: UploadFile = File(...),
+    tagger_mode: str = Form("cut"),
     svc: TaggerService = Depends(get_service),
     request: Request = None,
     response: Response = None,
 ):
     if not svc.get_player(player_id):
         raise HTTPException(404, "Player not found")
+    if tagger_mode not in ("cut", "blackbox"):
+        raise HTTPException(400, "Invalid tagger mode")
     content = await file.read()
     upload_user_id = uuid.uuid4()  # TODO: 从 auth 获取
-    upload = svc.create_upload(player_id, content, file.filename or "upload.pgn", upload_user_id)
+    upload = svc.create_upload(
+        player_id,
+        content,
+        file.filename or "upload.pgn",
+        upload_user_id,
+        tagger_mode=tagger_mode,
+    )
     if response is not None and request is not None:
         response.headers.update(_cors_headers_for_request(request))
     return UploadResponse(**svc.get_upload_status(upload.id))

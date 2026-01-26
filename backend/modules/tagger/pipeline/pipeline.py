@@ -40,11 +40,12 @@ class TaggerPipeline:
         upload.checkpoint_state = state
         self._db.commit()
 
-    def process_upload(self, upload: PgnUpload, player: PlayerProfile) -> None:
+    def process_upload(self, upload: PgnUpload, player: PlayerProfile, tagger_mode: str = "cut") -> None:
         logger.info("Tagger upload started: upload_id=%s player_id=%s", upload.id, player.id)
         upload.status = UploadStatus.PROCESSING.value
         self._db.commit()
         append_upload_log(self._db, upload, "Analysis started.")
+        append_upload_log(self._db, upload, f"Tagger mode: {tagger_mode}.")
 
         content = self._storage.get_pgn(player.id, upload.id)
         append_upload_log(self._db, upload, "PGN loaded from R2.", extra={"bytes": len(content)})
@@ -139,7 +140,13 @@ class TaggerPipeline:
                 continue
 
             try:
-                move_count = self._process_game_moves(game.board.copy(), game.moves, match.color, stats)
+                move_count = self._process_game_moves(
+                    game.board.copy(),
+                    game.moves,
+                    match.color,
+                    stats,
+                    tagger_mode=tagger_mode,
+                )
             except ValueError as exc:
                 had_errors = True
                 self._record_failed_game(
@@ -334,7 +341,15 @@ class TaggerPipeline:
         logger.info("Tagger upload completed: upload_id=%s status=%s", upload.id, upload.status)
         append_upload_log(self._db, upload, "Upload completed.", extra={"status": upload.status})
 
-    def _process_game_moves(self, board: chess.Board, moves: list[chess.Move], color: str, stats: StatsAccumulator) -> int:
+    def _process_game_moves(
+        self,
+        board: chess.Board,
+        moves: list[chess.Move],
+        color: str,
+        stats: StatsAccumulator,
+        *,
+        tagger_mode: str,
+    ) -> int:
         player_is_white = color == "white"
         move_count = 0
 
@@ -342,7 +357,7 @@ class TaggerPipeline:
             if move not in board.legal_moves:
                 raise ValueError(f"Illegal move {move.uci()} at ply {board.fullmove_number}")
             if board.turn == player_is_white:
-                tags, _, _ = tag_move(board.fen(), move.uci())
+                tags, _, _ = tag_move(board.fen(), move.uci(), tagger_mode=tagger_mode)
                 stats.add_move(color)
                 stats.add_tags(color, tags)
                 stats.add_move("total")

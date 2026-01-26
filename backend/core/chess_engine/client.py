@@ -105,6 +105,8 @@ class EngineClient:
             "User-Agent": "catachess-engine/1.0",
             "Accept": "application/json",
         }
+        if settings.WORKER_API_TOKEN:
+            headers["Authorization"] = f"Bearer {settings.WORKER_API_TOKEN}"
         last_exc: Exception | None = None
         # Retry transient upstream errors to avoid brief CF/origin blips.
         for attempt in range(3):

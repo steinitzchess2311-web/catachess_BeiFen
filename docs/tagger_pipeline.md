@@ -255,4 +255,4 @@
 ## 10. 测试与验收
 
 ### 10.1 基准测试数据
-- 使用 `tagger/player_pgn/louyiping` 下的 PGN 文件作为默认测试集。
+- 使用 `tagger/player_pgn/test_louyiping` 下的 PGN 文件作为默认测试集。

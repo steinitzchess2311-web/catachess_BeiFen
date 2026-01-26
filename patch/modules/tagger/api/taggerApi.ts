@@ -101,12 +101,18 @@ export const taggerApi = {
   async getFailedGames(playerId: string, uploadId: string) {
     return api.get(`/api/tagger/players/${playerId}/uploads/${uploadId}/failed`);
   },
-  async uploadPgn(playerId: string, file: File, onProgress?: (value: number) => void) {
+  async uploadPgn(
+    playerId: string,
+    file: File,
+    onProgress?: (value: number) => void,
+    taggerMode: "cut" | "blackbox" = "cut"
+  ) {
     const token =
       localStorage.getItem("catachess_token") ||
       sessionStorage.getItem("catachess_token");
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("tagger_mode", taggerMode);
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();

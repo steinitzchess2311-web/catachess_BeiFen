@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # ===== internal worker auth =====
+    WORKER_API_TOKEN: str = ""
+
     # ===== email (Resend) =====
     RESEND_API_KEY: str = ""
     RESEND_FROM_EMAIL: str = "noreply@catachess.com"

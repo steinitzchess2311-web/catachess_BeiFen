@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple, Any, Optional
 import requests
 import chess
 from ..models import Candidate
+from core.config import settings
 
 
 class HTTPStockfishClient:
@@ -15,7 +16,7 @@ class HTTPStockfishClient:
     # Per-request timeout: 10s allows ~500ms average with headroom for retries
     DEFAULT_TIMEOUT = 10
 
-    def __init__(self, base_url: str = "https://sf.catachess.com/engine", timeout: int = None):
+    def __init__(self, base_url: Optional[str] = None, timeout: int = None):
         """
         Initialize HTTP client.
 
@@ -23,7 +24,8 @@ class HTTPStockfishClient:
             base_url: Remote engine service URL
             timeout: Request timeout in seconds (default: 10s for batch optimization)
         """
-        self.base_url = self._normalize_base_url(base_url)
+        default_url = settings.ENGINE_URL or "https://sf.catachess.com/engine"
+        self.base_url = self._normalize_base_url(base_url or default_url)
         self.timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
     def __enter__(self):
@@ -153,10 +155,14 @@ class HTTPStockfishClient:
         return 0
 
     def _post_analyze(self, fen: str, depth: int, multipv: int) -> Dict[int, Dict[str, Any]]:
+        headers = {}
+        if settings.WORKER_API_TOKEN:
+            headers["Authorization"] = f"Bearer {settings.WORKER_API_TOKEN}"
         resp = requests.post(
             f"{self.base_url}/analyze",
             json={"fen": fen, "depth": depth, "multipv": multipv},
             timeout=self.timeout,
+            headers=headers,
         )
         resp.raise_for_status()
         payload = resp.json()
