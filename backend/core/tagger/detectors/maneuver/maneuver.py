@@ -8,8 +8,9 @@ def detect_constructive_maneuver(ctx: TagContext) -> TagEvidence:
     gates_passed, gates_failed, evidence = [], [], {}
     piece = ctx.board.piece_at(ctx.played_move.from_square)
     is_light = piece and piece.piece_type in (chess.KNIGHT, chess.BISHOP)
-    maneuver_score = compute_maneuver_score(ctx)
-    evidence.update({"is_light_piece": is_light, "maneuver_score": maneuver_score})
+    maneuver_scores = compute_maneuver_score(ctx)
+    maneuver_score = maneuver_scores.get("maneuver_score", 0.0)
+    evidence.update({"is_light_piece": is_light, **maneuver_scores})
     
     if is_light and maneuver_score > 0.3:
         gates_passed.append("constructive")
@@ -25,8 +26,9 @@ def detect_constructive_maneuver_prepare(ctx: TagContext) -> TagEvidence:
     gates_passed, gates_failed, evidence = [], [], {}
     piece = ctx.board.piece_at(ctx.played_move.from_square)
     is_light = piece and piece.piece_type in (chess.KNIGHT, chess.BISHOP)
-    maneuver_score = compute_maneuver_score(ctx)
-    evidence.update({"is_light_piece": is_light, "maneuver_score": maneuver_score})
+    maneuver_scores = compute_maneuver_score(ctx)
+    maneuver_score = maneuver_scores.get("maneuver_score", 0.0)
+    evidence.update({"is_light_piece": is_light, **maneuver_scores})
     
     if is_light and 0.1 < maneuver_score <= 0.3:
         gates_passed.append("prepare")
@@ -42,8 +44,9 @@ def detect_neutral_maneuver(ctx: TagContext) -> TagEvidence:
     gates_passed, gates_failed, evidence = [], [], {}
     piece = ctx.board.piece_at(ctx.played_move.from_square)
     is_light = piece and piece.piece_type in (chess.KNIGHT, chess.BISHOP)
-    maneuver_score = compute_maneuver_score(ctx)
-    evidence.update({"is_light_piece": is_light, "maneuver_score": maneuver_score})
+    maneuver_scores = compute_maneuver_score(ctx)
+    maneuver_score = maneuver_scores.get("maneuver_score", 0.0)
+    evidence.update({"is_light_piece": is_light, **maneuver_scores})
     
     if is_light and -0.1 <= maneuver_score <= 0.1:
         gates_passed.append("neutral")
@@ -59,8 +62,9 @@ def detect_misplaced_maneuver(ctx: TagContext) -> TagEvidence:
     gates_passed, gates_failed, evidence = [], [], {}
     piece = ctx.board.piece_at(ctx.played_move.from_square)
     is_light = piece and piece.piece_type in (chess.KNIGHT, chess.BISHOP)
-    maneuver_score = compute_maneuver_score(ctx)
-    evidence.update({"is_light_piece": is_light, "maneuver_score": maneuver_score})
+    maneuver_scores = compute_maneuver_score(ctx)
+    maneuver_score = maneuver_scores.get("maneuver_score", 0.0)
+    evidence.update({"is_light_piece": is_light, **maneuver_scores})
     
     if is_light and maneuver_score < -0.2:
         gates_passed.append("misplaced")
