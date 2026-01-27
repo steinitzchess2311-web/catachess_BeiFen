@@ -88,6 +88,10 @@ export type { MoveTreeProps } from './sidebar/movetree';
 // Terminal
 export { TerminalLauncher } from './modules/terminal';
 
+// CataMaze Game
+export { CataMazeTerminal, createCataMazeCommand } from './modules/catamaze';
+export type { Observation, GameStateResponse } from './modules/catamaze';
+
 // Engine
 export { analyzeWithFallback } from './engine/client';
 export type { EngineAnalysis, EngineLine, EngineSource } from './engine/types';
