@@ -113,19 +113,8 @@ export function MoveTree({ className }: MoveTreeProps) {
   };
 
   React.useEffect(() => {
+    // Close handled by onMouseLeave of the menu to keep behavior consistent with hover.
     if (!menuState) return;
-    const handleClose = () => setMenuState(null);
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuState(null);
-    };
-    window.addEventListener('click', handleClose);
-    window.addEventListener('scroll', handleClose, true);
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('click', handleClose);
-      window.removeEventListener('scroll', handleClose, true);
-      window.removeEventListener('keydown', handleKey);
-    };
   }, [menuState]);
 
   const toggleVariation = (nodeId: string) => {
