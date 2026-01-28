@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from modules.workspace.api.deps import (
     get_current_user_id,
+    get_event_bus,
     get_event_repo,
     get_node_repo,
     get_node_service,
