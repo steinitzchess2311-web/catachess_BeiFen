@@ -170,7 +170,6 @@ export function MoveTree({ className }: MoveTreeProps) {
         <span>Move Tree</span>
         <div className="tree-controls" style={{ fontSize: '0.8em' }}>
           <button onClick={handleImportClick} style={{ marginRight: '5px' }}>Import</button>
-          <button onClick={() => console.log('Export PGN clicked')}>Export</button>
         </div>
       </div>
       <div className="move-tree-content">
