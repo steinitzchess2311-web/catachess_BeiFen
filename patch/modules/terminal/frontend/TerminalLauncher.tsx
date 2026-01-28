@@ -9,7 +9,7 @@ interface TerminalLauncherProps {
   initialSystem?: SystemType;
   /** Custom class for the trigger button */
   className?: string;
-  /** Hotkey to toggle terminal (default: F12) */
+  /** Hotkey to toggle terminal (optional) */
   hotkey?: string;
   /** Optional custom commands to register */
   customCommands?: Command[];
@@ -23,7 +23,7 @@ interface TerminalLauncherProps {
 export function TerminalLauncher({
   initialSystem = 'dos',
   className,
-  hotkey = 'F12',
+  hotkey,
   customCommands,
 }: TerminalLauncherProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,8 +36,8 @@ export function TerminalLauncher({
   // Keyboard shortcut handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for hotkey (default F12)
-      if (e.key === hotkey || e.code === hotkey) {
+      // Check for hotkey (optional)
+      if (hotkey && (e.key === hotkey || e.code === hotkey)) {
         e.preventDefault();
         toggleTerminal();
       }
@@ -61,7 +61,7 @@ export function TerminalLauncher({
         onClick={toggleTerminal}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        title="Open Terminal (F12)"
+        title="Open Terminal (Ctrl+`)"
         aria-label="Open Terminal"
         style={{
           position: 'fixed',

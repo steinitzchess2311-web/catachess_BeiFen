@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { StudyProvider, useStudy } from './studyContext';
 import { StudyBoard } from './board/studyBoard';
@@ -23,6 +23,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatingChapter, setIsCreatingChapter] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [rightbarWidth, setRightbarWidth] = useState<number>(280);
+  const [isResizingRightbar, setIsResizingRightbar] = useState(false);
+  const layoutRef = useRef<HTMLDivElement | null>(null);
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
   const savedLabel = state.isSaving
     ? 'Saving...'
@@ -33,6 +36,37 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         : 'Unsaved changes';
 
   const patchBase = '/api/v1/workspace/studies/study-patch';
+  const rightbarMin = 220;
+  const rightbarMax = 520;
+
+  const startRightbarResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsResizingRightbar(true);
+  };
+
+  useEffect(() => {
+    if (!isResizingRightbar) return;
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!layoutRef.current) return;
+      const rect = layoutRef.current.getBoundingClientRect();
+      const nextWidth = rect.right - event.clientX;
+      const clamped = Math.min(rightbarMax, Math.max(rightbarMin, nextWidth));
+      setRightbarWidth(clamped);
+    };
+    const handlePointerUp = () => {
+      setIsResizingRightbar(false);
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizingRightbar]);
 
   const resolveDisplayPath = useCallback(
     async (_path: string, fallbackTitle: string, studyId?: string) => {
@@ -258,7 +292,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         </div>
         <div className="patch-study-save-status">{savedLabel}</div>
       </div>
-      <div className="patch-study-layout" style={{ height: '600px' }}>
+      <div className="patch-study-layout" style={{ height: '600px' }} ref={layoutRef}>
         <div className="patch-study-sidebar">
           <StudySidebar
             chapters={chapters}
@@ -270,7 +304,14 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         <div className="patch-study-main">
           <StudyBoard />
         </div>
-        <div className="patch-study-rightbar">
+        <div
+          className="patch-study-splitter"
+          onPointerDown={startRightbarResize}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize move tree panel"
+        />
+        <div className="patch-study-rightbar" style={{ width: `${rightbarWidth}px` }}>
           <div className="patch-right-panel">
             <MoveTree />
           </div>

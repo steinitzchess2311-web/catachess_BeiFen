@@ -721,6 +721,34 @@
   overflow: hidden;
 }
 
+.patch-study-splitter {
+  width: 8px;
+  cursor: col-resize;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 0, 0, 0.08),
+    transparent
+  );
+  position: relative;
+}
+
+.patch-study-splitter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.patch-study-splitter:hover::after {
+  opacity: 1;
+}
+
 .patch-right-panel {
   background: #f5f5f5;
   border: 1px solid #242424;
