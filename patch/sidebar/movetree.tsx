@@ -340,6 +340,13 @@ function MoveBranch({
   };
 
   const lines: React.ReactNode[] = [];
+  const lineStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'max-content max-content',
+    gap: '6px',
+    marginBottom: '4px',
+    alignItems: 'center',
+  };
   let currentId: string | null = startNodeId;
   let ply = startPly;
 
@@ -364,13 +371,7 @@ function MoveBranch({
 
       if (hasRootVariations) {
         lines.push(
-          <div key={`line-white-${currentId}`} className="move-line" style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '6px',
-            marginBottom: '4px',
-            alignItems: 'center'
-          }}>
+          <div key={`line-white-${currentId}`} className="move-line" style={lineStyle}>
             <MoveItem
               nodeId={whiteNode.id}
               nodes={nodes}
@@ -386,13 +387,7 @@ function MoveBranch({
         lines.push(renderVariations(rootId!, 1, rootNode!.children.slice(1)));
       } else if (blackNode) {
         lines.push(
-          <div key={`line-pair-${currentId}`} className="move-line" style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '6px',
-            marginBottom: '4px',
-            alignItems: 'center'
-          }}>
+          <div key={`line-pair-${currentId}`} className="move-line" style={lineStyle}>
             <MoveItem
               nodeId={whiteNode.id}
               nodes={nodes}
@@ -416,13 +411,7 @@ function MoveBranch({
         );
       } else {
         lines.push(
-          <div key={`line-white-${currentId}`} className="move-line" style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '6px',
-            marginBottom: '4px',
-            alignItems: 'center'
-          }}>
+          <div key={`line-white-${currentId}`} className="move-line" style={lineStyle}>
             <MoveItem
               nodeId={whiteNode.id}
               nodes={nodes}
@@ -440,13 +429,7 @@ function MoveBranch({
       if (blackNode) {
         if (hasRootVariations) {
           lines.push(
-            <div key={`line-black-${blackNode.id}`} className="move-line" style={{ 
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '6px',
-              marginBottom: '4px',
-              alignItems: 'center'
-            }}>
+            <div key={`line-black-${blackNode.id}`} className="move-line" style={lineStyle}>
             <div />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <MoveItem
@@ -474,13 +457,7 @@ function MoveBranch({
     } else {
       const blackNode = currentNode;
       lines.push(
-        <div key={`line-black-${currentId}`} className="move-line" style={{ 
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '6px',
-          marginBottom: '4px',
-          alignItems: 'center'
-        }}>
+      <div key={`line-black-${currentId}`} className="move-line" style={lineStyle}>
           <div />
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <MoveItem
@@ -546,7 +523,7 @@ function MoveItem({
       onContextMenu={(e) => onContextMenu(nodeId, e)}
       style={{
         display: 'block',
-        width: '100%',
+        width: 'max-content',
         textAlign: 'left',
         padding: '2px 6px',
         margin: '2px',
@@ -556,7 +533,8 @@ function MoveItem({
         color: isActive ? 'white' : (isMainline ? '#000' : '#444'),
         fontWeight: isMainline ? 'bold' : 'normal',
         border: isActive ? 'none' : '1px solid transparent',
-        transition: 'all 0.1s'
+        transition: 'all 0.1s',
+        whiteSpace: 'nowrap',
       }}
       onMouseEnter={(e) => {
         if (!isActive) e.currentTarget.style.backgroundColor = '#e5e7eb';
