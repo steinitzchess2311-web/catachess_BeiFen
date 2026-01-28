@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useCallback, ReactNode, useRef, useEffect } from 'react';
-import type { TerminalState, TerminalLine, SystemType, WindowState } from './types';
+import type { TerminalState, TerminalLine, SystemType, WindowState, Command } from './types';
 import { getSystem } from './systems';
-import { executeCommand } from './commands';
+import { executeCommand, registerExternalCommands } from './commands';
 import { virtualFS } from './filesystem';
 import {
   createFolder,
@@ -410,11 +410,25 @@ function formatUnixLs(nodes: WorkspaceNode[], flags: string, currentPath: string
 interface TerminalProviderProps {
   children: ReactNode;
   initialSystem?: SystemType;
+  customCommands?: Command[];
 }
 
-export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalProviderProps) {
+export function TerminalProvider({
+  children,
+  initialSystem = 'dos',
+  customCommands,
+}: TerminalProviderProps) {
   const [state, dispatch] = useReducer(terminalReducer, createInitialState(initialSystem));
   const pendingActionRef = useRef<{ target: string; nodeId?: string } | null>(null);
+  const customRegisteredRef = useRef(false);
+
+  useEffect(() => {
+    if (customRegisteredRef.current) return;
+    if (customCommands && customCommands.length > 0) {
+      registerExternalCommands(customCommands);
+      customRegisteredRef.current = true;
+    }
+  }, [customCommands]);
 
   // Initialize - check root nodes exist
   useEffect(() => {

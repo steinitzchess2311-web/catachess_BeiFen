@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { TerminalProvider } from './terminalContext';
 import { TerminalWindow } from './TerminalWindow';
-import type { SystemType } from './types';
+import type { SystemType, Command } from './types';
 
 interface TerminalLauncherProps {
   /** Initial system style */
@@ -11,6 +11,8 @@ interface TerminalLauncherProps {
   className?: string;
   /** Hotkey to toggle terminal (default: F12) */
   hotkey?: string;
+  /** Optional custom commands to register */
+  customCommands?: Command[];
 }
 
 /**
@@ -22,6 +24,7 @@ export function TerminalLauncher({
   initialSystem = 'dos',
   className,
   hotkey = 'F12',
+  customCommands,
 }: TerminalLauncherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -84,7 +87,7 @@ export function TerminalLauncher({
 
       {/* Terminal window */}
       {isOpen && (
-        <TerminalProvider initialSystem={initialSystem}>
+        <TerminalProvider initialSystem={initialSystem} customCommands={customCommands}>
           <TerminalWindow onClose={() => setIsOpen(false)} />
         </TerminalProvider>
       )}

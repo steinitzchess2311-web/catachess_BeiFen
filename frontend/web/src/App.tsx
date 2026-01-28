@@ -30,6 +30,7 @@ import PlayerDetail from "@patch/modules/tagger/pages/PlayerDetail";
 import AccountPage from "../AccountPage";
 import { PatchStudyPage } from "@patch/PatchStudyPage";
 import { TerminalLauncher } from "@patch/modules/terminal";
+import { createCataMazeCommand } from "@patch/modules/catamaze";
 import "@patch/styles/index.css";
 
 // Entry switch configuration: default to patch unless explicitly disabled
@@ -282,6 +283,15 @@ function WorkspacePage() {
 function Layout() {
   const [username, setUsername] = useState<string | null>(null);
   const authed = isAuthed();
+  const catamazeStateRef = useRef({
+    gameId: null as string | null,
+    observation: null as any,
+    queueSize: 0,
+  });
+  const catamazeCommand = useMemo(
+    () => createCataMazeCommand(catamazeStateRef),
+    []
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -368,7 +378,7 @@ function Layout() {
           <Route path="*" element={<div>404</div>} />
         </Routes>
       </main>
-      <TerminalLauncher />
+      <TerminalLauncher customCommands={[catamazeCommand]} />
     </>
   );
 }

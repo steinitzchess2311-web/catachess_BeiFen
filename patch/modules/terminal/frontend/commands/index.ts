@@ -46,6 +46,12 @@ function registerCommand(cmd: Command): void {
   }
 }
 
+export function registerExternalCommands(cmds: Command[]): void {
+  for (const cmd of cmds) {
+    registerCommand(cmd);
+  }
+}
+
 // Register all commands
 // Basic file operations
 registerCommand(cdCommand);
