@@ -92,7 +92,8 @@ export interface CommandResult {
   error?: string;
 }
 
-export type CommandHandler = (ctx: CommandContext, fs: VirtualFileSystem) => CommandResult;
+export type CommandHandler =
+  (ctx: CommandContext, fs: VirtualFileSystem) => CommandResult | Promise<CommandResult>;
 
 export interface Command {
   name: string;

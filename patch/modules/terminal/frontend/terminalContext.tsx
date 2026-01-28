@@ -953,7 +953,7 @@ export function TerminalProvider({ children, initialSystem = 'dos' }: TerminalPr
     }
 
     // Execute the command (gets token or direct result)
-    const result = executeCommand(input, terminal.cwd, terminal.system, virtualFS);
+    const result = await executeCommand(input, terminal.cwd, terminal.system, virtualFS);
 
     // Handle special async commands
     if (result.output.length === 1) {

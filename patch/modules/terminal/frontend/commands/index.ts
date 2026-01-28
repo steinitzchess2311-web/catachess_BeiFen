@@ -329,12 +329,12 @@ function parseCommandLine(input: string): { command: string; args: string[]; fla
 }
 
 // Execute a command
-export function executeCommand(
+export async function executeCommand(
   input: string,
   cwd: string,
   system: SystemType,
   fs: VirtualFileSystem
-): CommandResult {
+): Promise<CommandResult> {
   const { command, args, flags } = parseCommandLine(input);
 
   if (!command) {
@@ -356,7 +356,7 @@ export function executeCommand(
     flags,
   };
 
-  return cmd.handler(ctx, fs);
+  return await cmd.handler(ctx, fs);
 }
 
 export function getAvailableCommands(): Command[] {
