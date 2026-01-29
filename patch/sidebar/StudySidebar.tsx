@@ -36,13 +36,18 @@ function formatSanWithMoveNumbers(sanMoves: string[], fen: string): string {
   let moveNumber = getFullmoveNumber(fen) || 1;
   const parts: string[] = [];
   let isWhite = turn === 'w';
+  let isFirst = true;
   for (const san of sanMoves) {
     if (isWhite) {
-      parts.push(`${moveNumber}. ${san}`);
+      parts.push(`${moveNumber}.${san}`);
+    } else if (isFirst && turn === 'b') {
+      parts.push(`${moveNumber}...${san}`);
+      moveNumber += 1;
     } else {
-      parts.push(`${moveNumber}... ${san}`);
+      parts.push(`${san}`);
       moveNumber += 1;
     }
+    isFirst = false;
     isWhite = !isWhite;
   }
   return parts.join(' ');
