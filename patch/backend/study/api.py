@@ -138,6 +138,35 @@ async def export_chapter_pgn(
         logger.error(f"Failed to export PGN for chapter {chapter_id}: {e}")
         return {"success": False, "error": str(e)}
 
+@router.get("/study/{study_id}/pgn-export")
+async def export_study_pgn(
+    study_id: str,
+    r2_client: R2Client = Depends(get_r2_client),
+    study_repo: StudyRepository = Depends(get_study_repo)
+):
+    """Export all chapters in a study as concatenated PGN."""
+    try:
+        chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)
+        if not chapters:
+            return {"success": True, "pgn": ""}
+
+        pgn_blocks: list[str] = []
+        for chapter in chapters:
+            key = R2Keys.chapter_tree_json(chapter.id)
+            if not r2_client.exists(key):
+                raise HTTPException(status_code=404, detail=f"Tree not found for chapter {chapter.id}")
+            content = r2_client.download_json(key)
+            tree_data = json.loads(content)
+            tree = StudyTreeDTO(**tree_data)
+            pgn_blocks.append(_tree_to_pgn(tree, chapter))
+
+        return {"success": True, "pgn": "\n\n".join(pgn_blocks)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to export PGN for study {study_id}: {e}")
+        return {"success": False, "error": str(e)}
+
 def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:
     """Helper to convert StudyTreeDTO to PGN string."""
     event = getattr(chapter, "event", None) or getattr(chapter, "title", None) or "Chapter"
@@ -149,7 +178,7 @@ def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:
     # Headers come from chapter metadata; tree does not store headers.
     headers = {
         "Event": event,
-        "Site": "?",
+        "Site": "catachess.com",
         "Date": date,
         "Round": "?",
         "White": white,
@@ -206,4 +235,6 @@ def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:
     else:
         movetext = "*"
 
+    if movetext == "*":
+        return f"{header_str}\n\n*"
     return f"{header_str}\n\n{movetext} {headers['Result']}"

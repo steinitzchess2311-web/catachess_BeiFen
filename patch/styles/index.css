@@ -243,8 +243,16 @@
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   box-sizing: border-box;
-  text-align: center;
+  text-align: left;
+  line-height: 1.4;
   padding-right: 96px;
+}
+
+.study-fen-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .study-fen-button {

@@ -5,7 +5,7 @@ export function CommentBox() {
   const { state, setComment } = useStudy();
   const currentNode = state.tree.nodes[state.cursorNodeId];
   const [value, setValue] = useState(currentNode?.comment || '');
-  const [activeTab, setActiveTab] = useState<'comment' | 'info'>('comment');
+  const [activeTab, setActiveTab] = useState<'comment' | 'output'>('comment');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
   const fen = state.currentFen || '';
 
@@ -41,6 +41,46 @@ export function CommentBox() {
     }
   };
 
+  const downloadText = (filename: string, text: string) => {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async (scope: 'study' | 'chapter') => {
+    try {
+      const studyId = state.studyId;
+      const chapterId = state.chapterId;
+      if (!studyId || (scope === 'chapter' && !chapterId)) return;
+      const base = '/api/v1/workspace/studies/study-patch';
+      const url =
+        scope === 'study'
+          ? `${base}/study/${studyId}/pgn-export`
+          : `${base}/chapter/${chapterId}/pgn-export`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data?.success) {
+        throw new Error(data?.error || 'Export failed');
+      }
+      const suffix = scope === 'study' ? 'study' : 'chapter';
+      const filename = `${studyId}-${suffix}.pgn`;
+      downloadText(filename, data.pgn || '');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Export failed';
+      console.error('[output] export failed', message);
+      alert(message);
+    }
+  };
+
   return (
     <div className="study-comment-box">
       <div className="study-comment-tabs">
@@ -53,10 +93,10 @@ export function CommentBox() {
         </button>
         <button
           type="button"
-          className={`study-comment-tab ${activeTab === 'info' ? 'is-active' : ''}`}
-          onClick={() => setActiveTab('info')}
+          className={`study-comment-tab ${activeTab === 'output' ? 'is-active' : ''}`}
+          onClick={() => setActiveTab('output')}
         >
-          Info
+          Output
         </button>
       </div>
       <div className="study-comment-panel">
@@ -88,6 +128,24 @@ export function CommentBox() {
                 disabled={!fen}
               >
                 {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy FEN'}
+              </button>
+            </div>
+            <div className="study-fen-actions">
+              <button
+                type="button"
+                className="study-fen-button"
+                onClick={() => handleExport('study')}
+                disabled={!state.studyId}
+              >
+                Export Study FEN
+              </button>
+              <button
+                type="button"
+                className="study-fen-button"
+                onClick={() => handleExport('chapter')}
+                disabled={!state.studyId || !state.chapterId}
+              >
+                Export Chapter FEN
               </button>
             </div>
           </div>
