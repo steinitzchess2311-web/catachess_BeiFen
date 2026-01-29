@@ -14,11 +14,6 @@ import { api } from '../../../assets/api';
 import { PgnRenderer } from '../pgn_renderer';
 
 export async function initStudy(container: HTMLElement, studyId: string): Promise<ChessboardV2> {
-    const refreshKey = sessionStorage.getItem('study:refreshOnce');
-    if (refreshKey === studyId) {
-        sessionStorage.removeItem('study:refreshOnce');
-        window.setTimeout(() => window.location.reload(), 200);
-    }
     // 1. Load Template
     const template = document.getElementById('study-template') as HTMLTemplateElement;
     if (!template) throw new Error('Study template not found');
@@ -229,6 +224,20 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
             const response = await api.get(`/api/v1/workspace/studies/${studyId}`);
             currentStudy = response.study;
             chapters = response.chapters || [];
+            const refreshKey = `study:autoChapterRefreshed:${studyId}`;
+            const createdAt = currentStudy?.created_at ? new Date(currentStudy.created_at).getTime() : NaN;
+            const ageMs = Number.isFinite(createdAt) ? Date.now() - createdAt : NaN;
+            const isFreshStudy = Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= 5 * 60 * 1000;
+            const isAutoChapter =
+                currentStudy?.chapter_count === 1 &&
+                chapters.length === 1 &&
+                chapters[0]?.order === 0 &&
+                chapters[0]?.title === 'Chapter 1';
+            if (isFreshStudy && isAutoChapter && sessionStorage.getItem(refreshKey) !== '1') {
+                sessionStorage.setItem(refreshKey, '1');
+                window.setTimeout(() => window.location.reload(), 200);
+                return;
+            }
             renderChapters(chapters);
             
                         if (chapters.length > 0) {
@@ -1113,11 +1122,11 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     if (!title) return;
             
                     try {
-            
+
                         const response = await api.post(`/api/v1/workspace/studies/${studyId}/chapters`, {
-            
+
                             title,
-            
+
                         });
             
                         chapters = [...chapters, response].sort((a, b) => a.order - b.order);
