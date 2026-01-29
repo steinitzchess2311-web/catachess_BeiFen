@@ -63,6 +63,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
                 if (event.button !== 0) {
                     return;
                 }
+                const target = event.target as HTMLElement;
+                if (target.closest('.item-title') || target.closest('.item-title-input')) {
+                    return;
+                }
                 if (event.detail > 1) {
                     return;
                 }

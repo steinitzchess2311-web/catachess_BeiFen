@@ -11,47 +11,51 @@ const PlayersIndex: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [displayName, setDisplayName] = useState("");
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = async (signal?: AbortSignal) => {
     setLoading(true);
     setError("");
     try {
-      const response = await taggerApi.listPlayers();
+      const response = await taggerApi.listPlayers(signal);
       setPlayers(response.players || []);
     } catch (err: any) {
+      if (signal?.aborted) return;
       setError(err?.message || "Failed to load players.");
     } finally {
+      if (signal?.aborted) return;
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPlayers();
+    const controller = new AbortController();
+    fetchPlayers(controller.signal);
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
     if (!players.length) return;
-    let cancelled = false;
+    const controller = new AbortController();
 
     const fetchStats = async () => {
       const updates: Record<string, number> = {};
       await Promise.all(
         players.map(async (player) => {
           try {
-            const stats: StatsList = await taggerApi.getStats(player.id);
+            const stats: StatsList = await taggerApi.getStats(player.id, controller.signal);
             updates[player.id] = stats?.total?.stats?.[0]?.total_positions ?? 0;
           } catch {
             updates[player.id] = 0;
           }
         })
       );
-      if (!cancelled) {
+      if (!controller.signal.aborted) {
         setStatsMap((prev) => ({ ...prev, ...updates }));
       }
     };
 
     fetchStats();
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [players]);
 

@@ -74,8 +74,8 @@ export type FailedGamesResponse = {
 };
 
 export const taggerApi = {
-  async listPlayers() {
-    return api.get("/api/tagger/players?offset=0&limit=50");
+  async listPlayers(signal?: AbortSignal) {
+    return api.request("/api/tagger/players?offset=0&limit=50", { method: "GET", signal });
   },
   async createPlayer(displayName: string, aliases: string[]) {
     return api.post("/api/tagger/players", {
@@ -95,8 +95,8 @@ export const taggerApi = {
   async listUploads(playerId: string) {
     return api.get(`/api/tagger/players/${playerId}/uploads`);
   },
-  async getStats(playerId: string) {
-    return api.get(`/api/tagger/players/${playerId}/stats`);
+  async getStats(playerId: string, signal?: AbortSignal) {
+    return api.request(`/api/tagger/players/${playerId}/stats`, { method: "GET", signal });
   },
   async getFailedGames(playerId: string, uploadId: string) {
     return api.get(`/api/tagger/players/${playerId}/uploads/${uploadId}/failed`);
