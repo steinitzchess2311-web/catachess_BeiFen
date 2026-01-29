@@ -101,33 +101,35 @@ export function ChapterList({
             >
               <span className="patch-chapter-list__order">{order}</span>
               {isEditing ? (
-                <input
-                  ref={inputRef}
-                  className="patch-chapter-list__title-input"
-                  value={draftTitle}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setDraftTitle(nextValue);
-                    if (!nextValue.includes('/')) {
-                      setErrorId(null);
-                    }
-                  }}
-                  onClick={(event) => event.stopPropagation()}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault();
-                      commitEditing(chapter.id, label);
-                    }
-                    if (event.key === 'Escape') {
-                      event.preventDefault();
-                      cancelEditing();
-                    }
-                  }}
-                  onBlur={() => commitEditing(chapter.id, label)}
-                />
-                {errorId === chapter.id && (
-                  <span className="patch-chapter-list__error">No "/" in study or folder name</span>
-                )}
+                <div className="patch-chapter-list__title-edit">
+                  <input
+                    ref={inputRef}
+                    className="patch-chapter-list__title-input"
+                    value={draftTitle}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setDraftTitle(nextValue);
+                      if (!nextValue.includes('/')) {
+                        setErrorId(null);
+                      }
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        commitEditing(chapter.id, label);
+                      }
+                      if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelEditing();
+                      }
+                    }}
+                    onBlur={() => commitEditing(chapter.id, label)}
+                  />
+                  {errorId === chapter.id && (
+                    <span className="patch-chapter-list__error">No "/" in study or folder name</span>
+                  )}
+                </div>
               ) : (
                 <span
                   className="patch-chapter-list__title"
