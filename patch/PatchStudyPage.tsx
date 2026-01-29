@@ -142,6 +142,22 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     });
   }, [getSortValue]);
 
+  const applyChapterOrder = useCallback((items: any[], order: string[]) => {
+    const byId = new Map(items.map((chapter) => [chapter.id, chapter]));
+    const ordered: any[] = [];
+    order.forEach((chapterId, index) => {
+      const chapter = byId.get(chapterId);
+      if (!chapter) return;
+      ordered.push({ ...chapter, order: index });
+    });
+    const known = new Set(order);
+    items.forEach((chapter, index) => {
+      if (known.has(chapter.id)) return;
+      ordered.push({ ...chapter, order: order.length + index });
+    });
+    return ordered;
+  }, []);
+
   const getNextChapterIndex = useCallback(() => {
     const orders = [
       ...chapters.map((chapter) => (typeof chapter.order === 'number' ? chapter.order : null)),
@@ -254,6 +270,30 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       throw e;
     }
   }, [chapters, id, loadChapterTree, setError, state.chapterId]);
+
+  const handleReorderChapters = useCallback(
+    async (
+      order: string[],
+      _context: { draggedId: string; targetId: string; placement: 'before' | 'after' }
+    ) => {
+      if (!id) return;
+      const previous = chapters;
+      const next = applyChapterOrder(previous, order);
+      setChapters(next);
+      try {
+        const response = await api.post(`/api/v1/workspace/studies/${id}/chapters/reorder`, {
+          order,
+        });
+        if (Array.isArray(response)) {
+          setChapters(sortChapters(response));
+        }
+      } catch (e) {
+        setChapters(previous);
+        setError('LOAD_ERROR', e instanceof Error ? e.message : 'Failed to reorder chapters');
+      }
+    },
+    [applyChapterOrder, chapters, id, setChapters, setError, sortChapters]
+  );
 
   const openCreateModal = useCallback(() => {
     setCreateError(null);
@@ -422,6 +462,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
             onCreateChapter={openCreateModal}
             onRenameChapter={handleRenameChapter}
             onDeleteChapter={handleDeleteChapter}
+            onReorderChapters={handleReorderChapters}
           />
         </div>
         <div className="patch-study-main">

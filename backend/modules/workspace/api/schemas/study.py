@@ -65,6 +65,19 @@ class ChapterUpdate(BaseModel):
         return value
 
 
+class ChapterReorderRequest(BaseModel):
+    """Schema for reordering chapters."""
+
+    order: list[str] = Field(..., min_length=1)
+
+    @field_validator("order")
+    @classmethod
+    def validate_order(cls, value: list[str]) -> list[str]:
+        if len(set(value)) != len(value):
+            raise ValueError("Chapter order contains duplicate IDs")
+        return value
+
+
 class ChapterImportPGN(BaseModel):
     """Schema for importing PGN into an existing study."""
 

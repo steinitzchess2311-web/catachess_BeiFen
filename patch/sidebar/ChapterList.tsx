@@ -7,6 +7,10 @@ export interface ChapterListProps {
   onCreateChapter: () => void;
   onRenameChapter: (chapterId: string, title: string) => Promise<void> | void;
   onDeleteChapter: (chapterId: string) => Promise<void> | void;
+  onReorderChapters: (
+    order: string[],
+    context: { draggedId: string; targetId: string; placement: 'before' | 'after' }
+  ) => Promise<void> | void;
 }
 
 export function ChapterList({
@@ -16,12 +20,21 @@ export function ChapterList({
   onCreateChapter,
   onRenameChapter,
   onDeleteChapter,
+  onReorderChapters,
 }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState<string>('');
   const [savingId, setSavingId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; label: string } | null>(null);
+  const [confirmReorder, setConfirmReorder] = useState<{
+    draggedId: string;
+    targetId: string;
+    placement: 'before' | 'after';
+    order: string[];
+  } | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ id: string; placement: 'before' | 'after' } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -66,6 +79,85 @@ export function ChapterList({
     setConfirmDelete({ id: chapterId, label });
   };
 
+  const resolveLabel = (chapter: { id: string; title?: string; order?: number }, index: number) => {
+    const orderValue = typeof chapter.order === 'number' ? chapter.order + 1 : index + 1;
+    return chapter.title || `Chapter ${orderValue}`;
+  };
+  const labelMap = new Map(
+    chapters.map((chapter, index) => [chapter.id, resolveLabel(chapter, index)])
+  );
+  const getLabel = (chapterId: string, fallback: string) => {
+    return labelMap.get(chapterId) || fallback;
+  };
+
+  const computeReorder = (
+    draggedId: string,
+    targetId: string,
+    placement: 'before' | 'after'
+  ): string[] | null => {
+    if (draggedId === targetId) return null;
+    const ids = chapters.map((chapter) => chapter.id);
+    if (!ids.includes(draggedId) || !ids.includes(targetId)) return null;
+    const next = ids.filter((id) => id !== draggedId);
+    const targetIndex = next.indexOf(targetId);
+    const insertIndex = placement === 'after' ? targetIndex + 1 : targetIndex;
+    next.splice(insertIndex, 0, draggedId);
+    return next;
+  };
+
+  const handleDragStart = (event: React.DragEvent<HTMLSpanElement>, chapterId: string) => {
+    if (editingId === chapterId || savingId === chapterId) {
+      event.preventDefault();
+      return;
+    }
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', chapterId);
+    setDraggingId(chapterId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
+    setDropTarget(null);
+  };
+
+  const handleDragOver = (
+    event: React.DragEvent<HTMLButtonElement>,
+    chapterId: string
+  ) => {
+    if (!draggingId || draggingId === chapterId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = event.currentTarget.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    const placement: 'before' | 'after' = event.clientY < mid ? 'before' : 'after';
+    setDropTarget({ id: chapterId, placement });
+  };
+
+  const handleDrop = (
+    event: React.DragEvent<HTMLButtonElement>,
+    chapterId: string
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!draggingId || draggingId === chapterId) {
+      setDropTarget(null);
+      setDraggingId(null);
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const placement: 'before' | 'after' = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    const order = computeReorder(draggingId, chapterId, placement);
+    setDropTarget(null);
+    setDraggingId(null);
+    if (!order) return;
+    setConfirmReorder({
+      draggedId: draggingId,
+      targetId: chapterId,
+      placement,
+      order,
+    });
+  };
+
   return (
     <section className="patch-chapter-list">
       <header className="patch-chapter-list__header">
@@ -89,18 +181,43 @@ export function ChapterList({
           const canDelete = chapters.length > 1;
           const isActive = chapter.id === currentChapterId;
           const orderValue = typeof chapter.order === 'number' ? chapter.order + 1 : index + 1;
-          const label = chapter.title || `Chapter ${orderValue}`;
+          const label = resolveLabel(chapter, index);
           const order = orderValue;
           const isEditing = editingId === chapter.id;
           const isSaving = savingId === chapter.id;
+          const isDragging = draggingId === chapter.id;
+          const isDropBefore = dropTarget?.id === chapter.id && dropTarget.placement === 'before';
+          const isDropAfter = dropTarget?.id === chapter.id && dropTarget.placement === 'after';
           return (
             <button
               key={chapter.id}
               type="button"
-              className={`patch-chapter-list__item${isActive ? ' is-active' : ''}`}
+              className={[
+                'patch-chapter-list__item',
+                isActive ? 'is-active' : '',
+                isDragging ? 'is-dragging' : '',
+                isDropBefore ? 'is-drop-before' : '',
+                isDropAfter ? 'is-drop-after' : '',
+              ].filter(Boolean).join(' ')}
               onClick={() => onSelectChapter(chapter.id)}
               disabled={isSaving}
+              onDragOver={(event) => handleDragOver(event, chapter.id)}
+              onDrop={(event) => handleDrop(event, chapter.id)}
             >
+              <span
+                className="patch-chapter-list__drag"
+                draggable={!isEditing && !isSaving}
+                onDragStart={(event) => handleDragStart(event, chapter.id)}
+                onDragEnd={handleDragEnd}
+                onClick={(event) => event.stopPropagation()}
+                role="button"
+                tabIndex={0}
+                aria-label={`Reorder ${label}`}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 6h10v2H7V6zm0 5h10v2H7v-2zm0 5h10v2H7v-2z" />
+                </svg>
+              </span>
               <span className="patch-chapter-list__order">{order}</span>
               {isEditing ? (
                 <div className="patch-chapter-list__title-edit">
@@ -189,6 +306,50 @@ export function ChapterList({
                 }}
               >
                 Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmReorder && (
+        <div className="patch-action-overlay" role="dialog" aria-modal="true">
+          <div className="patch-action-card">
+            <div className="patch-action-title">Confirm Move</div>
+            <div className="patch-action-body">
+              <div>
+                Move
+                <span className="patch-action-emphasis">
+                  {' '}
+                  {getLabel(confirmReorder.draggedId, 'this chapter')}
+                </span>
+                {confirmReorder.placement === 'after' ? ' after ' : ' before '}
+                <span className="patch-action-emphasis">
+                  {getLabel(confirmReorder.targetId, 'this chapter')}
+                </span>
+                ?
+              </div>
+            </div>
+            <div className="patch-action-buttons">
+              <button
+                type="button"
+                className="patch-action-btn"
+                onClick={() => setConfirmReorder(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="patch-action-btn"
+                onClick={async () => {
+                  await onReorderChapters(confirmReorder.order, {
+                    draggedId: confirmReorder.draggedId,
+                    targetId: confirmReorder.targetId,
+                    placement: confirmReorder.placement,
+                  });
+                  setConfirmReorder(null);
+                }}
+              >
+                Move
               </button>
             </div>
           </div>

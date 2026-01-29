@@ -29,6 +29,7 @@ from modules.workspace.api.schemas.pgn_clip import (
 )
 from modules.workspace.api.schemas.study import (
     ChapterCreate,
+    ChapterReorderRequest,
     ChapterUpdate,
     ChapterImportPGN,
     ChapterResponse,
@@ -473,6 +474,46 @@ async def get_study_chapters(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Node is not a study",
             )
+
+        chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)
+        return [_build_chapter_response(chapter) for chapter in chapters]
+    except NodeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PermissionDeniedError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.post(
+    "/{study_id}/chapters/reorder",
+    response_model=list[ChapterResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def reorder_study_chapters(
+    study_id: str,
+    data: ChapterReorderRequest,
+    user_id: str = Depends(get_current_user_id),
+    node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
+) -> list[ChapterResponse]:
+    """Reorder chapters within a study."""
+    try:
+        node = await node_service.get_node(study_id, actor_id=user_id)
+        if node.node_type != NodeType.STUDY:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Node is not a study",
+            )
+
+        existing = await study_repo.get_chapters_for_study(study_id, order_by_order=False)
+        existing_ids = {chapter.id for chapter in existing}
+        requested_ids = set(data.order)
+        if requested_ids != existing_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Chapter order does not match study chapters",
+            )
+
+        await study_repo.reorder_chapters(study_id, data.order)
 
         chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)
         return [_build_chapter_response(chapter) for chapter in chapters]
