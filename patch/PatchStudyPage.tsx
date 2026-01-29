@@ -16,7 +16,7 @@ export interface PatchStudyPageProps {
 
 function StudyPageContent({ className }: PatchStudyPageProps) {
   const { id } = useParams<{ id: string }>();
-  const { state, clearError, setError, selectChapter, loadTree, saveTree } = useStudy();
+  const { state, clearError, setError, selectChapter, loadTree, saveTree, loadStudy } = useStudy();
   const [chapters, setChapters] = useState<any[]>([]);
   const [studyTitle, setStudyTitle] = useState<string>('');
   const [displayPath, setDisplayPath] = useState<string>('root');
@@ -337,6 +337,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
 
   useEffect(() => {
     if (!id) return;
+    loadStudy(id);
     let cancelled = false;
 
     const resolveChapterAndTree = async () => {
