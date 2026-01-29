@@ -75,15 +75,15 @@ export function CommentBox() {
           />
         ) : (
           <div className="study-info-panel">
-            <textarea
-              className="study-fen-box"
-              readOnly
-              value={fen || 'FEN unavailable'}
-            />
-            <div className="study-fen-actions">
+            <div className="study-fen-wrap">
+              <textarea
+                className="study-fen-box"
+                readOnly
+                value={fen || 'FEN unavailable'}
+              />
               <button
                 type="button"
-                className="study-fen-button"
+                className="study-fen-button is-inline"
                 onClick={handleCopyFen}
                 disabled={!fen}
               >

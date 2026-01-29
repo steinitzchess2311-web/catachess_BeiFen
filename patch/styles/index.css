@@ -228,6 +228,10 @@
   height: auto;
 }
 
+.study-fen-wrap {
+  position: relative;
+}
+
 .study-fen-box {
   width: 100%;
   flex: 0 0 auto;
@@ -239,11 +243,8 @@
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   box-sizing: border-box;
-}
-
-.study-fen-actions {
-  display: flex;
-  justify-content: flex-end;
+  text-align: center;
+  padding-right: 96px;
 }
 
 .study-fen-button {
@@ -253,6 +254,13 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+}
+
+.study-fen-button.is-inline {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .study-fen-button:disabled {
