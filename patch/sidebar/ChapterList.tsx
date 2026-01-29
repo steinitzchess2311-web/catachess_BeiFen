@@ -133,26 +133,22 @@ export function ChapterList({
     setDropTarget({ id: chapterId, placement });
   };
 
-  const handleDrop = (
-    event: React.DragEvent<HTMLButtonElement>,
-    chapterId: string
-  ) => {
+  const handleDropOnList = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!draggingId || draggingId === chapterId) {
+    if (!draggingId || !dropTarget || draggingId === dropTarget.id) {
       setDropTarget(null);
       setDraggingId(null);
       return;
     }
-    const rect = event.currentTarget.getBoundingClientRect();
-    const placement: 'before' | 'after' = event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-    const order = computeReorder(draggingId, chapterId, placement);
+    const placement = dropTarget.placement;
+    const order = computeReorder(draggingId, dropTarget.id, placement);
     setDropTarget(null);
     setDraggingId(null);
     if (!order) return;
     setConfirmReorder({
       draggedId: draggingId,
-      targetId: chapterId,
+      targetId: dropTarget.id,
       placement,
       order,
     });
@@ -173,7 +169,15 @@ export function ChapterList({
           New Chapter
         </button>
       </header>
-      <div className="patch-chapter-list__scroll">
+      <div
+        className="patch-chapter-list__scroll"
+        onDragOver={(event) => {
+          if (!draggingId) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={handleDropOnList}
+      >
         {chapters.length === 0 && (
           <div className="patch-chapter-list__empty">No chapters yet.</div>
         )}
@@ -202,7 +206,6 @@ export function ChapterList({
               onClick={() => onSelectChapter(chapter.id)}
               disabled={isSaving}
               onDragOver={(event) => handleDragOver(event, chapter.id)}
-              onDrop={(event) => handleDrop(event, chapter.id)}
             >
               <span
                 className="patch-chapter-list__drag"
