@@ -997,6 +997,11 @@
   font-size: 12px;
   color: #666;
   flex-shrink: 0;
+  cursor: grab;
+}
+
+.patch-chapter-list__order:active {
+  cursor: grabbing;
 }
 
 .patch-chapter-list__title {

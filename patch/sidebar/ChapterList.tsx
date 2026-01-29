@@ -208,7 +208,7 @@ export function ChapterList({
               onDragOver={(event) => handleDragOver(event, chapter.id)}
             >
               <span
-                className="patch-chapter-list__drag"
+                className="patch-chapter-list__order"
                 draggable={!isEditing && !isSaving}
                 onDragStart={(event) => handleDragStart(event, chapter.id)}
                 onDragEnd={handleDragEnd}
@@ -217,11 +217,8 @@ export function ChapterList({
                 tabIndex={0}
                 aria-label={`Reorder ${label}`}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 6h10v2H7V6zm0 5h10v2H7v-2zm0 5h10v2H7v-2z" />
-                </svg>
+                {order}
               </span>
-              <span className="patch-chapter-list__order">{order}</span>
               {isEditing ? (
                 <div className="patch-chapter-list__title-edit">
                   <input
