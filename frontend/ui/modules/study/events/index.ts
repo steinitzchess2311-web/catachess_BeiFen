@@ -67,6 +67,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
     // 3. State
     let currentStudy: any = null;
     let currentChapter: any = null;
+    let currentChapterId: string | null = null;
     let board: ChessboardV2 | null = null;
     let discussion: any = null;
     let currentPgn: string | null = null;
@@ -218,49 +219,76 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
         }
     };
 
-    const loadStudyData = async () => {
+    let activeRequestId = 0;
+
+    const loadStudyData = async (options: { preferChapterId?: string | null } = {}) => {
+        const requestId = ++activeRequestId;
+        const retryDelays = [100, 250, 500];
         try {
             setLoadingState(true);
-            const response = await api.get(`/api/v1/workspace/studies/${studyId}`);
-            currentStudy = response.study;
-            chapters = response.chapters || [];
-            const refreshKey = `study:autoChapterRefreshed:${studyId}`;
-            const createdAt = currentStudy?.created_at ? new Date(currentStudy.created_at).getTime() : NaN;
-            const ageMs = Number.isFinite(createdAt) ? Date.now() - createdAt : NaN;
-            const isFreshStudy = Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= 5 * 60 * 1000;
-            const isAutoChapter =
-                currentStudy?.chapter_count === 1 &&
-                chapters.length === 1 &&
-                chapters[0]?.order === 0 &&
-                chapters[0]?.title === 'Chapter 1';
-            if (isFreshStudy && isAutoChapter && sessionStorage.getItem(refreshKey) !== '1') {
-                sessionStorage.setItem(refreshKey, '1');
-                window.setTimeout(() => window.location.reload(), 200);
+            let response: any = null;
+            for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+                response = await api.get(`/api/v1/workspace/studies/${studyId}`);
+                if (requestId !== activeRequestId) {
+                    return;
+                }
+                const study = response?.study || null;
+                const nextChapters = response?.chapters || [];
+                const createdAt = study?.created_at ? new Date(study.created_at).getTime() : NaN;
+                const ageMs = Number.isFinite(createdAt) ? Date.now() - createdAt : NaN;
+                const isFreshStudy = Number.isFinite(ageMs) && ageMs >= 0 && ageMs <= 2 * 60 * 1000;
+                const shouldRetry = isFreshStudy && nextChapters.length === 0 && attempt < retryDelays.length;
+                if (!shouldRetry) {
+                    break;
+                }
+                await new Promise(resolve => window.setTimeout(resolve, retryDelays[attempt]));
+                if (requestId !== activeRequestId) {
+                    return;
+                }
+            }
+
+            if (requestId !== activeRequestId) {
                 return;
             }
+
+            currentStudy = response.study;
+            chapters = response.chapters || [];
             renderChapters(chapters);
-            
-                        if (chapters.length > 0) {
-            
-                            await selectChapter(chapters[0]); // Await selectChapter
-            
-                            startHeartbeat();
-            
-                        } else {
-            
-                            renderEmptyState();
-            
-                        }
-                        setLoadingState(false);
-            
-                    } catch (error) {
-            
-                        console.error('Failed to load study:', error);
-                        setLoadingState(false);
-            
-                    }
-            
-                };
+
+            const preferId = options.preferChapterId || null;
+            let nextChapter = null;
+            if (preferId) {
+                nextChapter = chapters.find((ch) => ch.id === preferId) || null;
+            }
+            if (!nextChapter && currentChapterId) {
+                nextChapter = chapters.find((ch) => ch.id === currentChapterId) || null;
+            }
+            if (!nextChapter && chapters.length > 0) {
+                nextChapter = chapters[0];
+            }
+
+            if (!nextChapter) {
+                currentChapter = null;
+                currentChapterId = null;
+                renderEmptyState();
+                setLoadingState(false);
+                return;
+            }
+
+            await selectChapter(nextChapter); // Await selectChapter
+            startHeartbeat();
+            setLoadingState(false);
+
+        } catch (error) {
+            if (requestId !== activeRequestId) {
+                return;
+            }
+            console.error('Failed to load study:', error);
+            setLoadingState(false);
+
+        }
+
+    };
             
             
             
@@ -694,6 +722,7 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                     setLoadingState(true);
                     currentChapter = ch;
+                    currentChapterId = ch?.id ?? null;
 
                     selectedMoveId = null;
             
@@ -769,11 +798,13 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
                     }
             
                     else {
-            
+
                         discussion.updateContext('study', studyId);
-            
+
                     }
-            
+
+                    setLoadingState(false);
+
                 };
             
             
@@ -1129,14 +1160,8 @@ export async function initStudy(container: HTMLElement, studyId: string): Promis
 
                         });
             
-                        chapters = [...chapters, response].sort((a, b) => a.order - b.order);
-            
-                        renderChapters(chapters);
-            
-                        await selectChapter(response); // Await selectChapter
-            
-                        startHeartbeat();
-            
+                        await loadStudyData({ preferChapterId: response?.id ?? null });
+
                     } catch (error) {
             
                         console.error('Failed to create chapter:', error);
