@@ -16,7 +16,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     const itemsGrid = container.querySelector('#items-grid') as HTMLElement;
     const breadcrumb = container.querySelector('#breadcrumb') as HTMLElement;
     const folderTree = container.querySelector('#folder-tree') as HTMLElement;
-    const newBtn = container.querySelector('#new-btn') as HTMLButtonElement;
+    const newFolderBtn = container.querySelector('#new-folder-btn') as HTMLButtonElement;
+    const newStudyBtn = container.querySelector('#new-study-btn') as HTMLButtonElement;
 
     // State
     let currentParentId = 'root';
@@ -205,7 +206,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     // Modal Handling
-    const openCreateModal = () => {
+    const openCreateModal = (prefillType?: 'folder' | 'study') => {
         const modalTpl = document.getElementById('create-modal-template') as HTMLTemplateElement;
         const modal = document.importNode(modalTpl.content, true);
         const overlay = modal.querySelector('.modal-overlay') as HTMLElement;
@@ -222,6 +223,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
 
         const close = () => overlay.remove();
         closeBtns.forEach(btn => btn.addEventListener('click', close));
+
+        if (prefillType) {
+            typeSelect.value = prefillType;
+        }
 
         confirmBtn.addEventListener('click', async () => {
             const title = titleInput.value;
@@ -246,7 +251,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     // 4. Initial Bindings
-    newBtn.addEventListener('click', openCreateModal);
+    newFolderBtn.addEventListener('click', () => openCreateModal('folder'));
+    newStudyBtn.addEventListener('click', () => openCreateModal('study'));
 
     // Initial load
     navigateToFolder('root', 'Root');
