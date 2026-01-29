@@ -179,6 +179,7 @@ async def create_study(
     user_id: str = Depends(get_current_user_id),
     node_service: NodeService = Depends(get_node_service),
     study_repo: StudyRepository = Depends(get_study_repository),
+    event_bus: EventBus = Depends(get_event_bus),
 ) -> StudyResponse:
     """
     Create a new study.
@@ -204,13 +205,83 @@ async def create_study(
             tags=data.tags,
         )
 
+        chapter_count = 0
+        existing_chapters = await study_repo.get_chapters_for_study(node.id, order_by_order=True)
+        if not existing_chapters:
+            chapter_id = str(ULID())
+            r2_key = R2Keys.chapter_tree_json(chapter_id)
+            tree_content = {
+                "version": "v1",
+                "rootId": "root",
+                "nodes": {
+                    "root": {
+                        "id": "root",
+                        "parentId": None,
+                        "san": "",
+                        "children": [],
+                        "comment": None,
+                        "nags": [],
+                    },
+                },
+                "meta": {
+                    "result": "*",
+                },
+            }
+
+            r2_client = create_r2_client_from_env()
+            upload_result = r2_client.upload_json(
+                key=r2_key,
+                content=json.dumps(tree_content),
+                metadata={
+                    "study_id": node.id,
+                    "chapter_id": chapter_id,
+                    "order": "0",
+                },
+            )
+
+            chapter = ChapterTable(
+                id=chapter_id,
+                study_id=node.id,
+                title="Chapter 1",
+                order=0,
+                white=None,
+                black=None,
+                event="Chapter 1",
+                date=None,
+                result="*",
+                r2_key=r2_key,
+                pgn_hash=upload_result.content_hash,
+                pgn_size=upload_result.size,
+                pgn_status="ready",
+                r2_etag=upload_result.etag,
+                last_synced_at=datetime.now(timezone.utc),
+            )
+
+            await study_repo.create_chapter(chapter)
+            await study_repo.update_chapter_count(node.id)
+            chapter_count = 1
+
+            workspace_id = node.path.strip("/").split("/")[0] if node.path else None
+            await publish_chapter_created(
+                event_bus,
+                actor_id=user_id,
+                study_id=node.id,
+                chapter_id=chapter_id,
+                title=chapter.title,
+                order=0,
+                r2_key=r2_key,
+                workspace_id=workspace_id,
+            )
+        else:
+            chapter_count = len(existing_chapters)
+
         return StudyResponse(
             id=node.id,
             title=node.title,
             description=data.description,
             owner_id=node.owner_id,
             visibility=node.visibility,
-            chapter_count=0,
+            chapter_count=chapter_count,
             is_public=False,
             tags=data.tags,
             parent_id=node.parent_id,

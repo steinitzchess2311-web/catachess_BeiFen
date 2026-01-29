@@ -62,6 +62,7 @@ export function ChapterList({
   };
 
   const handleDelete = (chapterId: string, label: string) => {
+    if (chapters.length <= 1) return;
     setConfirmDelete({ id: chapterId, label });
   };
 
@@ -85,6 +86,7 @@ export function ChapterList({
           <div className="patch-chapter-list__empty">No chapters yet.</div>
         )}
         {chapters.map((chapter, index) => {
+          const canDelete = chapters.length > 1;
           const isActive = chapter.id === currentChapterId;
           const orderValue = typeof chapter.order === 'number' ? chapter.order + 1 : index + 1;
           const label = chapter.title || `Chapter ${orderValue}`;
@@ -141,21 +143,23 @@ export function ChapterList({
                   {label}
                 </span>
               )}
-              <button
-                type="button"
-                className="patch-chapter-list__delete"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleDelete(chapter.id, label);
-                }}
-                aria-label={`Delete ${label}`}
-                title="Delete chapter"
-                disabled={isSaving}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z" />
-                </svg>
-              </button>
+              {canDelete && (
+                <button
+                  type="button"
+                  className="patch-chapter-list__delete"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDelete(chapter.id, label);
+                  }}
+                  aria-label={`Delete ${label}`}
+                  title="Delete chapter"
+                  disabled={isSaving}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z" />
+                  </svg>
+                </button>
+              )}
             </button>
           );
         })}
