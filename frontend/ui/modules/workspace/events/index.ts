@@ -623,12 +623,15 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
 
             try {
                 // POST /api/v1/workspace/nodes
-                await api.post('/api/v1/workspace/nodes', {
+                const created = await api.post('/api/v1/workspace/nodes', {
                     node_type: type,
                     title: title,
                     parent_id: currentParentId === 'root' ? null : currentParentId,
                     visibility: 'private'
                 });
+                if (type === 'study' && created?.id) {
+                    sessionStorage.setItem('study:refreshOnce', created.id);
+                }
                 close();
                 allNodesCache = null;
                 refreshNodes(currentParentId);

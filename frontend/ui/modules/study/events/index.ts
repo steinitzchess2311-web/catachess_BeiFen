@@ -14,6 +14,11 @@ import { api } from '../../../assets/api';
 import { PgnRenderer } from '../pgn_renderer';
 
 export async function initStudy(container: HTMLElement, studyId: string): Promise<ChessboardV2> {
+    const refreshKey = sessionStorage.getItem('study:refreshOnce');
+    if (refreshKey === studyId) {
+        sessionStorage.removeItem('study:refreshOnce');
+        window.setTimeout(() => window.location.reload(), 200);
+    }
     // 1. Load Template
     const template = document.getElementById('study-template') as HTMLTemplateElement;
     if (!template) throw new Error('Study template not found');
