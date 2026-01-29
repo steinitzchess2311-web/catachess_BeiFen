@@ -12,6 +12,7 @@ export interface StudySidebarProps {
   onSelectChapter: (chapterId: string) => void;
   onCreateChapter: () => void;
   onRenameChapter: (chapterId: string, title: string) => Promise<void> | void;
+  onDeleteChapter: (chapterId: string) => Promise<void> | void;
 }
 
 const FALLBACK_BACKOFF_MS = 10000;
@@ -53,6 +54,7 @@ export function StudySidebar({
   onSelectChapter,
   onCreateChapter,
   onRenameChapter,
+  onDeleteChapter,
 }: StudySidebarProps) {
   const { state } = useStudy();
   const [activeTab, setActiveTab] = useState<'chapters' | 'analysis' | 'imitator'>('chapters');
@@ -508,6 +510,7 @@ export function StudySidebar({
           onSelectChapter={onSelectChapter}
           onCreateChapter={onCreateChapter}
           onRenameChapter={onRenameChapter}
+          onDeleteChapter={onDeleteChapter}
         />
       )}
 

@@ -872,6 +872,49 @@ async def get_chapter_pgn(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
+@router.delete(
+    "/{study_id}/chapters/{chapter_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_chapter(
+    study_id: str,
+    chapter_id: str,
+    user_id: str = Depends(get_current_user_id),
+    node_service: NodeService = Depends(get_node_service),
+    study_repo: StudyRepository = Depends(get_study_repository),
+) -> Response:
+    """Delete a chapter and its stored tree."""
+    try:
+        node = await node_service.get_node(study_id, actor_id=user_id)
+        if node.node_type != NodeType.STUDY:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Node is not a study",
+            )
+
+        chapter = await study_repo.get_chapter_by_id(chapter_id)
+        if not chapter or chapter.study_id != study_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Chapter {chapter_id} not found in study {study_id}",
+            )
+
+        r2_client = create_r2_client_from_env()
+        r2_key = chapter.r2_key or R2Keys.chapter_tree_json(chapter_id)
+        try:
+            r2_client.delete(r2_key)
+        except Exception:
+            pass
+
+        await study_repo.delete_chapter(chapter)
+        await study_repo.update_chapter_count(study_id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    except NodeNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except PermissionDeniedError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
 # ============================================================================
 # Phase 3: Variation Tree Editing Endpoints
 # ============================================================================

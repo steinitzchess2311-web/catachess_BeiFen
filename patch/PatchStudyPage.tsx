@@ -201,6 +201,24 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     }
   }, [id, setError, sortChapters]);
 
+  const handleDeleteChapter = useCallback(async (chapterId: string) => {
+    if (!id) return;
+    try {
+      await api.delete(`/api/v1/workspace/studies/${id}/chapters/${chapterId}`);
+      setChapters((prev) => prev.filter((chapter) => chapter.id !== chapterId));
+      if (state.chapterId === chapterId) {
+        const remaining = chapters.filter((chapter) => chapter.id !== chapterId);
+        const nextChapter = remaining[0];
+        if (nextChapter) {
+          await loadChapterTree(nextChapter.id);
+        }
+      }
+    } catch (e) {
+      setError('LOAD_ERROR', e instanceof Error ? e.message : 'Failed to delete chapter');
+      throw e;
+    }
+  }, [chapters, id, loadChapterTree, setError, state.chapterId]);
+
   const openCreateModal = useCallback(() => {
     setCreateError(null);
     setIsCreateModalOpen(true);
@@ -316,6 +334,7 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
             onSelectChapter={handleSelectChapter}
             onCreateChapter={openCreateModal}
             onRenameChapter={handleRenameChapter}
+            onDeleteChapter={handleDeleteChapter}
           />
         </div>
         <div className="patch-study-main">

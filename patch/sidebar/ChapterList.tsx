@@ -6,6 +6,7 @@ export interface ChapterListProps {
   onSelectChapter: (chapterId: string) => void;
   onCreateChapter: () => void;
   onRenameChapter: (chapterId: string, title: string) => Promise<void> | void;
+  onDeleteChapter: (chapterId: string) => Promise<void> | void;
 }
 
 export function ChapterList({
@@ -14,6 +15,7 @@ export function ChapterList({
   onSelectChapter,
   onCreateChapter,
   onRenameChapter,
+  onDeleteChapter,
 }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState<string>('');
@@ -50,6 +52,12 @@ export function ChapterList({
       setSavingId(null);
       cancelEditing();
     }
+  };
+
+  const handleDelete = async (chapterId: string, label: string) => {
+    const confirmed = window.confirm(`Delete "${label}"? This cannot be undone.`);
+    if (!confirmed) return;
+    await onDeleteChapter(chapterId);
   };
 
   return (
@@ -116,6 +124,19 @@ export function ChapterList({
                   {label}
                 </span>
               )}
+              <button
+                type="button"
+                className="patch-chapter-list__delete"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleDelete(chapter.id, label);
+                }}
+                aria-label={`Delete ${label}`}
+                title="Delete chapter"
+                disabled={isSaving}
+              >
+                🗑
+              </button>
             </button>
           );
         })}
