@@ -64,8 +64,15 @@ export function CommentBox() {
           ? `${base}/study/${studyId}/pgn-export`
           : `${base}/chapter/${chapterId}/pgn-export`;
       const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
         throw new Error(`Export failed: ${response.status}`);
+      }
+      if (!contentType.includes('application/json')) {
+        const preview = (await response.text()).slice(0, 120);
+        throw new Error(
+          `Export endpoint returned HTML (likely not deployed or unauthorized). Preview: ${preview}`
+        );
       }
       const data = await response.json();
       if (!data?.success) {
