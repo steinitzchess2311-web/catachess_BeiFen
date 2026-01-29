@@ -209,7 +209,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     });
 
 
-    const navigateToFolder = (id: string, title: string) => {
+    const navigateToFolder = async (id: string, title: string) => {
         currentParentId = id;
         // Update breadcrumb
         if (id === 'root') {
@@ -224,7 +224,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             }
         }
         renderBreadcrumb();
-        refreshNodes(id);
+        await refreshNodes(id);
+        updatePathInputDisplay();
     };
 
     const renderBreadcrumb = () => {
@@ -236,7 +237,6 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             span.addEventListener('click', () => navigateToFolder(p.id, p.title));
             breadcrumb.appendChild(span);
         });
-        updatePathInputDisplay();
     };
 
     const getPathPrefix = () => {
