@@ -26,6 +26,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     let currentParentId = 'root';
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
+    let dragNode: any | null = null;
 
     // 3. Helper Functions
 
@@ -53,6 +54,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             itemDiv.setAttribute('data-type', node.node_type);
             itemDiv.setAttribute('data-version', String(node.version));
             itemDiv.setAttribute('data-parent-id', node.parent_id ?? '');
+            itemDiv.setAttribute('draggable', 'true');
             itemDiv.querySelector('.item-title')!.textContent = node.title;
             const errorEl = itemDiv.querySelector('.item-error') as HTMLElement;
             
@@ -143,9 +145,69 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
                 startInlineRename();
             });
 
+            itemDiv.addEventListener('dragstart', (event) => {
+                dragNode = node;
+                event.dataTransfer?.setData('text/plain', node.id);
+                event.dataTransfer?.setDragImage(itemDiv, 10, 10);
+            });
+
+            itemDiv.addEventListener('dragend', () => {
+                dragNode = null;
+                itemDiv.classList.remove('drag-over');
+            });
+
+            itemDiv.addEventListener('dragover', (event) => {
+                if (!dragNode) return;
+                if (node.node_type !== 'folder') return;
+                if (dragNode.id === node.id) return;
+                event.preventDefault();
+                itemDiv.classList.add('drag-over');
+            });
+
+            itemDiv.addEventListener('dragleave', () => {
+                itemDiv.classList.remove('drag-over');
+            });
+
+            itemDiv.addEventListener('drop', async (event) => {
+                if (!dragNode) return;
+                itemDiv.classList.remove('drag-over');
+                if (node.node_type !== 'folder' || dragNode.id === node.id) {
+                    itemDiv.classList.remove('drag-over');
+                    const sourceEl = itemsGrid.querySelector(`[data-id="${dragNode.id}"]`) as HTMLElement | null;
+                    if (sourceEl) {
+                        sourceEl.classList.remove('shake');
+                        void sourceEl.offsetWidth;
+                        sourceEl.classList.add('shake');
+                    }
+                    return;
+                }
+                event.preventDefault();
+                const confirmed = window.confirm(
+                    `Are you sure you want to move\n${dragNode.title} to\n${node.title}?`
+                );
+                if (!confirmed) return;
+                try {
+                    await api.post(`/api/v1/workspace/nodes/${dragNode.id}/move`, {
+                        new_parent_id: node.id,
+                        version: dragNode.version,
+                    });
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                } catch (error) {
+                    console.error('Failed to move node:', error);
+                    alert('Move failed');
+                }
+            });
+
             itemsGrid.appendChild(item);
         });
     };
+
+    itemsGrid.addEventListener('dragover', (event) => {
+        if (!dragNode) return;
+        event.preventDefault();
+    });
+
 
     const navigateToFolder = (id: string, title: string) => {
         currentParentId = id;
