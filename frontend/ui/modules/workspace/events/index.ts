@@ -18,6 +18,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     const folderTree = container.querySelector('#folder-tree') as HTMLElement;
     const newFolderBtn = container.querySelector('#new-folder-btn') as HTMLButtonElement;
     const newStudyBtn = container.querySelector('#new-study-btn') as HTMLButtonElement;
+    const pathInput = container.querySelector('#path-input') as HTMLInputElement;
 
     // State
     let currentParentId = 'root';
@@ -106,6 +107,73 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             span.addEventListener('click', () => navigateToFolder(p.id, p.title));
             breadcrumb.appendChild(span);
         });
+    };
+
+    const shakePathInput = () => {
+        if (!pathInput) return;
+        pathInput.classList.remove('path-input-shake');
+        // Trigger reflow to restart animation
+        void pathInput.offsetWidth;
+        pathInput.classList.add('path-input-shake');
+    };
+
+    const resolvePath = async (rawPath: string) => {
+        const cleaned = rawPath.trim().replace(/\/+/g, '/');
+        if (!cleaned) return;
+        const parts = cleaned.split('/').filter(Boolean);
+        if (parts.length === 0 || parts[0] !== 'root') {
+            shakePathInput();
+            return;
+        }
+
+        let parentId = 'root';
+        for (let i = 1; i < parts.length; i += 1) {
+            const segment = parts[i];
+            const isLast = i === parts.length - 1;
+            const wantsStudy = isLast && segment.endsWith('.study');
+            const name = wantsStudy ? segment.slice(0, -6) : segment;
+            if (!name) {
+                shakePathInput();
+                return;
+            }
+
+            const response = await api.get(`/api/v1/workspace/nodes?parent_id=${parentId}`);
+            const nodes = (response?.nodes || []) as any[];
+            const match = nodes.find((node) => node.title === name);
+            if (!match) {
+                shakePathInput();
+                return;
+            }
+
+            if (!isLast) {
+                if (match.node_type !== 'folder') {
+                    shakePathInput();
+                    return;
+                }
+                parentId = match.id;
+                continue;
+            }
+
+            if (wantsStudy) {
+                if (match.node_type !== 'study') {
+                    shakePathInput();
+                    return;
+                }
+                if (options.onOpenStudy) {
+                    options.onOpenStudy(match.id);
+                } else {
+                    window.location.assign(`/workspace/${match.id}`);
+                }
+                return;
+            }
+
+            if (match.node_type !== 'folder') {
+                shakePathInput();
+                return;
+            }
+            navigateToFolder(match.id, match.title);
+            return;
+        }
     };
 
     const mountModal = (templateId: string) => {
@@ -254,6 +322,11 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // 4. Initial Bindings
     newFolderBtn.addEventListener('click', () => openCreateModal('folder'));
     newStudyBtn.addEventListener('click', () => openCreateModal('study'));
+    pathInput?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        resolvePath(pathInput.value).catch(() => shakePathInput());
+    });
 
     // Initial load
     navigateToFolder('root', 'Root');
