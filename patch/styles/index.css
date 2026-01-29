@@ -225,12 +225,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: 100%;
+  height: auto;
 }
 
 .study-fen-box {
   width: 100%;
-  flex: 1;
+  flex: 0 0 auto;
+  height: auto;
   resize: none;
   border: 1px solid #ccc;
   border-radius: 4px;
