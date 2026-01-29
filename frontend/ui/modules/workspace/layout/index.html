@@ -166,3 +166,21 @@
         </div>
     </div>
 </template>
+
+<template id="move-confirm-template">
+    <div class="modal-overlay">
+        <div class="modal-card confirm-card window-draggable">
+            <div class="modal-header window-focus-target">
+                <h3>Move Item</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-text" id="move-confirm-text"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-text modal-close">Cancel</button>
+                <button id="confirm-move-modal" class="btn-primary">Yes</button>
+            </div>
+        </div>
+    </div>
+</template>

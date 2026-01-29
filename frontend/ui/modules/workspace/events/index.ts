@@ -182,21 +182,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
                     return;
                 }
                 event.preventDefault();
-                const confirmed = window.confirm(
-                    `Are you sure you want to move\n${dragNode.title} to\n${node.title}?`
-                );
-                if (!confirmed) return;
-                try {
-                    await api.post(`/api/v1/workspace/nodes/${dragNode.id}/move`, {
-                        new_parent_id: node.id,
-                        version: dragNode.version,
-                    });
-                    allNodesCache = null;
-                    refreshNodes(currentParentId);
-                } catch (error) {
-                    console.error('Failed to move node:', error);
-                    alert('Move failed');
-                }
+                openMoveConfirm(dragNode, node);
             });
 
             itemsGrid.appendChild(item);
@@ -490,6 +476,28 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
             } catch (error) {
                 console.error('Failed to delete node:', error);
                 alert('Delete failed');
+            }
+        });
+    };
+
+    const openMoveConfirm = (source: any, target: any) => {
+        const { overlay, close } = mountModal('move-confirm-template');
+        const textEl = overlay.querySelector('#move-confirm-text') as HTMLElement;
+        const confirmBtn = overlay.querySelector('#confirm-move-modal') as HTMLButtonElement;
+        textEl.textContent = `Are you sure you want to move\n${source.title} to\n${target.title}?`;
+
+        confirmBtn.addEventListener('click', async () => {
+            try {
+                await api.post(`/api/v1/workspace/nodes/${source.id}/move`, {
+                    new_parent_id: target.id,
+                    version: source.version,
+                });
+                close();
+                allNodesCache = null;
+                refreshNodes(currentParentId);
+            } catch (error) {
+                console.error('Failed to move node:', error);
+                alert('Move failed');
             }
         });
     };
