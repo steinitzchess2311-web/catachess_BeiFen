@@ -154,13 +154,24 @@ async def export_chapter_pgn(
         chapter = await study_repo.get_chapter_by_id(chapter_id)
         logger.info(f"[EXPORT CHAPTER PGN] Chapter metadata: {chapter}")
 
+        # Get study info for filename
+        study = await study_repo.get_study_by_id(chapter.study_id)
+        study_title = getattr(study, 'title', None) or 'Study'
+        chapter_title = getattr(chapter, 'title', None) or 'Chapter'
+
         logger.info(f"[EXPORT CHAPTER PGN] Converting tree to PGN...")
         pgn = _tree_to_pgn(tree, chapter)
         logger.info(f"[EXPORT CHAPTER PGN] PGN generated successfully")
         logger.info(f"[EXPORT CHAPTER PGN] PGN length: {len(pgn)}")
         logger.info(f"[EXPORT CHAPTER PGN] PGN preview (first 200 chars): {pgn[:200]}")
 
-        result = {"success": True, "pgn": pgn}
+        # Generate safe filename
+        safe_study = _sanitize_filename(study_title)
+        safe_chapter = _sanitize_filename(chapter_title)
+        filename = f"{safe_study} - {safe_chapter}.pgn"
+        logger.info(f"[EXPORT CHAPTER PGN] Generated filename: {filename}")
+
+        result = {"success": True, "pgn": pgn, "filename": filename}
         logger.info(f"[EXPORT CHAPTER PGN] Returning success response")
         logger.info("=" * 60)
         return result
@@ -186,13 +197,20 @@ async def export_study_pgn(
     logger.info("=" * 60)
 
     try:
+        logger.info(f"[EXPORT STUDY PGN] Fetching study metadata...")
+        study = await study_repo.get_study_by_id(study_id)
+        study_title = getattr(study, 'title', None) or 'Study'
+        logger.info(f"[EXPORT STUDY PGN] Study title: {study_title}")
+
         logger.info(f"[EXPORT STUDY PGN] Fetching chapters for study...")
         chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)
         logger.info(f"[EXPORT STUDY PGN] Found {len(chapters) if chapters else 0} chapters")
 
         if not chapters:
             logger.info(f"[EXPORT STUDY PGN] No chapters found, returning empty PGN")
-            return {"success": True, "pgn": ""}
+            safe_title = _sanitize_filename(study_title)
+            filename = f"{safe_title}.pgn"
+            return {"success": True, "pgn": "", "filename": filename}
 
         pgn_blocks: list[str] = []
         for idx, chapter in enumerate(chapters):
@@ -216,10 +234,15 @@ async def export_study_pgn(
 
         combined_pgn = "\n\n".join(pgn_blocks)
         logger.info(f"[EXPORT STUDY PGN] Combined PGN length: {len(combined_pgn)}")
+
+        # Generate safe filename
+        safe_title = _sanitize_filename(study_title)
+        filename = f"{safe_title}.pgn"
+        logger.info(f"[EXPORT STUDY PGN] Generated filename: {filename}")
         logger.info(f"[EXPORT STUDY PGN] Returning success response")
         logger.info("=" * 60)
 
-        return {"success": True, "pgn": combined_pgn}
+        return {"success": True, "pgn": combined_pgn, "filename": filename}
     except HTTPException as he:
         logger.error(f"[EXPORT STUDY PGN] HTTPException: {he.status_code} - {he.detail}")
         raise
@@ -228,6 +251,33 @@ async def export_study_pgn(
         logger.error(f"[EXPORT STUDY PGN] Error message: {str(e)}")
         logger.error(f"[EXPORT STUDY PGN] Error details:", exc_info=True)
         return {"success": False, "error": str(e)}
+
+def _sanitize_filename(name: str) -> str:
+    """
+    Sanitize a string to be safe for use as a filename.
+    Removes or replaces characters that are invalid in filenames.
+    """
+    # Replace invalid characters with dash
+    invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+    sanitized = name
+    for char in invalid_chars:
+        sanitized = sanitized.replace(char, '-')
+
+    # Remove leading/trailing spaces and dots
+    sanitized = sanitized.strip(' .')
+
+    # Replace multiple spaces or dashes with single dash
+    while '  ' in sanitized:
+        sanitized = sanitized.replace('  ', ' ')
+    while '--' in sanitized:
+        sanitized = sanitized.replace('--', '-')
+
+    # Limit length to avoid filesystem issues (max 255 bytes, leave room for .pgn)
+    if len(sanitized) > 200:
+        sanitized = sanitized[:200]
+
+    return sanitized or 'untitled'
+
 
 def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:
     """Helper to convert StudyTreeDTO to PGN string."""

@@ -118,8 +118,8 @@ export function CommentBox() {
         throw new Error(data?.error || 'Export failed');
       }
 
-      const suffix = scope === 'study' ? 'study' : 'chapter';
-      const filename = `${studyId}-${suffix}.pgn`;
+      // Use filename from backend, fallback to UUID-based name
+      const filename = data.filename || `${studyId}-${scope}.pgn`;
       console.log('[export] Downloading file:', filename);
       console.log('[export] PGN length:', data.pgn?.length || 0);
 
