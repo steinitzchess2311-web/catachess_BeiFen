@@ -104,8 +104,15 @@ from backend.core.config import settings # New import
 from patch.backend.study.api import router as study_patch_router
 
 router = APIRouter(prefix="/studies", tags=["studies"])
-router.include_router(study_patch_router)
 logger = logging.getLogger(__name__)
+
+logger.info("=" * 80)
+logger.info("[STUDIES ROUTER] Including study-patch router")
+logger.info(f"[STUDIES ROUTER] Study patch router prefix: {study_patch_router.prefix}")
+logger.info(f"[STUDIES ROUTER] Study patch router routes: {[route.path for route in study_patch_router.routes]}")
+logger.info("=" * 80)
+
+router.include_router(study_patch_router)
 
 
 @router.put("/{study_id}", status_code=status.HTTP_501_NOT_IMPLEMENTED)

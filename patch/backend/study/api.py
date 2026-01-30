@@ -13,6 +13,11 @@ from modules.workspace.db.session import get_session
 router = APIRouter(prefix="/study-patch", tags=["study-patch"])
 logger = logging.getLogger(__name__)
 
+logger.info("=" * 80)
+logger.info("[STUDY PATCH API] Router initialized with prefix: /study-patch")
+logger.info("[STUDY PATCH API] This module provides PGN export endpoints")
+logger.info("=" * 80)
+
 def _validate_tree_structure(tree: StudyTreeDTO) -> list[str]:
     errors: list[str] = []
 
@@ -118,24 +123,54 @@ async def export_chapter_pgn(
     study_repo: StudyRepository = Depends(get_study_repo)
 ):
     """Export the tree.json as a PGN string."""
+    logger.info("=" * 60)
+    logger.info(f"[EXPORT CHAPTER PGN] ENDPOINT CALLED")
+    logger.info(f"[EXPORT CHAPTER PGN] Chapter ID: {chapter_id}")
+    logger.info("=" * 60)
+
     key = R2Keys.chapter_tree_json(chapter_id)
+    logger.info(f"[EXPORT CHAPTER PGN] R2 Key: {key}")
+
     try:
-        logger.info(f"Exporting PGN for chapter {chapter_id}...")
-        if not r2_client.exists(key):
+        logger.info(f"[EXPORT CHAPTER PGN] Checking if R2 key exists...")
+        exists = r2_client.exists(key)
+        logger.info(f"[EXPORT CHAPTER PGN] R2 key exists: {exists}")
+
+        if not exists:
+            logger.error(f"[EXPORT CHAPTER PGN] Tree not found for chapter {chapter_id}")
             raise HTTPException(status_code=404, detail="Tree not found")
-        
+
+        logger.info(f"[EXPORT CHAPTER PGN] Downloading tree from R2...")
         content = r2_client.download_json(key)
+        logger.info(f"[EXPORT CHAPTER PGN] Downloaded content length: {len(content)}")
+
         tree_data = json.loads(content)
+        logger.info(f"[EXPORT CHAPTER PGN] Parsed tree data, nodes count: {len(tree_data.get('nodes', {}))}")
+
         tree = StudyTreeDTO(**tree_data)
-        
+        logger.info(f"[EXPORT CHAPTER PGN] Created StudyTreeDTO")
+
+        logger.info(f"[EXPORT CHAPTER PGN] Fetching chapter metadata from DB...")
         chapter = await study_repo.get_chapter_by_id(chapter_id)
+        logger.info(f"[EXPORT CHAPTER PGN] Chapter metadata: {chapter}")
+
+        logger.info(f"[EXPORT CHAPTER PGN] Converting tree to PGN...")
         pgn = _tree_to_pgn(tree, chapter)
-        logger.info(f"PGN export successful for chapter {chapter_id} (length: {len(pgn)})")
-        return {"success": True, "pgn": pgn}
-    except HTTPException:
+        logger.info(f"[EXPORT CHAPTER PGN] PGN generated successfully")
+        logger.info(f"[EXPORT CHAPTER PGN] PGN length: {len(pgn)}")
+        logger.info(f"[EXPORT CHAPTER PGN] PGN preview (first 200 chars): {pgn[:200]}")
+
+        result = {"success": True, "pgn": pgn}
+        logger.info(f"[EXPORT CHAPTER PGN] Returning success response")
+        logger.info("=" * 60)
+        return result
+    except HTTPException as he:
+        logger.error(f"[EXPORT CHAPTER PGN] HTTPException: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"Failed to export PGN for chapter {chapter_id}: {e}")
+        logger.error(f"[EXPORT CHAPTER PGN] Unexpected error: {type(e).__name__}")
+        logger.error(f"[EXPORT CHAPTER PGN] Error message: {str(e)}")
+        logger.error(f"[EXPORT CHAPTER PGN] Error details:", exc_info=True)
         return {"success": False, "error": str(e)}
 
 @router.get("/study/{study_id}/pgn-export")
@@ -145,26 +180,53 @@ async def export_study_pgn(
     study_repo: StudyRepository = Depends(get_study_repo)
 ):
     """Export all chapters in a study as concatenated PGN."""
+    logger.info("=" * 60)
+    logger.info(f"[EXPORT STUDY PGN] ENDPOINT CALLED")
+    logger.info(f"[EXPORT STUDY PGN] Study ID: {study_id}")
+    logger.info("=" * 60)
+
     try:
+        logger.info(f"[EXPORT STUDY PGN] Fetching chapters for study...")
         chapters = await study_repo.get_chapters_for_study(study_id, order_by_order=True)
+        logger.info(f"[EXPORT STUDY PGN] Found {len(chapters) if chapters else 0} chapters")
+
         if not chapters:
+            logger.info(f"[EXPORT STUDY PGN] No chapters found, returning empty PGN")
             return {"success": True, "pgn": ""}
 
         pgn_blocks: list[str] = []
-        for chapter in chapters:
+        for idx, chapter in enumerate(chapters):
+            logger.info(f"[EXPORT STUDY PGN] Processing chapter {idx + 1}/{len(chapters)}: {chapter.id}")
             key = R2Keys.chapter_tree_json(chapter.id)
-            if not r2_client.exists(key):
+            logger.info(f"[EXPORT STUDY PGN] R2 Key: {key}")
+
+            exists = r2_client.exists(key)
+            logger.info(f"[EXPORT STUDY PGN] R2 key exists: {exists}")
+
+            if not exists:
+                logger.error(f"[EXPORT STUDY PGN] Tree not found for chapter {chapter.id}")
                 raise HTTPException(status_code=404, detail=f"Tree not found for chapter {chapter.id}")
+
             content = r2_client.download_json(key)
             tree_data = json.loads(content)
             tree = StudyTreeDTO(**tree_data)
-            pgn_blocks.append(_tree_to_pgn(tree, chapter))
+            pgn = _tree_to_pgn(tree, chapter)
+            logger.info(f"[EXPORT STUDY PGN] Chapter {idx + 1} PGN length: {len(pgn)}")
+            pgn_blocks.append(pgn)
 
-        return {"success": True, "pgn": "\n\n".join(pgn_blocks)}
-    except HTTPException:
+        combined_pgn = "\n\n".join(pgn_blocks)
+        logger.info(f"[EXPORT STUDY PGN] Combined PGN length: {len(combined_pgn)}")
+        logger.info(f"[EXPORT STUDY PGN] Returning success response")
+        logger.info("=" * 60)
+
+        return {"success": True, "pgn": combined_pgn}
+    except HTTPException as he:
+        logger.error(f"[EXPORT STUDY PGN] HTTPException: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"Failed to export PGN for study {study_id}: {e}")
+        logger.error(f"[EXPORT STUDY PGN] Unexpected error: {type(e).__name__}")
+        logger.error(f"[EXPORT STUDY PGN] Error message: {str(e)}")
+        logger.error(f"[EXPORT STUDY PGN] Error details:", exc_info=True)
         return {"success": False, "error": str(e)}
 
 def _tree_to_pgn(tree: StudyTreeDTO, chapter) -> str:

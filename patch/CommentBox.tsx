@@ -57,35 +57,79 @@ export function CommentBox() {
     try {
       const studyId = state.studyId;
       const chapterId = state.chapterId;
-      if (!studyId || (scope === 'chapter' && !chapterId)) return;
+
+      console.log('[export] ===== START EXPORT =====');
+      console.log('[export] Scope:', scope);
+      console.log('[export] Study ID:', studyId);
+      console.log('[export] Chapter ID:', chapterId);
+      console.log('[export] Current URL:', window.location.href);
+
+      if (!studyId || (scope === 'chapter' && !chapterId)) {
+        console.error('[export] Missing required IDs');
+        return;
+      }
+
       const base = '/api/v1/workspace/studies/study-patch';
       const url =
         scope === 'study'
           ? `${base}/study/${studyId}/pgn-export`
           : `${base}/chapter/${chapterId}/pgn-export`;
-      console.log('[export] Requesting:', url, { studyId, chapterId, scope });
+
+      console.log('[export] Full request URL:', url);
+      console.log('[export] Absolute URL:', new URL(url, window.location.origin).href);
+
       const response = await fetch(url);
+
+      console.log('[export] Response received:');
+      console.log('[export]   - Status:', response.status, response.statusText);
+      console.log('[export]   - URL:', response.url);
+      console.log('[export]   - Redirected:', response.redirected);
+
       const contentType = response.headers.get('content-type') || '';
-      console.log('[export] Response status:', response.status, 'Content-Type:', contentType);
+      console.log('[export]   - Content-Type:', contentType);
+
+      // Print all headers
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+      console.log('[export]   - All Headers:', headers);
+
       if (!response.ok) {
-        throw new Error(`Export failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('[export] Error response body (first 500 chars):', errorText.slice(0, 500));
+        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
       }
+
       if (!contentType.includes('application/json')) {
-        const preview = (await response.text()).slice(0, 120);
+        const fullText = await response.text();
+        console.error('[export] Non-JSON response (first 300 chars):', fullText.slice(0, 300));
+        console.error('[export] Full response length:', fullText.length);
         throw new Error(
-          `Export endpoint returned HTML (likely not deployed or unauthorized). Preview: ${preview}`
+          `Export endpoint returned HTML (likely not deployed or unauthorized). Preview: ${fullText.slice(0, 120)}`
         );
       }
+
       const data = await response.json();
+      console.log('[export] JSON response:', data);
+
       if (!data?.success) {
+        console.error('[export] API returned success=false, error:', data?.error);
         throw new Error(data?.error || 'Export failed');
       }
+
       const suffix = scope === 'study' ? 'study' : 'chapter';
       const filename = `${studyId}-${suffix}.pgn`;
+      console.log('[export] Downloading file:', filename);
+      console.log('[export] PGN length:', data.pgn?.length || 0);
+
       downloadText(filename, data.pgn || '');
+      console.log('[export] ===== EXPORT SUCCESS =====');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Export failed';
-      console.error('[output] export failed', message);
+      console.error('[export] ===== EXPORT FAILED =====');
+      console.error('[export] Error:', error);
+      console.error('[export] Error message:', message);
       alert(message);
     }
   };
