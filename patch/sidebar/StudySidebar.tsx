@@ -5,6 +5,7 @@ import { getFullmoveNumber, getTurn } from '../chessJS/fen';
 import { analyzeWithFallback } from '../engine/client';
 import type { EngineLine, EngineSource } from '../engine/types';
 import { ChapterList } from './ChapterList';
+import { getCacheManager } from '../engine/cache';
 
 export interface StudySidebarProps {
   chapters: Array<{ id: string; title?: string; order?: number }>;
@@ -66,8 +67,36 @@ export function StudySidebar({
   onDeleteChapter,
   onReorderChapters,
 }: StudySidebarProps) {
-  const componentRenderStart = useRef(performance.now());
+  const componentRenderStart = performance.now();
+  const renderCountRef = useRef(0);
+  const prevPropsRef = useRef({ chapters, currentChapterId });
+  renderCountRef.current++;
+
+  // Detect what changed to trigger this render
+  if (renderCountRef.current > 1) {
+    console.log(`[COMPONENT PERF] ===== Render #${renderCountRef.current} Triggered =====`);
+    if (prevPropsRef.current.chapters !== chapters) {
+      console.log('[COMPONENT PERF] ⚠️ Chapters prop changed');
+    }
+    if (prevPropsRef.current.currentChapterId !== currentChapterId) {
+      console.log('[COMPONENT PERF] ⚠️ CurrentChapterId prop changed');
+    }
+  }
+  prevPropsRef.current = { chapters, currentChapterId };
+
   const { state } = useStudy();
+  const prevStateRef = useRef({ currentFen: state.currentFen });
+
+  // Track state changes
+  if (renderCountRef.current > 1) {
+    if (prevStateRef.current.currentFen !== state.currentFen) {
+      console.log('[COMPONENT PERF] ⚠️ CurrentFen changed from study state');
+      console.log('[COMPONENT PERF]   Old:', prevStateRef.current.currentFen.slice(0, 30) + '...');
+      console.log('[COMPONENT PERF]   New:', state.currentFen.slice(0, 30) + '...');
+    }
+  }
+  prevStateRef.current = { currentFen: state.currentFen };
+
   const [activeTab, setActiveTab] = useState<'chapters' | 'analysis' | 'imitator'>('chapters');
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
@@ -119,10 +148,39 @@ export function StudySidebar({
   const inFlightRef = useRef(false);
   const pollRef = useRef<number | null>(null);
   const nextAllowedRef = useRef<number>(0);
-  const cacheRef = useRef<
-    Map<string, { lines: EngineLine[]; source: EngineSource; updated: number }>
-  >(new Map());
   const imitatorRequestRef = useRef(0);
+
+  // Get the global cache manager instance
+  const cacheManager = getCacheManager();
+
+  // Monitor component render performance
+  useEffect(() => {
+    const renderDuration = performance.now() - componentRenderStart;
+    console.log('[COMPONENT PERF] ===== Render Cycle Complete =====');
+    console.log(`[COMPONENT PERF] Render #${renderCountRef.current}`);
+    console.log(`[COMPONENT PERF] Render duration: ${renderDuration.toFixed(2)}ms`);
+    console.log('[COMPONENT PERF] Active tab:', activeTab);
+    console.log('[COMPONENT PERF] Engine enabled:', engineEnabled);
+    console.log('[COMPONENT PERF] Lines count:', lines.length);
+    console.log('[COMPONENT PERF] Formatted lines count:', formattedLines.length);
+
+    // Schedule a post-paint check
+    requestAnimationFrame(() => {
+      const paintDuration = performance.now() - componentRenderStart;
+      console.log(`[COMPONENT PERF] Paint complete: ${paintDuration.toFixed(2)}ms`);
+      console.log('[COMPONENT PERF] =====================================');
+    });
+  });
+
+  // Expose cache stats to window for debugging
+  useEffect(() => {
+    (window as any).cacheStats = () => cacheManager.printStats();
+    (window as any).cacheClear = () => cacheManager.clear();
+    return () => {
+      delete (window as any).cacheStats;
+      delete (window as any).cacheClear;
+    };
+  }, [cacheManager]);
 
   const resolveTaggerBase = () => {
     try {
@@ -136,7 +194,6 @@ export function StudySidebar({
   };
 
   const TAGGER_BASE = resolveTaggerBase();
-  const getCacheKey = (fen: string) => `${engineMode}:${depth}:${multipv}:${fen}`;
 
   const formatProbability = (value?: number) => {
     if (value === undefined || value === null || Number.isNaN(value)) return '—';
@@ -154,36 +211,46 @@ export function StudySidebar({
     const now = Date.now();
     if (now < nextAllowedRef.current) return;
 
-    const cacheKey = getCacheKey(fen);
-    console.log('[ENGINE CACHE] ===== Analysis Request =====');
-    console.log('[ENGINE CACHE] FEN:', fen.slice(0, 50) + '...');
-    console.log('[ENGINE CACHE] Cache key:', cacheKey);
-    console.log('[ENGINE CACHE] Current cache size:', cacheRef.current.size);
+    console.log('[ENGINE] ===== Analysis Request =====');
+    console.log('[ENGINE] FEN:', fen.slice(0, 50) + '...');
 
-    const cached = cacheRef.current.get(cacheKey);
-    if (cached) {
+    // Query cache (cascades through memory → indexeddb)
+    const cacheResult = await cacheManager.get({
+      fen,
+      depth,
+      multipv,
+      engineMode,
+    });
+
+    if (cacheResult.data) {
       const cacheHitStart = performance.now();
-      console.log('[ENGINE CACHE] ✓ CACHE HIT! Using cached result');
-      console.log('[ENGINE CACHE] Cached at:', new Date(cached.updated).toISOString());
-      console.log('[ENGINE CACHE] Source:', cached.source);
-      console.log('[ENGINE CACHE] Lines:', cached.lines.length);
+      console.log(`[ENGINE] ✓ CACHE HIT from ${cacheResult.source?.toUpperCase()}!`);
+      console.log('[ENGINE] Cached at:', new Date(cacheResult.data.timestamp).toISOString());
+      console.log('[ENGINE] Source:', cacheResult.data.source);
+      console.log('[ENGINE] Lines:', cacheResult.data.lines.length);
 
+      console.log('[ENGINE PERF] ⏱️ About to trigger setState (will cause re-render)...');
       const setStateStart = performance.now();
-      setLines(cached.lines);
-      setSource(cached.source);
-      setStatus('ready');
-      setLastUpdated(cached.updated);
-      setHealth('ok');
-      const setStateDuration = performance.now() - setStateStart;
 
+      // Batch state updates
+      setLines(cacheResult.data.lines);
+      setSource(cacheResult.data.source);
+      setStatus('ready');
+      setLastUpdated(cacheResult.data.timestamp);
+      setHealth('ok');
+
+      const setStateDuration = performance.now() - setStateStart;
       const totalCacheHitDuration = performance.now() - cacheHitStart;
-      console.log(`[ENGINE PERF] Cache hit setState: ${setStateDuration.toFixed(2)}ms`);
+
+      console.log(`[ENGINE PERF] setState calls completed: ${setStateDuration.toFixed(2)}ms`);
       console.log(`[ENGINE PERF] Total cache hit handling: ${totalCacheHitDuration.toFixed(2)}ms`);
-      console.log('[ENGINE PERF] Note: useMemo will run on next render to format lines');
+      console.log('[ENGINE PERF] ⚠️ React will now re-render component...');
+      console.log('[ENGINE PERF] Note: Watch for [COMPONENT PERF] logs to see render time');
       return;
     }
 
-    console.log('[ENGINE CACHE] ✗ CACHE MISS - Calling engine');
+    console.log('[ENGINE] ✗ CACHE MISS - Calling engine');
+    cacheManager.recordNetworkCall();
     inFlightRef.current = true;
 
     const setStatusStart = performance.now();
@@ -207,21 +274,27 @@ export function StudySidebar({
       setLines(result.lines);
       setSource(result.source);
       setStatus('ready');
-      const updated = Date.now();
-      setLastUpdated(updated);
+      const timestamp = Date.now();
+      setLastUpdated(timestamp);
       setHealth('ok');
 
-      cacheRef.current.set(cacheKey, {
-        lines: result.lines,
-        source: result.source,
-        updated,
-      });
+      // Store in cache (saves to memory + indexeddb)
+      await cacheManager.set(
+        { fen, depth, multipv, engineMode },
+        {
+          fen,
+          depth,
+          multipv,
+          lines: result.lines,
+          source: result.source,
+          timestamp,
+        }
+      );
       const processDuration = performance.now() - processStart;
 
       const totalDuration = performance.now() - apiCallStart;
       console.log(`[ENGINE PERF] Process result + cache: ${processDuration.toFixed(2)}ms`);
       console.log(`[ENGINE PERF] Total API handling: ${totalDuration.toFixed(1)}ms`);
-      console.log('[ENGINE CACHE] Result cached. New cache size:', cacheRef.current.size);
       console.log('[ENGINE PERF] Note: useMemo will run on next render to format lines');
     } catch (e: any) {
       if (e?.message?.includes('429')) {
@@ -419,9 +492,10 @@ export function StudySidebar({
   // Memoize formatted lines to avoid expensive UCI->SAN conversion on every render
   const formattedLines = useMemo(() => {
     const memoStart = performance.now();
-    console.log('[ENGINE PERF] ===== Formatting Lines =====');
+    console.log('[ENGINE PERF] ===== Formatting Lines (useMemo triggered) =====');
     console.log('[ENGINE PERF] Lines to format:', lines.length);
     console.log('[ENGINE PERF] Current FEN:', state.currentFen.slice(0, 50) + '...');
+    console.log('[ENGINE PERF] ⚠️ useMemo is running - dependencies changed');
 
     if (lines.length === 0) {
       console.log('[ENGINE PERF] No lines to format');
@@ -499,20 +573,31 @@ export function StudySidebar({
         {engineEnabled && formattedLines.length === 0 && (
           <div className="patch-analysis-empty">No analysis yet.</div>
         )}
-        {formattedLines.map((line) => {
-          const renderStart = performance.now();
-          const element = (
-            <div key={`pv-${line.multipv}`} className="patch-analysis-line">
-              <div className="patch-analysis-score">{formatScore(line.score)}</div>
-              <div className="patch-analysis-pv">
-                {line.sanText || (line.pv?.join(' ') ?? '')}
+        {(() => {
+          const linesRenderStart = performance.now();
+          console.log(`[RENDER PERF] ===== Rendering ${formattedLines.length} analysis lines =====`);
+
+          const elements = formattedLines.map((line, index) => {
+            const lineRenderStart = performance.now();
+            const element = (
+              <div key={`pv-${line.multipv}`} className="patch-analysis-line">
+                <div className="patch-analysis-score">{formatScore(line.score)}</div>
+                <div className="patch-analysis-pv">
+                  {line.sanText || (line.pv?.join(' ') ?? '')}
+                </div>
               </div>
-            </div>
-          );
-          const renderDuration = performance.now() - renderStart;
-          console.log(`[ENGINE PERF] Render line ${line.multipv}: ${renderDuration.toFixed(2)}ms`);
-          return element;
-        })}
+            );
+            const lineRenderDuration = performance.now() - lineRenderStart;
+            console.log(`[RENDER PERF] Line ${index + 1}/${formattedLines.length}: ${lineRenderDuration.toFixed(3)}ms`);
+            return element;
+          });
+
+          const linesRenderDuration = performance.now() - linesRenderStart;
+          console.log(`[RENDER PERF] All lines JSX created: ${linesRenderDuration.toFixed(2)}ms`);
+          console.log('[RENDER PERF] Note: DOM update happens AFTER this');
+
+          return elements;
+        })()}
       </div>
     </div>
   );
