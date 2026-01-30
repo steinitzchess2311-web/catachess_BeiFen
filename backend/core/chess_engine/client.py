@@ -27,17 +27,20 @@ class EngineClient:
         multipv: int = 3,
         engine: str | None = None,
     ) -> EngineResult:
+        method_start = time.time()
+
         if settings.ENGINE_DISABLE_CLOUD:
-            logger.info("Cloud Eval disabled; using sf.catachess")
+            logger.info("[ENGINE CLIENT] Cloud Eval disabled; using sf.catachess")
             return self._analyze_sf(fen, depth, multipv)
 
         if engine == "sf":
-            logger.info("Engine override: SFCata")
+            logger.info("[ENGINE CLIENT] Engine override: SFCata")
             return self._analyze_sf(fen, depth, multipv)
 
-        logger.info(f"Analyzing (Cloud Eval): fen={fen[:50]}..., multipv={multipv}")
-        
+        logger.info(f"[ENGINE CLIENT] Attempting Cloud Eval: fen={fen[:50]}..., multipv={multipv}")
+
         try:
+            cloud_start = time.time()
             # Lichess Cloud Eval API
             # GET https://lichess.org/api/cloud-eval?fen={fen}&multiPv={multipv}
             params = {
@@ -51,55 +54,69 @@ class EngineClient:
                 params=params,
                 timeout=self.timeout
             )
-            
+            cloud_duration = time.time() - cloud_start
+
             if resp.status_code == 429:
                 # Rate limit
-                logger.warning("Lichess Cloud Eval rate limit (429)")
+                logger.warning(f"[ENGINE CLIENT] Lichess Cloud Eval rate limit (429) after {cloud_duration:.3f}s")
+                logger.info("[ENGINE CLIENT] Falling back to sf.catachess due to rate limit")
                 try:
                     return self._analyze_sf(fen, depth, multipv)
                 except Exception as sf_exc:
-                    logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                    logger.error(f"[ENGINE CLIENT] sf.catachess fallback failed: {sf_exc}")
                     if settings.ENGINE_FALLBACK_MODE != "off":
+                        logger.info("[ENGINE CLIENT] Final fallback to legal moves")
                         return analyze_legal_moves(fen, depth, multipv)
                     raise ChessEngineError("Rate limit exceeded")
-                
+
             if resp.status_code == 404:
                 # Not found (no cloud eval available for this position)
-                logger.info("Cloud eval not found (404)")
+                logger.info(f"[ENGINE CLIENT] Cloud eval not found (404) after {cloud_duration:.3f}s")
+                logger.info("[ENGINE CLIENT] Falling back to sf.catachess (position not in cloud)")
                 try:
                     return self._analyze_sf(fen, depth, multipv)
                 except Exception as sf_exc:
-                    logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                    logger.error(f"[ENGINE CLIENT] sf.catachess fallback failed: {sf_exc}")
                     if settings.ENGINE_FALLBACK_MODE != "off":
+                        logger.info("[ENGINE CLIENT] Final fallback to legal moves")
                         return analyze_legal_moves(fen, depth, multipv)
                     raise ChessEngineError("Analysis not found in cloud")
-                
+
             resp.raise_for_status()
             data = resp.json()
-            return self._parse_cloud_eval(data)
+            result = self._parse_cloud_eval(data)
+            logger.info(f"[ENGINE CLIENT] Cloud Eval success in {cloud_duration:.3f}s, {len(result.lines)} lines")
+            return result
             
         except requests.exceptions.Timeout:
-            logger.error(f"Cloud Eval timeout after {self.timeout}s")
+            cloud_duration = time.time() - cloud_start
+            logger.error(f"[ENGINE CLIENT] Cloud Eval timeout after {cloud_duration:.3f}s (limit: {self.timeout}s)")
+            logger.info("[ENGINE CLIENT] Falling back to sf.catachess due to timeout")
             try:
                 return self._analyze_sf(fen, depth, multipv)
             except Exception as sf_exc:
-                logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                logger.error(f"[ENGINE CLIENT] sf.catachess fallback failed: {sf_exc}")
                 if settings.ENGINE_FALLBACK_MODE != "off":
+                    logger.info("[ENGINE CLIENT] Final fallback to legal moves")
                     return analyze_legal_moves(fen, depth, multipv)
                 raise ChessEngineTimeoutError(self.timeout)
-            
+
         except Exception as e:
-            logger.error(f"Cloud Eval failed: {e}")
+            cloud_duration = time.time() - cloud_start
+            logger.error(f"[ENGINE CLIENT] Cloud Eval failed after {cloud_duration:.3f}s: {e}")
+            logger.info("[ENGINE CLIENT] Falling back to sf.catachess due to error")
             try:
                 return self._analyze_sf(fen, depth, multipv)
             except Exception as sf_exc:
-                logger.error(f"sf.catachess fallback failed: {sf_exc}")
+                logger.error(f"[ENGINE CLIENT] sf.catachess fallback failed: {sf_exc}")
                 if settings.ENGINE_FALLBACK_MODE != "off":
+                    logger.info("[ENGINE CLIENT] Final fallback to legal moves")
                     return analyze_legal_moves(fen, depth, multipv)
                 raise ChessEngineError(f"Engine call failed: {str(e)}")
 
     def _analyze_sf(self, fen: str, depth: int, multipv: int) -> EngineResult:
-        logger.info(f"Analyzing (sf.catachess): fen={fen[:50]}..., multipv={multipv}")
+        sf_total_start = time.time()
+        logger.info(f"[ENGINE CLIENT - SF] Starting sf.catachess analysis: fen={fen[:50]}..., depth={depth}, multipv={multipv}")
         payload = {"fen": fen, "depth": depth, "multipv": multipv}
         headers = {
             "User-Agent": "catachess-engine/1.0",
@@ -110,6 +127,7 @@ class EngineClient:
         last_exc: Exception | None = None
         # Retry transient upstream errors to avoid brief CF/origin blips.
         for attempt in range(3):
+            attempt_start = time.time()
             try:
                 resp = requests.post(
                     self.sf_url,
@@ -117,42 +135,59 @@ class EngineClient:
                     timeout=self.timeout,
                     headers=headers,
                 )
+                attempt_duration = time.time() - attempt_start
+
                 if resp.status_code in (502, 503, 504) and attempt < 2:
                     logger.warning(
-                        "sf.catachess transient error: status=%s url=%s (attempt %s)",
+                        "[ENGINE CLIENT - SF] Transient error after %.3fs: status=%s url=%s (attempt %s)",
+                        attempt_duration,
                         resp.status_code,
                         resp.url,
                         attempt + 1,
                     )
                     time.sleep(0.2 * (2 ** attempt))
                     continue
+
                 if not resp.ok:
                     body = (resp.text or "").strip()
                     if len(body) > 1000:
                         body = body[:1000] + "...(truncated)"
                     logger.error(
-                        "sf.catachess error: status=%s url=%s headers=%s body=%s",
+                        "[ENGINE CLIENT - SF] Error after %.3fs: status=%s url=%s headers=%s body=%s",
+                        attempt_duration,
                         resp.status_code,
                         resp.url,
                         dict(resp.headers),
                         body,
                     )
+
                 resp.raise_for_status()
                 data = resp.json()
-                return self._parse_sf_response(data, self._fen_turn(fen))
+                result = self._parse_sf_response(data, self._fen_turn(fen))
+                sf_total_duration = time.time() - sf_total_start
+                logger.info(f"[ENGINE CLIENT - SF] Success in {sf_total_duration:.3f}s (attempt {attempt + 1}, this attempt: {attempt_duration:.3f}s), {len(result.lines)} lines")
+                return result
             except requests.RequestException as exc:
+                attempt_duration = time.time() - attempt_start
                 last_exc = exc
                 if attempt < 2:
                     logger.warning(
-                        "sf.catachess request error: %s (attempt %s)",
+                        "[ENGINE CLIENT - SF] Request error after %.3fs: %s (attempt %s)",
+                        attempt_duration,
                         exc,
                         attempt + 1,
                     )
                     time.sleep(0.2 * (2 ** attempt))
                     continue
+                sf_total_duration = time.time() - sf_total_start
+                logger.error(f"[ENGINE CLIENT - SF] All attempts failed after {sf_total_duration:.3f}s")
                 raise ChessEngineError(f"sf.catachess request failed: {exc}") from exc
+
+        sf_total_duration = time.time() - sf_total_start
         if last_exc is not None:
+            logger.error(f"[ENGINE CLIENT - SF] All attempts failed after {sf_total_duration:.3f}s")
             raise ChessEngineError(f"sf.catachess request failed: {last_exc}") from last_exc
+        logger.error(f"[ENGINE CLIENT - SF] Unknown error after {sf_total_duration:.3f}s")
         raise ChessEngineError("sf.catachess request failed: unknown error")
 
     def _parse_cloud_eval(self, data: dict) -> EngineResult:

@@ -45,15 +45,24 @@ async def analyze_position(request: AnalyzeRequest):
     Returns:
         AnalyzeResponse with principal variations
     """
-    try:
-        logger.info(f"Analyzing position: depth={request.depth}, multipv={request.multipv}")
+    import time
+    start_time = time.time()
 
+    try:
+        logger.info("=" * 80)
+        logger.info(f"[ENGINE ANALYZE] Request started")
+        logger.info(f"[ENGINE ANALYZE] FEN: {request.fen}")
+        logger.info(f"[ENGINE ANALYZE] Depth: {request.depth}, MultiPV: {request.multipv}, Engine: {request.engine or 'auto'}")
+        logger.info(f"[ENGINE ANALYZE] Timestamp: {start_time}")
+
+        engine_start = time.time()
         result = engine.analyze(
             fen=request.fen,
             depth=request.depth,
             multipv=request.multipv,
             engine=request.engine,
         )
+        engine_duration = time.time() - engine_start
 
         # Convert to response format
         lines = [
@@ -65,7 +74,14 @@ async def analyze_position(request: AnalyzeRequest):
             for line in result.lines
         ]
 
-        logger.info(f"Analysis complete: {len(lines)} lines")
+        total_duration = time.time() - start_time
+        logger.info(f"[ENGINE ANALYZE] Analysis complete")
+        logger.info(f"[ENGINE ANALYZE] Source: {result.source}")
+        logger.info(f"[ENGINE ANALYZE] Lines returned: {len(lines)}")
+        logger.info(f"[ENGINE ANALYZE] Engine call duration: {engine_duration:.3f}s")
+        logger.info(f"[ENGINE ANALYZE] Total duration: {total_duration:.3f}s")
+        logger.info("=" * 80)
+
         return AnalyzeResponse(lines=lines, source=result.source)
 
     except ChessEngineTimeoutError as e:
