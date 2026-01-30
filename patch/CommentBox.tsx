@@ -63,8 +63,10 @@ export function CommentBox() {
         scope === 'study'
           ? `${base}/study/${studyId}/pgn-export`
           : `${base}/chapter/${chapterId}/pgn-export`;
+      console.log('[export] Requesting:', url, { studyId, chapterId, scope });
       const response = await fetch(url);
       const contentType = response.headers.get('content-type') || '';
+      console.log('[export] Response status:', response.status, 'Content-Type:', contentType);
       if (!response.ok) {
         throw new Error(`Export failed: ${response.status}`);
       }
@@ -144,7 +146,7 @@ export function CommentBox() {
                 onClick={() => handleExport('study')}
                 disabled={!state.studyId}
               >
-                Export Study FEN
+                Export Study PGN
               </button>
               <button
                 type="button"
@@ -152,7 +154,7 @@ export function CommentBox() {
                 onClick={() => handleExport('chapter')}
                 disabled={!state.studyId || !state.chapterId}
               >
-                Export Chapter FEN
+                Export Chapter PGN
               </button>
             </div>
           </div>

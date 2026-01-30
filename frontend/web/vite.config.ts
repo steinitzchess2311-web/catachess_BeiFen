@@ -21,6 +21,12 @@ export default defineConfig({
     fs: {
       allow: [path.resolve(__dirname, ".."), path.resolve(__dirname, "../../patch")],
     },
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: "dist",
