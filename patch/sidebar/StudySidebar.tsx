@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStudy } from '../studyContext';
 import { uciLineToSan } from '../chessJS/uci';
 import { getFullmoveNumber, getTurn } from '../chessJS/fen';
@@ -66,6 +66,7 @@ export function StudySidebar({
   onDeleteChapter,
   onReorderChapters,
 }: StudySidebarProps) {
+  const componentRenderStart = useRef(performance.now());
   const { state } = useStudy();
   const [activeTab, setActiveTab] = useState<'chapters' | 'analysis' | 'imitator'>('chapters');
   const [depth, setDepth] = useState(14);
@@ -161,32 +162,48 @@ export function StudySidebar({
 
     const cached = cacheRef.current.get(cacheKey);
     if (cached) {
+      const cacheHitStart = performance.now();
       console.log('[ENGINE CACHE] ✓ CACHE HIT! Using cached result');
       console.log('[ENGINE CACHE] Cached at:', new Date(cached.updated).toISOString());
       console.log('[ENGINE CACHE] Source:', cached.source);
       console.log('[ENGINE CACHE] Lines:', cached.lines.length);
+
+      const setStateStart = performance.now();
       setLines(cached.lines);
       setSource(cached.source);
       setStatus('ready');
       setLastUpdated(cached.updated);
       setHealth('ok');
+      const setStateDuration = performance.now() - setStateStart;
+
+      const totalCacheHitDuration = performance.now() - cacheHitStart;
+      console.log(`[ENGINE PERF] Cache hit setState: ${setStateDuration.toFixed(2)}ms`);
+      console.log(`[ENGINE PERF] Total cache hit handling: ${totalCacheHitDuration.toFixed(2)}ms`);
+      console.log('[ENGINE PERF] Note: useMemo will run on next render to format lines');
       return;
     }
 
     console.log('[ENGINE CACHE] ✗ CACHE MISS - Calling engine');
     inFlightRef.current = true;
+
+    const setStatusStart = performance.now();
     setStatus('running');
     setError(null);
+    const setStatusDuration = performance.now() - setStatusStart;
+    console.log(`[ENGINE PERF] Set status to 'running': ${setStatusDuration.toFixed(2)}ms`);
 
     const apiCallStart = performance.now();
     try {
+      const fetchStart = performance.now();
       const result = await analyzeWithFallback(fen, depth, multipv, engineMode);
-      const apiCallDuration = performance.now() - apiCallStart;
+      const fetchDuration = performance.now() - fetchStart;
 
-      console.log('[ENGINE CACHE] Engine call completed in', apiCallDuration.toFixed(1), 'ms');
-      console.log('[ENGINE CACHE] Source:', result.source);
-      console.log('[ENGINE CACHE] Lines received:', result.lines.length);
+      console.log(`[ENGINE PERF] ===== API Call Complete =====`);
+      console.log(`[ENGINE PERF] Network + Backend: ${fetchDuration.toFixed(1)}ms`);
+      console.log('[ENGINE PERF] Source:', result.source);
+      console.log('[ENGINE PERF] Lines received:', result.lines.length);
 
+      const processStart = performance.now();
       setLines(result.lines);
       setSource(result.source);
       setStatus('ready');
@@ -199,8 +216,13 @@ export function StudySidebar({
         source: result.source,
         updated,
       });
+      const processDuration = performance.now() - processStart;
 
+      const totalDuration = performance.now() - apiCallStart;
+      console.log(`[ENGINE PERF] Process result + cache: ${processDuration.toFixed(2)}ms`);
+      console.log(`[ENGINE PERF] Total API handling: ${totalDuration.toFixed(1)}ms`);
       console.log('[ENGINE CACHE] Result cached. New cache size:', cacheRef.current.size);
+      console.log('[ENGINE PERF] Note: useMemo will run on next render to format lines');
     } catch (e: any) {
       if (e?.message?.includes('429')) {
         nextAllowedRef.current = Date.now() + FALLBACK_BACKOFF_MS;
@@ -394,6 +416,60 @@ export function StudySidebar({
     setEngineNotice(null);
   }, [activeTab, engineEnabled, state.currentFen, depth, multipv, engineMode]);
 
+  // Memoize formatted lines to avoid expensive UCI->SAN conversion on every render
+  const formattedLines = useMemo(() => {
+    const memoStart = performance.now();
+    console.log('[ENGINE PERF] ===== Formatting Lines =====');
+    console.log('[ENGINE PERF] Lines to format:', lines.length);
+    console.log('[ENGINE PERF] Current FEN:', state.currentFen.slice(0, 50) + '...');
+
+    if (lines.length === 0) {
+      console.log('[ENGINE PERF] No lines to format');
+      return [];
+    }
+
+    const result = lines.map((line, index) => {
+      const lineStart = performance.now();
+      console.log(`[ENGINE PERF] Line ${index + 1}/${lines.length} - Starting conversion`);
+      console.log(`[ENGINE PERF]   - UCI PV length: ${line.pv?.length || 0} moves`);
+
+      // Step 1: UCI to SAN conversion
+      const uciStart = performance.now();
+      const sanLine = uciLineToSan(line.pv || [], state.currentFen);
+      const uciDuration = performance.now() - uciStart;
+      console.log(`[ENGINE PERF]   - UCI->SAN conversion: ${uciDuration.toFixed(2)}ms`);
+
+      // Step 2: Extract SAN moves
+      const extractStart = performance.now();
+      const sanMoves = sanLine
+        .map((step) => step.san)
+        .filter((move): move is string => Boolean(move));
+      const extractDuration = performance.now() - extractStart;
+      console.log(`[ENGINE PERF]   - Extract SAN moves: ${extractDuration.toFixed(2)}ms`);
+
+      // Step 3: Format with move numbers
+      const formatStart = performance.now();
+      const sanText = formatSanWithMoveNumbers(sanMoves, state.currentFen);
+      const formatDuration = performance.now() - formatStart;
+      console.log(`[ENGINE PERF]   - Format move numbers: ${formatDuration.toFixed(2)}ms`);
+
+      const lineDuration = performance.now() - lineStart;
+      console.log(`[ENGINE PERF]   - Line ${index + 1} total: ${lineDuration.toFixed(2)}ms`);
+
+      return {
+        ...line,
+        sanText,
+      };
+    });
+
+    const memoDuration = performance.now() - memoStart;
+    console.log('[ENGINE PERF] ===== Formatting Complete =====');
+    console.log(`[ENGINE PERF] Total formatting time: ${memoDuration.toFixed(2)}ms`);
+    console.log(`[ENGINE PERF] Average per line: ${(memoDuration / lines.length).toFixed(2)}ms`);
+
+    return result;
+  }, [lines, state.currentFen]);
+
   const renderAnalysis = () => (
     <div className="patch-analysis-panel">
       <div className="patch-analysis-status">
@@ -420,23 +496,22 @@ export function StudySidebar({
         {!engineEnabled && (
           <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
         )}
-        {engineEnabled && lines.length === 0 && (
+        {engineEnabled && formattedLines.length === 0 && (
           <div className="patch-analysis-empty">No analysis yet.</div>
         )}
-        {lines.map((line) => {
-          const sanLine = uciLineToSan(line.pv || [], state.currentFen);
-          const sanMoves = sanLine
-            .map((step) => step.san)
-            .filter((move): move is string => Boolean(move));
-          const sanText = formatSanWithMoveNumbers(sanMoves, state.currentFen);
-          return (
-          <div key={`pv-${line.multipv}`} className="patch-analysis-line">
-            <div className="patch-analysis-score">{formatScore(line.score)}</div>
-            <div className="patch-analysis-pv">
-              {sanText || (line.pv?.join(' ') ?? '')}
+        {formattedLines.map((line) => {
+          const renderStart = performance.now();
+          const element = (
+            <div key={`pv-${line.multipv}`} className="patch-analysis-line">
+              <div className="patch-analysis-score">{formatScore(line.score)}</div>
+              <div className="patch-analysis-pv">
+                {line.sanText || (line.pv?.join(' ') ?? '')}
+              </div>
             </div>
-          </div>
-        );
+          );
+          const renderDuration = performance.now() - renderStart;
+          console.log(`[ENGINE PERF] Render line ${line.multipv}: ${renderDuration.toFixed(2)}ms`);
+          return element;
         })}
       </div>
     </div>
