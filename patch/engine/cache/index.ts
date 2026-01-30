@@ -4,7 +4,9 @@
  * Unified export for the caching system.
  */
 
-export { CacheManager } from './manager';
+import { CacheManager as CacheManagerClass } from './manager';
+
+export { CacheManagerClass as CacheManager };
 export { MemoryCache } from './memory';
 export { IndexedDBCache } from './indexeddb';
 
@@ -28,14 +30,14 @@ export {
 /**
  * Singleton cache manager instance
  */
-let cacheManagerInstance: CacheManager | null = null;
+let cacheManagerInstance: CacheManagerClass | null = null;
 
 /**
  * Get or create the global cache manager instance
  */
-export function getCacheManager(): CacheManager {
+export function getCacheManager(): CacheManagerClass {
   if (!cacheManagerInstance) {
-    cacheManagerInstance = new CacheManager();
+    cacheManagerInstance = new CacheManagerClass();
 
     // Initialize asynchronously
     cacheManagerInstance.init().catch((error) => {
