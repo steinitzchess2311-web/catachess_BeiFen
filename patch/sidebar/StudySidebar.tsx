@@ -152,9 +152,19 @@ export function StudySidebar({
     if (engineMode === 'cloud' && cloudBlocked) return;
     const now = Date.now();
     if (now < nextAllowedRef.current) return;
+
     const cacheKey = getCacheKey(fen);
+    console.log('[ENGINE CACHE] ===== Analysis Request =====');
+    console.log('[ENGINE CACHE] FEN:', fen.slice(0, 50) + '...');
+    console.log('[ENGINE CACHE] Cache key:', cacheKey);
+    console.log('[ENGINE CACHE] Current cache size:', cacheRef.current.size);
+
     const cached = cacheRef.current.get(cacheKey);
     if (cached) {
+      console.log('[ENGINE CACHE] ✓ CACHE HIT! Using cached result');
+      console.log('[ENGINE CACHE] Cached at:', new Date(cached.updated).toISOString());
+      console.log('[ENGINE CACHE] Source:', cached.source);
+      console.log('[ENGINE CACHE] Lines:', cached.lines.length);
       setLines(cached.lines);
       setSource(cached.source);
       setStatus('ready');
@@ -162,22 +172,35 @@ export function StudySidebar({
       setHealth('ok');
       return;
     }
+
+    console.log('[ENGINE CACHE] ✗ CACHE MISS - Calling engine');
     inFlightRef.current = true;
     setStatus('running');
     setError(null);
+
+    const apiCallStart = performance.now();
     try {
       const result = await analyzeWithFallback(fen, depth, multipv, engineMode);
+      const apiCallDuration = performance.now() - apiCallStart;
+
+      console.log('[ENGINE CACHE] Engine call completed in', apiCallDuration.toFixed(1), 'ms');
+      console.log('[ENGINE CACHE] Source:', result.source);
+      console.log('[ENGINE CACHE] Lines received:', result.lines.length);
+
       setLines(result.lines);
       setSource(result.source);
       setStatus('ready');
       const updated = Date.now();
       setLastUpdated(updated);
       setHealth('ok');
+
       cacheRef.current.set(cacheKey, {
         lines: result.lines,
         source: result.source,
         updated,
       });
+
+      console.log('[ENGINE CACHE] Result cached. New cache size:', cacheRef.current.size);
     } catch (e: any) {
       if (e?.message?.includes('429')) {
         nextAllowedRef.current = Date.now() + FALLBACK_BACKOFF_MS;
