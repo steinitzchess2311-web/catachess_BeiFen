@@ -15,6 +15,11 @@ export class IndexedDBCache {
   private initPromise: Promise<void> | null = null;
   private isAvailable: boolean = false;
 
+  // Capacity management
+  private readonly maxSizeBytes = 50 * 1024 * 1024; // 50MB hard limit
+  private readonly targetSizeBytes = 40 * 1024 * 1024; // 40MB target after cleanup
+  private readonly estimatedBytesPerEntry = 600; // Rough estimate per analysis
+
   constructor() {
     this.isAvailable = isIndexedDBAvailable();
 
@@ -116,6 +121,9 @@ export class IndexedDBCache {
     }
 
     try {
+      // Check capacity and evict old entries if needed
+      await this.ensureSpace();
+
       await new Promise<void>((resolve, reject) => {
         const transaction = this.db!.transaction([this.storeName], 'readwrite');
         const store = transaction.objectStore(this.storeName);
@@ -250,6 +258,89 @@ export class IndexedDBCache {
       return deletedCount;
     } catch (error) {
       console.error('[CACHE INDEXEDDB] Cleanup error:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Ensure sufficient space by evicting old entries if needed
+   */
+  private async ensureSpace(): Promise<void> {
+    if (!this.isAvailable || !this.db) {
+      return;
+    }
+
+    try {
+      const stats = await this.getStats();
+      const currentSize = stats.estimatedSize;
+
+      if (currentSize >= this.maxSizeBytes) {
+        const bytesToFree = currentSize - this.targetSizeBytes;
+        console.log(
+          `[CACHE INDEXEDDB] ⚠️ Size limit reached (${(currentSize / 1024 / 1024).toFixed(1)}MB / ${(this.maxSizeBytes / 1024 / 1024).toFixed(0)}MB)`
+        );
+        console.log(
+          `[CACHE INDEXEDDB] Evicting oldest entries to free ~${(bytesToFree / 1024 / 1024).toFixed(1)}MB...`
+        );
+
+        const deletedCount = await this.evictOldest(bytesToFree);
+
+        const newStats = await this.getStats();
+        console.log(
+          `[CACHE INDEXEDDB] ✓ Evicted ${deletedCount} entries, new size: ${(newStats.estimatedSize / 1024 / 1024).toFixed(1)}MB`
+        );
+      }
+    } catch (error) {
+      console.error('[CACHE INDEXEDDB] Ensure space error:', error);
+    }
+  }
+
+  /**
+   * Evict oldest entries to free specified amount of space
+   */
+  private async evictOldest(bytesToFree: number): Promise<number> {
+    if (!this.isAvailable || !this.db) {
+      return 0;
+    }
+
+    try {
+      let freedBytes = 0;
+      let deletedCount = 0;
+
+      await new Promise<void>((resolve, reject) => {
+        const transaction = this.db!.transaction([this.storeName], 'readwrite');
+        const store = transaction.objectStore(this.storeName);
+        const index = store.index('timestamp');
+
+        // Open cursor in ascending order (oldest first)
+        const request = index.openCursor(null, 'next');
+
+        request.onsuccess = (event) => {
+          const cursor = (event.target as IDBRequest).result;
+
+          if (cursor && freedBytes < bytesToFree) {
+            // Delete this entry
+            cursor.delete();
+            freedBytes += this.estimatedBytesPerEntry;
+            deletedCount++;
+
+            // Continue to next oldest entry
+            cursor.continue();
+          } else {
+            // Done: either freed enough space or no more entries
+            resolve();
+          }
+        };
+
+        request.onerror = () => {
+          console.error('[CACHE INDEXEDDB] Evict oldest failed:', request.error);
+          reject(request.error);
+        };
+      });
+
+      return deletedCount;
+    } catch (error) {
+      console.error('[CACHE INDEXEDDB] Evict oldest error:', error);
       return 0;
     }
   }
