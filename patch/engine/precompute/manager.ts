@@ -424,10 +424,22 @@ export class PrecomputeManager {
    * Cancel current session
    */
   cancelCurrentSession(): void {
+    const queueSize = this.queue.size();
+    const runningCount = this.runningTasks;
+    const totalCancelled = queueSize + runningCount;
+
+    // Don't log if nothing to cancel
+    if (totalCancelled === 0) {
+      console.log(`[PRECOMPUTE MANAGER] No active tasks to cancel`);
+      return;
+    }
+
     console.log(`\n${'='.repeat(80)}`);
     console.log(`[PRECOMPUTE MANAGER] ⏹️ Cancelling current session`);
-    console.log(`[PRECOMPUTE MANAGER] Queue size: ${this.queue.size()}`);
-    console.log(`[PRECOMPUTE MANAGER] Running tasks: ${this.runningTasks}`);
+    console.log(`[PRECOMPUTE MANAGER] Pending in queue: ${queueSize}`);
+    console.log(`[PRECOMPUTE MANAGER] Currently running: ${runningCount}`);
+    console.log(`[PRECOMPUTE MANAGER] Total cancelled: ${totalCancelled}`);
+    console.log(`[PRECOMPUTE MANAGER] ${this.queue.getSummary()}`);
     console.log(`${'='.repeat(80)}\n`);
 
     // Abort all tasks
@@ -446,7 +458,10 @@ export class PrecomputeManager {
     this.runningTasks = 0;
     this.currentTask = null;
 
-    console.log(`[PRECOMPUTE MANAGER] ✓ Session cancelled`);
+    console.log(
+      `[PRECOMPUTE MANAGER] ✓ Session cancelled | ` +
+      `Removed ${totalCancelled} tasks (${queueSize} pending + ${runningCount} running)`
+    );
   }
 
   /**

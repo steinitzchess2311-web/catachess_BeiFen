@@ -6,6 +6,7 @@ import { analyzeWithFallback } from '../engine/client';
 import type { EngineLine, EngineSource } from '../engine/types';
 import { ChapterList } from './ChapterList';
 import { getCacheManager } from '../engine/cache';
+import { cancelPrecompute } from '../engine/precompute';
 
 export interface StudySidebarProps {
   chapters: Array<{ id: string; title?: string; order?: number }>;
@@ -149,6 +150,11 @@ export function StudySidebar({
   const pollRef = useRef<number | null>(null);
   const nextAllowedRef = useRef<number>(0);
   const imitatorRequestRef = useRef(0);
+  const lastPrecomputeParamsRef = useRef<{
+    fen: string;
+    depth: number;
+    multipv: number;
+  } | null>(null);
 
   // Get the global cache manager instance
   const cacheManager = getCacheManager();
@@ -318,6 +324,35 @@ export function StudySidebar({
 
   useEffect(() => {
     if (activeTab !== 'analysis' || !engineEnabled) return;
+
+    // Cancel any ongoing precomputation if position parameters changed
+    const lastParams = lastPrecomputeParamsRef.current;
+    const paramsChanged = lastParams !== null && (
+      lastParams.fen !== state.currentFen ||
+      lastParams.depth !== depth ||
+      lastParams.multipv !== multipv
+    );
+
+    if (paramsChanged) {
+      console.log('[PRECOMPUTE] 🔄 Position parameters changed, cancelling previous session');
+      if (lastParams.fen !== state.currentFen) {
+        console.log(`[PRECOMPUTE]   FEN changed: ${lastParams.fen.slice(0, 30)}... → ${state.currentFen.slice(0, 30)}...`);
+      }
+      if (lastParams.depth !== depth) {
+        console.log(`[PRECOMPUTE]   Depth changed: ${lastParams.depth} → ${depth}`);
+      }
+      if (lastParams.multipv !== multipv) {
+        console.log(`[PRECOMPUTE]   MultiPV changed: ${lastParams.multipv} → ${multipv}`);
+      }
+      cancelPrecompute();
+    }
+
+    // Update last params
+    lastPrecomputeParamsRef.current = {
+      fen: state.currentFen,
+      depth: depth,
+      multipv: multipv,
+    };
 
     analyzePosition(state.currentFen);
     if (pollRef.current) window.clearInterval(pollRef.current);
