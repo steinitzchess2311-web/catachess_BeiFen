@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { StudyProvider, useStudy } from './studyContext';
 import { StudyBoard } from './board/studyBoard';
 import { MoveTree } from './sidebar/movetree';
@@ -14,12 +14,19 @@ export interface PatchStudyPageProps {
   className?: string;
 }
 
+interface Breadcrumb {
+  id: string;
+  title: string;
+  nodeType: 'root' | 'folder' | 'study';
+}
+
 function StudyPageContent({ className }: PatchStudyPageProps) {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { state, clearError, setError, selectChapter, loadTree, saveTree, loadStudy } = useStudy();
   const [chapters, setChapters] = useState<any[]>([]);
   const [studyTitle, setStudyTitle] = useState<string>('');
-  const [displayPath, setDisplayPath] = useState<string>('root');
+  const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatingChapter, setIsCreatingChapter] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -32,6 +39,8 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [draftTitle, setDraftTitle] = useState<string>('');
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState<Breadcrumb | null>(null);
   const createTitleInputRef = useRef<HTMLInputElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const lastSavedAtRef = useRef<number | null>(state.lastSavedAt);
@@ -82,9 +91,15 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   }, [isResizingRightbar]);
 
   const resolveDisplayPath = useCallback(
-    async (_path: string, fallbackTitle: string, studyId?: string) => {
-      if (!studyId) return `root/${fallbackTitle || 'Study'}`;
-      const titles: string[] = [];
+    async (_path: string, fallbackTitle: string, studyId?: string): Promise<Breadcrumb[]> => {
+      if (!studyId) {
+        return [
+          { id: 'root', title: 'root', nodeType: 'root' },
+          { id: studyId || '', title: fallbackTitle || 'Study', nodeType: 'study' },
+        ];
+      }
+
+      const crumbs: Breadcrumb[] = [];
       let currentId: string | null = studyId;
       let safety = 0;
 
@@ -93,16 +108,31 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         const node = await api.get(`/api/v1/workspace/nodes/${currentId}`).catch(() => null);
         if (!node) break;
         if (typeof node.title === 'string' && node.title.length > 0) {
-          titles.push(node.title);
+          crumbs.push({
+            id: node.id,
+            title: node.title,
+            nodeType: node.node_type,
+          });
         }
         currentId = node.parent_id || null;
       }
 
-      if (titles.length === 0) {
-        return `root/${fallbackTitle || 'Study'}`;
+      if (crumbs.length === 0) {
+        return [
+          { id: 'root', title: 'root', nodeType: 'root' },
+          { id: studyId, title: fallbackTitle || 'Study', nodeType: 'study' },
+        ];
       }
 
-      return `root/${titles.reverse().join('/')}`;
+      // Reverse to get root -> ... -> study order
+      crumbs.reverse();
+
+      // Add root at the beginning if not already present
+      if (crumbs[0]?.nodeType !== 'root') {
+        crumbs.unshift({ id: 'root', title: 'root', nodeType: 'root' });
+      }
+
+      return crumbs;
     },
     []
   );
@@ -260,9 +290,9 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       studyNodeRef.current = response;
       setStudyTitle(response.title);
 
-      // Update display path
-      const resolvedPath = await resolveDisplayPath('', response.title, id);
-      setDisplayPath(resolvedPath);
+      // Update breadcrumbs
+      const resolvedBreadcrumbs = await resolveDisplayPath('', response.title, id);
+      setBreadcrumbs(resolvedBreadcrumbs);
 
       console.log(`[STUDY RENAME] ✓ Success | new_title=${response.title} | new_version=${response.version}`);
 
@@ -280,8 +310,8 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
           studyNodeRef.current = retryResponse;
           setStudyTitle(retryResponse.title);
 
-          const resolvedPath = await resolveDisplayPath('', retryResponse.title, id);
-          setDisplayPath(resolvedPath);
+          const resolvedBreadcrumbs = await resolveDisplayPath('', retryResponse.title, id);
+          setBreadcrumbs(resolvedBreadcrumbs);
 
           console.log(`[STUDY RENAME] ✓ Success after retry | new_title=${retryResponse.title} | new_version=${retryResponse.version}`);
 
@@ -323,6 +353,31 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
       // Error already handled in renameStudyNode
     }
   }, [draftTitle, studyTitle, renameStudyNode, cancelEditingTitle]);
+
+  const navigateToBreadcrumb = useCallback((crumb: Breadcrumb) => {
+    if (crumb.id === 'root') {
+      navigate('/workspace-select');
+    } else {
+      navigate(`/workspace-select?parent=${crumb.id}`);
+    }
+  }, [navigate]);
+
+  const handleBreadcrumbDoubleClick = useCallback((crumb: Breadcrumb, index: number) => {
+    // Last item (current study) is not clickable
+    if (index === breadcrumbs.length - 1) {
+      return;
+    }
+
+    // Check for unsaved changes
+    if (hasUnsavedChanges) {
+      setNavigationTarget(crumb);
+      setShowNavigationWarning(true);
+      return;
+    }
+
+    // Navigate directly
+    navigateToBreadcrumb(crumb);
+  }, [breadcrumbs.length, hasUnsavedChanges, navigateToBreadcrumb]);
 
   const processPendingDeletes = useCallback(async (deleteIds: string[]) => {
     if (!id || deleteIds.length === 0) return;
@@ -444,8 +499,8 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         const resolvedTitle =
           studyResponse?.study?.title || studyResponse?.title || 'Study';
         setStudyTitle(resolvedTitle);
-        const resolvedDisplayPath = await resolveDisplayPath('', resolvedTitle, id);
-        setDisplayPath(resolvedDisplayPath);
+        const resolvedBreadcrumbs = await resolveDisplayPath('', resolvedTitle, id);
+        setBreadcrumbs(resolvedBreadcrumbs);
 
         // Fetch study node to get version for rename functionality
         try {
@@ -475,8 +530,8 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         const retryTitle =
           retryResponse?.study?.title || retryResponse?.title || 'Study';
         setStudyTitle(retryTitle);
-        const retryDisplayPath = await resolveDisplayPath('', retryTitle, id);
-        setDisplayPath(retryDisplayPath);
+        const retryBreadcrumbs = await resolveDisplayPath('', retryTitle, id);
+        setBreadcrumbs(retryBreadcrumbs);
         const retryChapters = extractChapters(retryResponse);
 
             if (!Array.isArray(retryChapters)) {
@@ -583,9 +638,26 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
             {studyTitle || 'Study'}
           </h2>
         )}
-        <p className="patch-study-notice">
-          {displayPath}
-        </p>
+        <div className="patch-study-breadcrumb">
+          {breadcrumbs.map((crumb, index) => (
+            <React.Fragment key={crumb.id}>
+              {index > 0 && <span className="breadcrumb-separator">/</span>}
+              <span
+                className={`breadcrumb-item ${
+                  index === breadcrumbs.length - 1 ? 'current' : 'clickable'
+                }`}
+                onDoubleClick={() => handleBreadcrumbDoubleClick(crumb, index)}
+                title={
+                  index === breadcrumbs.length - 1
+                    ? 'Current study'
+                    : 'Double-click to navigate'
+                }
+              >
+                {crumb.title}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
         <div className="patch-study-actions">
           <button
             type="button"
@@ -671,6 +743,43 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
                 disabled={isCreatingChapter}
               >
                 {isCreatingChapter ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showNavigationWarning && navigationTarget && (
+        <div className="patch-modal-overlay">
+          <div className="patch-modal">
+            <h3>Unsaved Changes</h3>
+            <p>You have unsaved changes. Do you want to save before leaving?</p>
+            <div className="patch-modal-actions">
+              <button
+                type="button"
+                className="patch-modal-button"
+                onClick={() => setShowNavigationWarning(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="patch-modal-button secondary"
+                onClick={() => {
+                  setShowNavigationWarning(false);
+                  navigateToBreadcrumb(navigationTarget);
+                }}
+              >
+                Don't Save
+              </button>
+              <button
+                type="button"
+                className="patch-modal-button primary"
+                onClick={async () => {
+                  await saveAll();
+                  navigateToBreadcrumb(navigationTarget);
+                }}
+              >
+                Save & Leave
               </button>
             </div>
           </div>

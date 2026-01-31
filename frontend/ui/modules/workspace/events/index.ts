@@ -3,6 +3,7 @@ import { makeDraggable } from '../../../core/drag';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
+    initialParentId?: string;
 };
 
 export async function initWorkspace(container: HTMLElement, options: WorkspaceOptions = {}) {
@@ -23,7 +24,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     const searchClearBtn = container.querySelector('#workspace-search-clear') as HTMLButtonElement;
 
     // State
-    let currentParentId = 'root';
+    const startParentId = options.initialParentId || 'root';
+    let currentParentId = startParentId;
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
     let dragNode: any | null = null;
@@ -710,5 +712,47 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     });
 
     // Initial load
-    navigateToFolder('root', 'Root');
+    if (startParentId && startParentId !== 'root') {
+        // Navigate to specific folder
+        try {
+            console.log(`[WORKSPACE] Initializing to folder: ${startParentId}`);
+            const node = await api.get(`/api/v1/workspace/nodes/${startParentId}`);
+            if (node) {
+                // Build breadcrumb path by traversing parents
+                const path: Array<{id: string, title: string}> = [];
+                let currentNode = node;
+                let safety = 0;
+
+                while (currentNode && safety < 20) {
+                    safety++;
+                    path.unshift({ id: currentNode.id, title: currentNode.title });
+                    if (!currentNode.parent_id || currentNode.parent_id === 'root') {
+                        break;
+                    }
+                    try {
+                        currentNode = await api.get(`/api/v1/workspace/nodes/${currentNode.parent_id}`);
+                    } catch {
+                        break;
+                    }
+                }
+
+                // Add root at the beginning
+                breadcrumbPath = [{ id: 'root', title: 'Root' }, ...path];
+                currentParentId = startParentId;
+
+                renderBreadcrumb();
+                await refreshNodes(startParentId);
+                updatePathInputDisplay();
+
+                console.log(`[WORKSPACE] ✓ Initialized to folder: ${node.title}`);
+            } else {
+                navigateToFolder('root', 'Root');
+            }
+        } catch (error) {
+            console.error(`[WORKSPACE] Failed to load folder ${startParentId}:`, error);
+            navigateToFolder('root', 'Root');
+        }
+    } else {
+        navigateToFolder('root', 'Root');
+    }
 }

@@ -8,6 +8,7 @@ import {
   useLocation,
   useNavigate,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 import { api } from "@ui/assets/api";
 import { initSignup } from "@ui/modules/auth/signup/events/index";
@@ -217,6 +218,8 @@ function SignupPage() {
 function WorkspaceSelect() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialParentId = searchParams.get("parent") || "root";
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -227,8 +230,9 @@ function WorkspaceSelect() {
         const basePath = USE_PATCH_STUDY ? "/patch/workspace" : "/workspace";
         navigate(`${basePath}/${studyId}`);
       },
+      initialParentId,
     });
-  }, [navigate]);
+  }, [navigate, initialParentId]);
 
   return (
     <div>
