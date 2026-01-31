@@ -29,9 +29,14 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   const [isResizingRightbar, setIsResizingRightbar] = useState(false);
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const [pendingDeleteChapters, setPendingDeleteChapters] = useState<Array<{ id: string; order?: number }>>([]);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [draftTitle, setDraftTitle] = useState<string>('');
+  const [titleError, setTitleError] = useState<string | null>(null);
   const createTitleInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
   const lastSavedAtRef = useRef<number | null>(state.lastSavedAt);
   const layoutRef = useRef<HTMLDivElement | null>(null);
+  const studyNodeRef = useRef<any>(null);
   const hasPendingDeletes = pendingDeleteIds.length > 0;
   const hasUnsavedChanges = state.isDirty || hasPendingDeletes;
   const savedTime = state.lastSavedAt ? new Date(state.lastSavedAt).toLocaleTimeString() : null;
@@ -233,6 +238,92 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
     }
   }, [id, setError, sortChapters]);
 
+  const renameStudyNode = useCallback(async (newTitle: string) => {
+    if (!id || !studyNodeRef.current) return;
+
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    if (trimmed.includes('/')) {
+      setTitleError('No "/" in study or folder name');
+      return;
+    }
+
+    try {
+      console.log(`[STUDY RENAME] Attempting to rename study | study_id=${id} | new_title=${trimmed} | version=${studyNodeRef.current.version}`);
+
+      const response = await api.put(`/api/v1/workspace/nodes/${id}`, {
+        title: trimmed,
+        version: studyNodeRef.current.version,
+      });
+
+      // Update local state
+      studyNodeRef.current = response;
+      setStudyTitle(response.title);
+
+      // Update display path
+      const resolvedPath = await resolveDisplayPath('', response.title, id);
+      setDisplayPath(resolvedPath);
+
+      console.log(`[STUDY RENAME] ✓ Success | new_title=${response.title} | new_version=${response.version}`);
+
+    } catch (error: any) {
+      // Handle version conflict by fetching latest version and retrying
+      if (error.message && error.message.includes('Version conflict')) {
+        try {
+          console.log(`[STUDY RENAME] Version conflict detected, fetching latest version for study ${id}`);
+          const latestNode = await api.get(`/api/v1/workspace/nodes/${id}`);
+          const retryResponse = await api.put(`/api/v1/workspace/nodes/${id}`, {
+            title: trimmed,
+            version: latestNode.version,
+          });
+
+          studyNodeRef.current = retryResponse;
+          setStudyTitle(retryResponse.title);
+
+          const resolvedPath = await resolveDisplayPath('', retryResponse.title, id);
+          setDisplayPath(resolvedPath);
+
+          console.log(`[STUDY RENAME] ✓ Success after retry | new_title=${retryResponse.title} | new_version=${retryResponse.version}`);
+
+        } catch (retryError) {
+          console.error('[STUDY RENAME] Failed after retry:', retryError);
+          setTitleError('Rename failed. Please try again.');
+          throw retryError;
+        }
+      } else {
+        console.error('[STUDY RENAME] Failed:', error);
+        setTitleError('Rename failed. Please try again.');
+        throw error;
+      }
+    }
+  }, [id, resolveDisplayPath]);
+
+  const startEditingTitle = useCallback(() => {
+    setDraftTitle(studyTitle);
+    setTitleError(null);
+    setIsEditingTitle(true);
+  }, [studyTitle]);
+
+  const cancelEditingTitle = useCallback(() => {
+    setIsEditingTitle(false);
+    setDraftTitle('');
+    setTitleError(null);
+  }, []);
+
+  const commitEditingTitle = useCallback(async () => {
+    if (!draftTitle.trim() || draftTitle.trim() === studyTitle) {
+      cancelEditingTitle();
+      return;
+    }
+
+    try {
+      await renameStudyNode(draftTitle);
+      cancelEditingTitle();
+    } catch (e) {
+      // Error already handled in renameStudyNode
+    }
+  }, [draftTitle, studyTitle, renameStudyNode, cancelEditingTitle]);
+
   const processPendingDeletes = useCallback(async (deleteIds: string[]) => {
     if (!id || deleteIds.length === 0) return;
     try {
@@ -336,6 +427,13 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   }, [isCreateModalOpen]);
 
   useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  useEffect(() => {
     if (!id) return;
     loadStudy(id);
     let cancelled = false;
@@ -348,6 +446,15 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
         setStudyTitle(resolvedTitle);
         const resolvedDisplayPath = await resolveDisplayPath('', resolvedTitle, id);
         setDisplayPath(resolvedDisplayPath);
+
+        // Fetch study node to get version for rename functionality
+        try {
+          const studyNode = await api.get(`/api/v1/workspace/nodes/${id}`);
+          studyNodeRef.current = studyNode;
+          console.log(`[STUDY PAGE] Study node loaded | id=${id} | title=${studyNode.title} | version=${studyNode.version}`);
+        } catch (nodeError) {
+          console.warn(`[STUDY PAGE] Failed to fetch study node:`, nodeError);
+        }
         const responseChapters = extractChapters(studyResponse);
         if (!Array.isArray(responseChapters)) {
           throw new Error('API response unexpected: chapters list missing');
@@ -438,7 +545,44 @@ function StudyPageContent({ className }: PatchStudyPageProps) {
   return (
     <div className={`patch-study-page ${className || ''}`}>
       <div className="patch-study-header">
-        <h2>{studyTitle || 'Study'}</h2>
+        {isEditingTitle ? (
+          <div className="patch-study-title-edit">
+            <input
+              ref={titleInputRef}
+              type="text"
+              className="patch-study-title-input"
+              value={draftTitle}
+              onChange={(e) => {
+                setDraftTitle(e.target.value);
+                if (!e.target.value.includes('/')) {
+                  setTitleError(null);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  commitEditingTitle();
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  cancelEditingTitle();
+                }
+              }}
+              onBlur={cancelEditingTitle}
+            />
+            {titleError && (
+              <span className="patch-study-title-error">{titleError}</span>
+            )}
+          </div>
+        ) : (
+          <h2
+            className="patch-study-title"
+            onDoubleClick={startEditingTitle}
+            title="Double-click to rename"
+          >
+            {studyTitle || 'Study'}
+          </h2>
+        )}
         <p className="patch-study-notice">
           {displayPath}
         </p>

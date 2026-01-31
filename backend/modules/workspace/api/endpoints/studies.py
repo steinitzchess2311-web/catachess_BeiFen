@@ -655,6 +655,14 @@ async def update_chapter(
     event_bus: EventBus = Depends(get_event_bus),
 ) -> ChapterResponse:
     """Update chapter metadata (title)."""
+    logger.info(
+        f"[CHAPTER UPDATE] Request received | "
+        f"study_id={study_id} | "
+        f"chapter_id={chapter_id} | "
+        f"user_id={user_id} | "
+        f"new_title={data.title}"
+    )
+
     try:
         # Check permissions on study node (but don't modify it)
         node = await node_service.get_node(study_id, actor_id=user_id)
@@ -672,17 +680,39 @@ async def update_chapter(
                 detail=f"Chapter {chapter_id} not found in study {study_id}",
             )
 
+        old_title = chapter.title
+
         # Update chapter metadata
         chapter.title = data.title
         chapter.event = data.title
         updated = await study_repo.update_chapter(chapter)
 
+        logger.info(
+            f"[CHAPTER UPDATE] ✓ Success | "
+            f"chapter_id={chapter_id} | "
+            f"old_title={old_title} | "
+            f"new_title={updated.title}"
+        )
+
         # Return the updated chapter (DO NOT update study node version)
         return ChapterResponse.model_validate(updated)
 
     except NodeNotFoundError as e:
+        logger.error(
+            f"[CHAPTER UPDATE] ✗ Not found | "
+            f"study_id={study_id} | "
+            f"chapter_id={chapter_id} | "
+            f"error={str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionDeniedError as e:
+        logger.error(
+            f"[CHAPTER UPDATE] ✗ Permission denied | "
+            f"study_id={study_id} | "
+            f"chapter_id={chapter_id} | "
+            f"user_id={user_id} | "
+            f"error={str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 def _build_chapter_response(chapter: ChapterTable) -> ChapterResponse:

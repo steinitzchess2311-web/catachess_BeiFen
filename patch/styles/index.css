@@ -30,6 +30,42 @@
   text-align: left;
 }
 
+.patch-study-title {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.patch-study-title:hover {
+  background-color: #f0f0f0;
+}
+
+.patch-study-title-edit {
+  grid-area: title;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.patch-study-title-input {
+  font-size: 40px;
+  font-weight: bold;
+  border: 2px solid #2e6bff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.patch-study-title-error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-left: 6px;
+}
+
 .patch-study-notice {
   color: #888;
   font-size: 16px;
