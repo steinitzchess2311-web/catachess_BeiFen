@@ -103,6 +103,15 @@ async def _presence_cleanup_loop() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await _init_workspace_db()
+
+    # Initialize MongoDB cache
+    try:
+        from core.cache import get_mongo_cache
+        await get_mongo_cache()
+        logger.info("MongoDB cache initialized")
+    except Exception as e:
+        logger.warning(f"MongoDB cache initialization failed: {e}")
+
     tasks: list[asyncio.Task] = []
     if settings.DEBUG:
         logger.info("Starting background tasks (non-blocking)")

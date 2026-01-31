@@ -47,6 +47,15 @@ class Settings(BaseSettings):
     # Tagger-specific database (separate from workspace DB)
     TAGGER_DATABASE_URL: str = ""
 
+    # ===== MongoDB (Engine Cache) =====
+    # Railway provides both MONGO_URL (internal) and MONGO_PUBLIC_URL (public)
+    # Use MONGO_URL for Railway deployments (faster, internal network)
+    MONGO_URL: str = ""
+    MONGODB_DATABASE: str = "catachess"
+    MONGODB_CACHE_COLLECTION: str = "engine_cache"
+    # NOTE: Data is stored PERMANENTLY (no auto-expiration)
+    # Use cleanup_cold_positions() method if manual cleanup is needed
+
     # ===== security =====
     # SECURITY FIX: JWT_SECRET_KEY must be set via environment variable
     # Using a weak default only for local development convenience

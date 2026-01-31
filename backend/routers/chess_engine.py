@@ -3,6 +3,7 @@ Chess Engine Router
 
 Exposes Analysis (Cloud Eval) to frontend.
 Stage 11: Switched to Lichess Cloud Eval API.
+Stage 12: Added MongoDB global cache.
 """
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 from core.chess_engine.client import EngineClient
 from core.errors import ChessEngineError, ChessEngineTimeoutError
 from core.log.log_chess_engine import logger
+from core.cache import get_mongo_cache
 
 
 router = APIRouter(
@@ -40,7 +42,12 @@ engine = EngineClient()
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_position(request: AnalyzeRequest):
     """
-    Analyze a chess position using Lichess Cloud Eval.
+    Analyze a chess position using MongoDB cache → Engine fallback.
+
+    Flow:
+    1. Check MongoDB global cache
+    2. If hit: return cached result (fast path)
+    3. If miss: call engine → store in MongoDB → return
 
     Returns:
         AnalyzeResponse with principal variations
@@ -53,7 +60,36 @@ async def analyze_position(request: AnalyzeRequest):
         logger.info(f"[ENGINE ANALYZE] Request started")
         logger.info(f"[ENGINE ANALYZE] FEN: {request.fen}")
         logger.info(f"[ENGINE ANALYZE] Depth: {request.depth}, MultiPV: {request.multipv}, Engine: {request.engine or 'auto'}")
-        logger.info(f"[ENGINE ANALYZE] Timestamp: {start_time}")
+
+        # Step 1: Check MongoDB cache
+        mongo_cache = await get_mongo_cache()
+        engine_mode = request.engine or 'auto'
+
+        cache_result = await mongo_cache.get(
+            fen=request.fen,
+            depth=request.depth,
+            multipv=request.multipv,
+            engine_mode=engine_mode
+        )
+
+        if cache_result:
+            # Cache hit - return immediately
+            await mongo_cache.increment_hit_count(cache_result['cache_key'])
+
+            total_duration = time.time() - start_time
+            logger.info(f"[ENGINE ANALYZE] ✓ MongoDB cache HIT")
+            logger.info(f"[ENGINE ANALYZE] Source: {cache_result['source']}_cached")
+            logger.info(f"[ENGINE ANALYZE] Lines returned: {len(cache_result['lines'])}")
+            logger.info(f"[ENGINE ANALYZE] Total duration: {total_duration:.3f}s (cache hit)")
+            logger.info("=" * 80)
+
+            return AnalyzeResponse(
+                lines=cache_result['lines'],
+                source=f"{cache_result['source']}_cached"
+            )
+
+        # Step 2: Cache miss - call engine
+        logger.info(f"[ENGINE ANALYZE] ✗ MongoDB cache MISS - calling engine")
 
         engine_start = time.time()
         result = engine.analyze(
@@ -74,11 +110,24 @@ async def analyze_position(request: AnalyzeRequest):
             for line in result.lines
         ]
 
+        # Step 3: Store in MongoDB cache
+        store_start = time.time()
+        await mongo_cache.set(
+            fen=request.fen,
+            depth=request.depth,
+            multipv=request.multipv,
+            engine_mode=engine_mode,
+            lines=lines,
+            source=result.source
+        )
+        store_duration = time.time() - store_start
+
         total_duration = time.time() - start_time
         logger.info(f"[ENGINE ANALYZE] Analysis complete")
         logger.info(f"[ENGINE ANALYZE] Source: {result.source}")
         logger.info(f"[ENGINE ANALYZE] Lines returned: {len(lines)}")
         logger.info(f"[ENGINE ANALYZE] Engine call duration: {engine_duration:.3f}s")
+        logger.info(f"[ENGINE ANALYZE] MongoDB store duration: {store_duration:.3f}s")
         logger.info(f"[ENGINE ANALYZE] Total duration: {total_duration:.3f}s")
         logger.info("=" * 80)
 
@@ -113,3 +162,26 @@ async def engine_health():
         "status": "healthy",
         "service": "lichess-cloud-eval",
     }
+
+
+@router.get("/cache/stats")
+async def cache_stats():
+    """
+    Get MongoDB cache statistics.
+    """
+    try:
+        mongo_cache = await get_mongo_cache()
+        stats = await mongo_cache.get_stats()
+        hot_positions = await mongo_cache.get_hot_positions(limit=10)
+
+        return {
+            "cache": stats,
+            "hot_positions": hot_positions,
+            "note": "Data is stored permanently (no auto-expiration)",
+        }
+    except Exception as e:
+        logger.error(f"Cache stats error: {e}")
+        return {
+            "cache": {"enabled": False, "error": str(e)},
+            "hot_positions": [],
+        }
