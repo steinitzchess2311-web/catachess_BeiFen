@@ -53,6 +53,25 @@ export async function analyzeWithFallback(
       throw new Error(text || `Engine error (${resp.status})`);
     }
     const data = await resp.json();
+
+    // Log MongoDB cache metadata to console
+    if (data.cache_metadata) {
+      const meta = data.cache_metadata;
+      if (meta.mongodb_hit) {
+        console.log(
+          `[MONGODB CACHE] ✓ HIT in ${meta.mongodb_query_ms}ms | ` +
+          `hit_count=${meta.hit_count} | cached_at=${meta.cached_at} | ` +
+          `total=${meta.total_ms}ms`
+        );
+      } else {
+        console.log(
+          `[MONGODB CACHE] ✗ MISS in ${meta.mongodb_query_ms}ms | ` +
+          `engine=${meta.engine_ms}ms | store=${meta.mongodb_store_ms}ms | ` +
+          `total=${meta.total_ms}ms`
+        );
+      }
+    }
+
     return {
       source: mapBackendSource(data.source),
       lines: Array.isArray(data.lines) ? data.lines : [],

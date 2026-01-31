@@ -32,6 +32,7 @@ class AnalyzeResponse(BaseModel):
     """Analysis result from engine"""
     lines: list[dict]
     source: str | None = None
+    cache_metadata: dict | None = None  # MongoDB cache metadata for frontend logging
 
 
 # Initialize engine client
@@ -65,12 +66,14 @@ async def analyze_position(request: AnalyzeRequest):
         mongo_cache = await get_mongo_cache()
         engine_mode = request.engine or 'auto'
 
+        mongo_start = time.time()
         cache_result = await mongo_cache.get(
             fen=request.fen,
             depth=request.depth,
             multipv=request.multipv,
             engine_mode=engine_mode
         )
+        mongo_duration = time.time() - mongo_start
 
         if cache_result:
             # Cache hit - return immediately
@@ -85,7 +88,14 @@ async def analyze_position(request: AnalyzeRequest):
 
             return AnalyzeResponse(
                 lines=cache_result['lines'],
-                source=f"{cache_result['source']}_cached"
+                source=f"{cache_result['source']}_cached",
+                cache_metadata={
+                    "mongodb_hit": True,
+                    "mongodb_query_ms": round(mongo_duration * 1000, 1),
+                    "hit_count": cache_result.get('hit_count', 0),
+                    "cached_at": str(cache_result.get('timestamp', '')),
+                    "total_ms": round(total_duration * 1000, 1),
+                }
             )
 
         # Step 2: Cache miss - call engine
@@ -131,7 +141,17 @@ async def analyze_position(request: AnalyzeRequest):
         logger.info(f"[ENGINE ANALYZE] Total duration: {total_duration:.3f}s")
         logger.info("=" * 80)
 
-        return AnalyzeResponse(lines=lines, source=result.source)
+        return AnalyzeResponse(
+            lines=lines,
+            source=result.source,
+            cache_metadata={
+                "mongodb_hit": False,
+                "mongodb_query_ms": round(mongo_duration * 1000, 1),
+                "mongodb_store_ms": round(store_duration * 1000, 1),
+                "engine_ms": round(engine_duration * 1000, 1),
+                "total_ms": round(total_duration * 1000, 1),
+            }
+        )
 
     except ChessEngineTimeoutError as e:
         logger.error(f"Engine timeout: {e}")
