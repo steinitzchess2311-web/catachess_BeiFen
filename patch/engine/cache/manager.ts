@@ -2,12 +2,14 @@
  * Cache Manager
  *
  * Coordinates multi-layer caching (Memory → IndexedDB → Network).
+ * Includes automatic precomputation system.
  */
 
 import type { CachedAnalysis, CacheKey, CacheStats, CacheResult } from './types';
 import { MemoryCache } from './memory';
 import { IndexedDBCache } from './indexeddb';
 import { generateCacheKey, logCacheOperation } from './utils';
+import { initPrecompute, getPrecomputeManager } from '../precompute';
 
 export class CacheManager {
   private memoryCache: MemoryCache;
@@ -44,6 +46,12 @@ export class CacheManager {
       await this.indexedDBCache.init();
       this.initialized = true;
       console.log('[CACHE MANAGER] All cache layers ready');
+
+      // Initialize precompute system
+      console.log('[CACHE MANAGER] Initializing precompute system...');
+      initPrecompute(this);
+      console.log('[CACHE MANAGER] Precompute system ready');
+
     } catch (error) {
       console.error('[CACHE MANAGER] Initialization error:', error);
       console.warn('[CACHE MANAGER] Falling back to memory-only cache');
@@ -247,5 +255,63 @@ export class CacheManager {
     const deletedCount = await this.indexedDBCache.cleanup(olderThanDays);
     console.log(`[CACHE MANAGER] Cleanup complete: ${deletedCount} entries removed`);
     return deletedCount;
+  }
+
+  // ========== Precompute Helper Methods ==========
+
+  /**
+   * Trigger precomputation for a position
+   * Called after user requests analysis
+   */
+  async triggerPrecompute(
+    params: CacheKey,
+    result: { lines: any[]; source?: string }
+  ): Promise<void> {
+    try {
+      const precomputeManager = getPrecomputeManager();
+      await precomputeManager.trigger(
+        params.fen,
+        params.depth,
+        params.multipv,
+        result
+      );
+    } catch (error) {
+      console.error('[CACHE MANAGER] Precompute trigger failed:', error);
+    }
+  }
+
+  /**
+   * Check if key exists in memory cache (for precompute)
+   */
+  hasMemory(key: string): boolean {
+    return this.memoryCache.get(key) !== null;
+  }
+
+  /**
+   * Get from IndexedDB only (for precompute)
+   */
+  async getIndexedDB(key: string): Promise<CachedAnalysis | null> {
+    return await this.indexedDBCache.get(key);
+  }
+
+  /**
+   * Set memory cache (for precompute promotion)
+   */
+  setMemory(key: string, value: CachedAnalysis): void {
+    this.memoryCache.set(key, value);
+  }
+
+  /**
+   * Set IndexedDB cache (for precompute)
+   */
+  async setIndexedDB(key: string, value: CachedAnalysis): Promise<void> {
+    await this.indexedDBCache.set(key, value);
+  }
+
+  /**
+   * Get memory cache size
+   */
+  getMemorySize(): number {
+    return this.memoryCache.size();
   }
 }

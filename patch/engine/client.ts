@@ -1,5 +1,6 @@
 import type { EngineAnalysis } from './types';
 import { parseLichessCloudEval } from './parsers';
+import { getCacheManager } from './cache';
 
 const LICHESS_URL = 'https://lichess.org/api/cloud-eval';
 
@@ -72,10 +73,25 @@ export async function analyzeWithFallback(
       }
     }
 
-    return {
+    const result: EngineAnalysis = {
       source: mapBackendSource(data.source),
       lines: Array.isArray(data.lines) ? data.lines : [],
     };
+
+    // Trigger precomputation (async, non-blocking)
+    try {
+      const cacheManager = getCacheManager();
+      cacheManager.triggerPrecompute(
+        { fen, depth, multipv, engine: 'sf' },
+        result
+      ).catch(err => {
+        console.warn('[ENGINE CLIENT] Precompute trigger failed:', err);
+      });
+    } catch (error) {
+      console.warn('[ENGINE CLIENT] Failed to trigger precompute:', error);
+    }
+
+    return result;
   }
 
   const params = new URLSearchParams({
