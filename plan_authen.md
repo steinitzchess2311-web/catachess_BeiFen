@@ -65,3 +65,4 @@ Deliver a signup verification flow that emails a one-time `{code}` via Resend, e
   - [x] Structured logs for issue/send/verify
   - [ ] Rate limit re-sends per email/IP
   - [ ] Avoid user enumeration in responses
+ 
