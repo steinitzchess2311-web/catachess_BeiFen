@@ -2,6 +2,8 @@
 Node endpoints.
 """
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import delete as sa_delete, select
 
@@ -37,6 +39,7 @@ from modules.workspace.storage.r2_client import create_r2_client_from_env
 from modules.workspace.domain.policies.permissions import PermissionPolicy
 
 router = APIRouter(prefix="/nodes", tags=["nodes"])
+logger = logging.getLogger(__name__)
 
 async def _fetch_study_ids(node_service: NodeService, root: str) -> list[str]:
     node = await node_service.node_repo.get_by_id(root, include_deleted=True)
@@ -163,7 +166,26 @@ async def update_node(
     node_service: NodeService = Depends(get_node_service),
 ) -> NodeResponse:
     """Update a node."""
+    logger.info(
+        f"[NODE UPDATE] Request received | "
+        f"node_id={node_id} | "
+        f"user_id={user_id} | "
+        f"title={data.title} | "
+        f"version={data.version}"
+    )
+
     try:
+        # Get current node to log old version
+        current_node = await node_service.get_node(node_id, actor_id=user_id)
+        old_version = current_node.version
+
+        logger.info(
+            f"[NODE UPDATE] Current state | "
+            f"node_id={node_id} | "
+            f"current_version={old_version} | "
+            f"request_version={data.version}"
+        )
+
         command = UpdateNodeCommand(
             node_id=node_id,
             title=data.title,
@@ -174,13 +196,39 @@ async def update_node(
         )
 
         node = await node_service.update_node(command, actor_id=user_id)
+
+        logger.info(
+            f"[NODE UPDATE] ✓ Success | "
+            f"node_id={node_id} | "
+            f"old_version={old_version} | "
+            f"new_version={node.version} | "
+            f"title={node.title}"
+        )
+
         return NodeResponse.model_validate(node)
 
     except NodeNotFoundError as e:
+        logger.error(
+            f"[NODE UPDATE] ✗ Not found | "
+            f"node_id={node_id} | "
+            f"error={str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionDeniedError as e:
+        logger.error(
+            f"[NODE UPDATE] ✗ Permission denied | "
+            f"node_id={node_id} | "
+            f"user_id={user_id} | "
+            f"error={str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except OptimisticLockError as e:
+        logger.error(
+            f"[NODE UPDATE] ✗ Version conflict (409) | "
+            f"node_id={node_id} | "
+            f"request_version={data.version} | "
+            f"error={str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 

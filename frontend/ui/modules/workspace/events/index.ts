@@ -101,7 +101,11 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
                 input.select();
                 input.addEventListener('click', (event) => event.stopPropagation());
 
+                let cleanedUp = false;  // Flag to prevent duplicate cleanup
+
                 const cleanup = () => {
+                    if (cleanedUp) return;  // Already cleaned up, skip
+                    cleanedUp = true;
                     input.remove();
                     titleSpan.style.display = '';
                     errorEl.textContent = '';
@@ -130,8 +134,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
                             cleanup();
                         } catch (error) {
                             console.error('Failed to rename node:', error);
-                            alert('Rename failed');
-                            cleanup();
+                            // Show error inline instead of alert, don't cleanup so user can retry
+                            errorEl.textContent = 'Rename failed. Press Enter to retry or Esc to cancel.';
                         }
                     }
                 });
