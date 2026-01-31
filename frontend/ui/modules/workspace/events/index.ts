@@ -506,14 +506,38 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         const trimmed = title.trim();
         if (!trimmed) return false;
         if (trimmed.includes('/')) return false;
-        const response = await api.put(`/api/v1/workspace/nodes/${node.id}`, {
-            title: trimmed,
-            version: node.version,
-        });
-        node.title = response.title;
-        node.version = response.version;
-        allNodesCache = null;
-        return true;
+
+        try {
+            const response = await api.put(`/api/v1/workspace/nodes/${node.id}`, {
+                title: trimmed,
+                version: node.version,
+            });
+            node.title = response.title;
+            node.version = response.version;
+            allNodesCache = null;
+            return true;
+        } catch (error: any) {
+            // Handle version conflict (409) by fetching latest version and retrying
+            if (error.message && error.message.includes('Version conflict')) {
+                try {
+                    console.log(`[WORKSPACE] Version conflict detected, fetching latest version for node ${node.id}`);
+                    const latestNode = await api.get(`/api/v1/workspace/nodes/${node.id}`);
+                    const retryResponse = await api.put(`/api/v1/workspace/nodes/${node.id}`, {
+                        title: trimmed,
+                        version: latestNode.version,
+                    });
+                    node.title = retryResponse.title;
+                    node.version = retryResponse.version;
+                    allNodesCache = null;
+                    console.log(`[WORKSPACE] ✓ Rename succeeded after version refresh`);
+                    return true;
+                } catch (retryError) {
+                    console.error('Failed to rename node after retry:', retryError);
+                    throw retryError;
+                }
+            }
+            throw error;
+        }
     };
 
     const openRenameModal = (node: any) => {

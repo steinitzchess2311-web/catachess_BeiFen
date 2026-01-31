@@ -656,6 +656,7 @@ async def update_chapter(
 ) -> ChapterResponse:
     """Update chapter metadata (title)."""
     try:
+        # Check permissions on study node (but don't modify it)
         node = await node_service.get_node(study_id, actor_id=user_id)
         if node.node_type != NodeType.STUDY:
             raise HTTPException(
@@ -663,6 +664,7 @@ async def update_chapter(
                 detail="Node is not a study",
             )
 
+        # Get and validate chapter
         chapter = await study_repo.get_chapter_by_id(chapter_id)
         if not chapter or chapter.study_id != study_id:
             raise HTTPException(
@@ -670,10 +672,12 @@ async def update_chapter(
                 detail=f"Chapter {chapter_id} not found in study {study_id}",
             )
 
+        # Update chapter metadata
         chapter.title = data.title
         chapter.event = data.title
         updated = await study_repo.update_chapter(chapter)
 
+        # Return the updated chapter (DO NOT update study node version)
         return ChapterResponse.model_validate(updated)
 
     except NodeNotFoundError as e:
