@@ -150,7 +150,6 @@ export function MoveTree({ className }: MoveTreeProps) {
       onContextMenu={handleContainerContextMenu}
       style={{ 
         padding: '10px', 
-        fontFamily: 'sans-serif',
         fontSize: '14px',
         overflowY: 'auto'
       }}
