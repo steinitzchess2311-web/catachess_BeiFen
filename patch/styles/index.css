@@ -633,6 +633,10 @@
   color: #333;
 }
 
+.patch-imitator-move.is-inaccuracy {
+  color: #ff6a3d;
+}
+
 .patch-imitator-tags {
   color: #777;
   font-size: 11px;

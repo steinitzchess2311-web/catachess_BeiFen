@@ -690,7 +690,11 @@ export function StudySidebar({
               {moves.map((move, idx) => (
                 <div key={`${target.id}-${idx}`} className="patch-imitator-row">
                   <div className="patch-imitator-prob">{formatProbability(move.probability)}</div>
-                  <div className="patch-imitator-move">
+                  <div
+                    className={`patch-imitator-move${Array.isArray(move.flags) && move.flags.includes('inaccuracy')
+                      ? ' is-inaccuracy'
+                      : ''}`}
+                  >
                     {move.move || move.uci}
                     {move.tags && move.tags.length > 0 && (
                       <span className="patch-imitator-tags">{formatTags(move.tags)}</span>
