@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStudy } from '../studyContext';
 import { uciLineToSan } from '../chessJS/uci';
 import { getFullmoveNumber, getTurn } from '../chessJS/fen';
-import { analyzeWithFallback } from '../engine/client';
+import { analyzeWithFallback, API_BASE } from '../engine/client';
 import type { EngineLine, EngineSource } from '../engine/types';
 import { ChapterList } from './ChapterList';
 import { getCacheManager } from '../engine/cache';
@@ -119,14 +119,16 @@ export function StudySidebar({
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [selectedCoach, setSelectedCoach] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<string>('');
+  const [selectedEngine, setSelectedEngine] = useState<'cloud' | 'sf'>('sf');
   const [imitatorTargets, setImitatorTargets] = useState<
     Array<{
       id: string;
       label: string;
-      source: 'library' | 'user';
+      source?: 'library' | 'user';
       player?: string;
       playerId?: string;
-      kind: 'coach' | 'player';
+      engine?: 'cloud' | 'sf';
+      kind: 'coach' | 'player' | 'engine';
     }>
   >([]);
   const [imitatorResults, setImitatorResults] = useState<
@@ -436,6 +438,45 @@ export function StudySidebar({
 
     const run = async () => {
       const tasks = imitatorTargets.map(async (target) => {
+        if (target.kind === 'engine') {
+          const payload = {
+            fen: state.currentFen,
+            depth,
+            multipv,
+            engine: target.engine ?? 'sf',
+          };
+          console.log('[imitator] engine request', { target: target.label, payload });
+          const resp = await fetch(`${API_BASE}/api/engine/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(text || `Engine error (${resp.status})`);
+          }
+          const data = await resp.json();
+          const lines = Array.isArray(data?.lines) ? (data.lines as EngineLine[]) : [];
+          const moves = lines.reduce<Array<{
+            move: string;
+            uci?: string;
+            score_cp?: number | null;
+            tags?: string[];
+          }>>((acc, line) => {
+            const pv = Array.isArray(line.pv) ? line.pv : [];
+            const first = pv[0];
+            if (!first) return acc;
+            const evalTag = line.score !== undefined ? `Eval ${formatScore(line.score)}` : null;
+            acc.push({
+              move: first,
+              uci: first,
+              score_cp: typeof line.score === 'number' ? line.score : null,
+              tags: evalTag ? [evalTag] : undefined,
+            });
+            return acc;
+          }, []);
+          return { moves };
+        }
         const payload: Record<string, any> = {
           fen: state.currentFen,
           top_n: 5,
@@ -496,7 +537,7 @@ export function StudySidebar({
     };
 
     void run();
-  }, [activeTab, state.currentFen, imitatorTargets, TAGGER_BASE]);
+  }, [activeTab, state.currentFen, imitatorTargets, depth, multipv, TAGGER_BASE, API_BASE]);
 
   useEffect(() => {
     if (engineEnabled) return;
@@ -641,7 +682,7 @@ export function StudySidebar({
     <div className="patch-analysis-panel patch-imitator-panel">
       {imitatorTargets.length === 0 && (
         <div className="patch-analysis-empty">
-          Add a coach or player to generate style-guided moves.
+          Add a coach, player, or engine to generate style-guided moves.
         </div>
       )}
       {imitatorTargets.map((target) => {
@@ -653,7 +694,7 @@ export function StudySidebar({
               <div>
                 <div className="patch-imitator-title">{target.label}</div>
                 <div className="patch-imitator-meta">
-                  {target.kind === 'coach' ? 'Coach' : 'Player'}
+                  {target.kind === 'engine' ? 'Engine' : target.kind === 'coach' ? 'Coach' : 'Player'}
                   {result.updated && (
                     <span className="patch-imitator-updated">
                       {new Date(result.updated).toLocaleTimeString()}
@@ -883,6 +924,39 @@ export function StudySidebar({
                       source: 'user',
                       playerId: player.id,
                       kind: 'player',
+                    },
+                  ];
+                });
+              }}
+            >
+              Add
+            </button>
+            <div className="patch-imitator-field">
+              <span className="patch-analysis-label">Add Engine</span>
+              <select
+                value={selectedEngine}
+                onChange={(e) => setSelectedEngine(e.target.value as 'cloud' | 'sf')}
+              >
+                <option value="cloud">Lichess Cloud</option>
+                <option value="sf">SFCata</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              className="patch-imitator-add"
+              onClick={() => {
+                const engine = selectedEngine;
+                const label = engine === 'sf' ? 'SFCata' : 'Lichess Cloud';
+                const id = `engine:${engine}`;
+                setImitatorTargets((prev) => {
+                  if (prev.some((item) => item.id === id)) return prev;
+                  return [
+                    ...prev,
+                    {
+                      id,
+                      label,
+                      engine,
+                      kind: 'engine',
                     },
                   ];
                 });

@@ -27,7 +27,7 @@ function resolveApiBase(): string {
   return 'https://api.catachess.com';
 }
 
-const API_BASE = resolveApiBase();
+export const API_BASE = resolveApiBase();
 
 function mapBackendSource(source: string | undefined): EngineAnalysis['source'] {
   if (!source) return 'backend';
