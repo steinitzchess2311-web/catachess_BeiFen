@@ -4,14 +4,17 @@ Chess Engine Router
 Exposes Analysis (Cloud Eval) to frontend.
 Stage 11: Switched to Lichess Cloud Eval API.
 Stage 12: Added MongoDB global cache.
+Stage 13: Added engine request queue + rate limiting.
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 
 from core.chess_engine.client import EngineClient
+from core.chess_engine.queue import get_engine_queue
 from core.errors import ChessEngineError, ChessEngineTimeoutError
 from core.log.log_chess_engine import logger
 from core.cache import get_mongo_cache
+from core.security.rate_limiter import rate_limit
 
 
 router = APIRouter(
@@ -40,15 +43,28 @@ class AnalyzeResponse(BaseModel):
 engine = EngineClient()
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
+def _get_rate_limit_dependency():
+    """Create rate limit dependency with configured limit"""
+    from core.config import settings
+    limit = settings.ENGINE_RATE_LIMIT_PER_MINUTE
+    return rate_limit(limit=limit, window_seconds=60)
+
+
+@router.post(
+    "/analyze",
+    response_model=AnalyzeResponse,
+    dependencies=[Depends(_get_rate_limit_dependency())]
+)
 async def analyze_position(request: AnalyzeRequest):
     """
-    Analyze a chess position using MongoDB cache → Engine fallback.
+    Analyze a chess position using MongoDB cache → Engine Queue → Engine.
 
     Flow:
     1. Check MongoDB global cache
     2. If hit: return cached result (fast path)
-    3. If miss: call engine → store in MongoDB → return
+    3. If miss: enqueue to engine queue → process with limited concurrency → store in MongoDB → return
+
+    Rate limit: 30 requests/minute/IP
 
     Returns:
         AnalyzeResponse with principal variations
@@ -98,16 +114,21 @@ async def analyze_position(request: AnalyzeRequest):
                 }
             )
 
-        # Step 2: Cache miss - call engine
-        logger.info(f"[ENGINE ANALYZE] ✗ MongoDB cache MISS - calling engine")
+        # Step 2: Cache miss - enqueue to engine queue
+        logger.info(f"[ENGINE ANALYZE] ✗ MongoDB cache MISS - enqueuing to engine queue")
 
+        engine_queue = get_engine_queue()
         engine_start = time.time()
-        result = engine.analyze(
+
+        # Enqueue request (will wait in queue if workers busy)
+        result = await engine_queue.enqueue(
             fen=request.fen,
             depth=request.depth,
             multipv=request.multipv,
-            engine=request.engine,
+            engine=request.engine or 'auto',
+            engine_callable=engine.analyze,
         )
+
         engine_duration = time.time() - engine_start
 
         # Convert to response format
@@ -204,4 +225,40 @@ async def cache_stats():
         return {
             "cache": {"enabled": False, "error": str(e)},
             "hot_positions": [],
+        }
+
+
+@router.get("/queue/stats")
+async def queue_stats():
+    """
+    Get engine request queue statistics.
+
+    Returns:
+        queue_size: Number of requests waiting in queue
+        active_workers: Number of workers currently processing
+        total_requests: Total requests enqueued since startup
+        total_completed: Total requests completed
+        total_failed: Total requests failed
+        avg_wait_time_ms: Average time requests wait in queue
+        avg_processing_time_ms: Average time to process a request
+    """
+    try:
+        engine_queue = get_engine_queue()
+        stats = engine_queue.get_stats()
+
+        return {
+            "queue_size": stats.queue_size,
+            "active_workers": stats.active_workers,
+            "total_requests": stats.total_requests,
+            "total_completed": stats.total_completed,
+            "total_failed": stats.total_failed,
+            "avg_wait_time_ms": round(stats.avg_wait_time_ms, 1),
+            "avg_processing_time_ms": round(stats.avg_processing_time_ms, 1),
+        }
+    except Exception as e:
+        logger.error(f"Queue stats error: {e}")
+        return {
+            "queue_size": 0,
+            "active_workers": 0,
+            "error": str(e),
         }

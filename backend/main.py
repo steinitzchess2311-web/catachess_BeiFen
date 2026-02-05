@@ -112,6 +112,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"MongoDB cache initialization failed: {e}")
 
+    # Initialize Engine Queue
+    try:
+        from core.chess_engine.queue import get_engine_queue
+        engine_queue = get_engine_queue()
+        logger.info(f"Engine queue initialized with {engine_queue._max_workers} workers")
+    except Exception as e:
+        logger.error(f"Engine queue initialization failed: {e}")
+
     tasks: list[asyncio.Task] = []
     if settings.DEBUG:
         logger.info("Starting background tasks (non-blocking)")
@@ -120,6 +128,15 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        # Cleanup: Stop engine queue
+        try:
+            from core.chess_engine.queue import shutdown_engine_queue
+            await shutdown_engine_queue()
+            logger.info("Engine queue stopped")
+        except Exception as e:
+            logger.error(f"Engine queue cleanup failed: {e}")
+
+        # Cleanup: Stop background tasks
         for task in tasks:
             task.cancel()
         for task in tasks:

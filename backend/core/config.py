@@ -25,9 +25,15 @@ class Settings(BaseSettings):
     ENGINE_URL: str = ""  # Set via ENGINE_URL environment variable
     ENGINE_TIMEOUT: int = 60
     ENGINE_DISABLE_CLOUD: bool = False
-    
+
     # Lichess Cloud Eval
     LICHESS_CLOUD_EVAL_URL: str = "https://lichess.org/api/cloud-eval"
+
+    # ===== engine queue =====
+    # Number of concurrent engine workers (3 = max 3 simultaneous engine calls)
+    ENGINE_QUEUE_MAX_WORKERS: int = 3
+    # Rate limit for /api/engine/analyze endpoint (requests per minute per IP)
+    ENGINE_RATE_LIMIT_PER_MINUTE: int = 30
 
     # ===== multi-spot engine =====
     ENABLE_MULTI_SPOT: bool = False
