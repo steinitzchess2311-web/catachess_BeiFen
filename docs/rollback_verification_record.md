@@ -41,3 +41,5 @@ The rollback procedure has been successfully verified. It is safe to proceed wit
 *   **Lead Engineer:** Gemini
 *   **QA Lead:** [QA Lead Name]
 *   **Project Manager:** [Project Manager Name]
+
+- Backup note: update on 2026-02-05.
