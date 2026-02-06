@@ -13,7 +13,7 @@ const AboutPage = () => {
     >
       <div
         style={{
-          height: "80px",
+          height: "200px",
           width: "100%",
           border: "2px solid #000",
           marginBottom: "20px",
