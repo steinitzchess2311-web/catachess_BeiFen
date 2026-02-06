@@ -325,7 +325,7 @@ function Layout() {
       <Header username={username} isAuthed={authed} />
       <main>
         <Routes>
-          <Route path="/" element={<Navigate to="/workspace-select" replace />} />
+          <Route path="/" element={<LandingEntry />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -385,6 +385,22 @@ function Layout() {
       <TerminalLauncher customCommands={[catamazeCommand]} />
     </>
   );
+}
+
+function LandingEntry() {
+  const authed = isAuthed();
+
+  useEffect(() => {
+    if (!authed) {
+      window.location.replace("/ui/modules/mainPage/layout/index.html");
+    }
+  }, [authed]);
+
+  if (authed) {
+    return <Navigate to="/workspace-select" replace />;
+  }
+
+  return <div />;
 }
 
 

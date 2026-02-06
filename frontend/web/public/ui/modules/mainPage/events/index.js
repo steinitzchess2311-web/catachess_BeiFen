@@ -1,4 +1,4 @@
-const loginUrl = '/frontend/ui/modules/login/layout/LoginPage.html?redirect=/workspace-select.html';
+const loginUrl = '/login?redirect=/workspace-select';
 
 const bindLogin = (id) => {
   const button = document.getElementById(id);
