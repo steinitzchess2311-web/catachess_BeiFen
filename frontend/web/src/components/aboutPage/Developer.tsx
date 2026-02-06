@@ -48,7 +48,7 @@ const Developer = () => {
         style={{
           display: "flex",
           alignItems: "center",
-          fontSize: "15px",
+          fontSize: "20px",
           lineHeight: 1.7,
           color: "#2f2a26",
         }}
@@ -84,7 +84,7 @@ const Developer = () => {
         style={{
           display: "flex",
           alignItems: "center",
-          fontSize: "15px",
+          fontSize: "20px",
           lineHeight: 1.7,
           color: "#2f2a26",
         }}

@@ -16,17 +16,6 @@ const UserManual = () => {
         gap: "14px",
       }}
     >
-      <div
-        style={{
-          fontSize: "12px",
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          color: "#9b3f1e",
-          fontWeight: 600,
-        }}
-      >
-        User Manual
-      </div>
       <div style={{ fontSize: "20px", fontWeight: 700, color: "#2f2a26" }}>
         How to use ChessorTag.org
       </div>

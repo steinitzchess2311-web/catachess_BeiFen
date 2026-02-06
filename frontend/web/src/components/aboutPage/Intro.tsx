@@ -17,17 +17,6 @@ const Intro = () => {
         boxSizing: "border-box",
       }}
     >
-      <div
-        style={{
-          fontSize: "12px",
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          color: "#9b3f1e",
-          fontWeight: 600,
-        }}
-      >
-        About
-      </div>
       <div style={{ fontSize: "22px", fontWeight: 700, color: "#2f2a26" }}>
         ChessorTag
       </div>
