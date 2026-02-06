@@ -1,12 +1,17 @@
-const loginUrl = '/login?redirect=/workspace-select';
+const routes = {
+  login: '/login?redirect=/workspace-select',
+  signup: '/signup?redirect=/workspace-select',
+};
 
-const bindLogin = (id) => {
+const bind = (id, target) => {
   const button = document.getElementById(id);
   if (!button) return;
   button.addEventListener('click', () => {
-    window.location.assign(loginUrl);
+    window.location.assign(target);
   });
 };
 
-bindLogin('main-login-cta');
-bindLogin('main-login-primary');
+bind('top-login', routes.login);
+bind('top-signup', routes.signup);
+bind('main-login', routes.login);
+bind('main-signup', routes.signup);
