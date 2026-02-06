@@ -571,7 +571,7 @@ export function StudySidebar({
                 ? 'Engine Down'
                 : 'Engine Unknown'}
         </span>
-        {source && <span className="patch-analysis-source">{source}</span>}
+        {engineOrigin && <span className="patch-analysis-source">{engineOrigin}</span>}
         {lastUpdated && (
           <span className="patch-analysis-updated">
             {new Date(lastUpdated).toLocaleTimeString()}
@@ -579,11 +579,6 @@ export function StudySidebar({
         )}
       </div>
       {error && <div className="patch-analysis-error">{error}</div>}
-      {engineOrigin && (
-        <div className="patch-analysis-source">
-          {engineOrigin}
-        </div>
-      )}
       <div className="patch-analysis-lines">
         {!engineEnabled && (
           <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
