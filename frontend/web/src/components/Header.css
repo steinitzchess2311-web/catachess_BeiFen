@@ -7,6 +7,9 @@
   background-color: #ffffff;
   border-bottom: 1px solid #dbdbdb;
   font-family: 'Roboto', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .header-left .logo {
