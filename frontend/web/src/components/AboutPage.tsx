@@ -17,8 +17,31 @@ const AboutPage = () => {
           width: "100%",
           border: "2px solid #000",
           marginBottom: "20px",
+          padding: "20px 24px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: "10px",
         }}
-      />
+      >
+        <div style={{ fontSize: "20px", fontWeight: 600 }}>
+          About ChessorTag
+        </div>
+        <div style={{ fontSize: "16px", lineHeight: 1.6 }}>
+          ChessorTag is a platform that offers:
+        </div>
+        <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "16px", lineHeight: 1.6 }}>
+          <li>
+            A detailed report based on your uploaded games, highlighting your weaknesses,
+            strengths, and areas of improvement
+          </li>
+          <li>
+            A virtual coach selection of your choice. Players can choose a grandmaster profile
+            and learn what move the grandmaster is likely to make in a position. The virtual
+            coach can also generate humanized commentary for its choice of move.
+          </li>
+        </ul>
+      </div>
     </div>
   );
 };
