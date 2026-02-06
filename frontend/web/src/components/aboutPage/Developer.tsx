@@ -31,7 +31,17 @@ const Developer = () => {
           }}
         />
       </div>
-      <div />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          fontSize: "16px",
+          lineHeight: 1.6,
+          color: "#1a1b1f",
+        }}
+      >
+        CataDragon is the co-developer of this website. He loves playing Clash Royale.
+      </div>
       <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
         <img
           src="/assets/developers/ChessNut.jpg"
@@ -46,7 +56,17 @@ const Developer = () => {
           }}
         />
       </div>
-      <div />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          fontSize: "16px",
+          lineHeight: 1.6,
+          color: "#1a1b1f",
+        }}
+      >
+        ChessNut is the co-developer of this website. She has a cat named nut.
+      </div>
     </div>
   );
 };
