@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
             <path d="M2 7L12 12L22 7" stroke="black" strokeWidth="2" strokeLinejoin="round"/>
             <path d="M12 22V12" stroke="black" strokeWidth="2" strokeLinejoin="round"/>
           </svg>
-          <span className="app-name">CatAcheSs</span>
+          <span className="app-name">ChessorTag</span>
         </Link>
       </div>
       <nav className="header-center" />
