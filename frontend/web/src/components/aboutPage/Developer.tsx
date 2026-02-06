@@ -23,7 +23,7 @@ const Developer = () => {
           loading="eager"
           style={{
             width: "100%",
-            maxWidth: "280px",
+            maxWidth: "60px",
             height: "auto",
             display: "block",
             objectFit: "contain",
@@ -37,7 +37,7 @@ const Developer = () => {
           loading="eager"
           style={{
             width: "100%",
-            maxWidth: "280px",
+            maxWidth: "60px",
             height: "auto",
             display: "block",
             objectFit: "contain",
