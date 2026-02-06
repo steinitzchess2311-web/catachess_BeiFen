@@ -16,28 +16,28 @@ const Developer = () => {
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
         <img
           src="/assets/developers/CataDragon.png"
           alt="CataDragon"
           loading="eager"
           style={{
             width: "100%",
-            maxWidth: "60px",
+            maxWidth: "50px",
             height: "auto",
             display: "block",
             objectFit: "contain",
           }}
         />
       </div>
-      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "flex-start", minWidth: 0 }}>
         <img
           src="/assets/developers/ChessNut.jpg"
           alt="ChessNut"
           loading="eager"
           style={{
             width: "100%",
-            maxWidth: "60px",
+            maxWidth: "50px",
             height: "auto",
             display: "block",
             objectFit: "contain",
