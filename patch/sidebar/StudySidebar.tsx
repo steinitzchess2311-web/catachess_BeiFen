@@ -108,6 +108,7 @@ export function StudySidebar({
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [health, setHealth] = useState<'unknown' | 'ok' | 'down'>('unknown');
   const [source, setSource] = useState<EngineSource | null>(null);
+  const [engineOrigin, setEngineOrigin] = useState<string | null>(null);
   const [coachOptions, setCoachOptions] = useState<string[]>([]);
   const [playerOptions, setPlayerOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [coachStatus, setCoachStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -241,6 +242,7 @@ export function StudySidebar({
       const processStart = performance.now();
       setLines(result.lines);
       setSource(result.source);
+      setEngineOrigin(result.origin ?? null);
       setStatus('ready');
       const timestamp = Date.now();
       setLastUpdated(timestamp);
@@ -489,6 +491,7 @@ export function StudySidebar({
     setError(null);
     setLastUpdated(null);
     setSource(null);
+    setEngineOrigin(null);
   }, [engineEnabled]);
 
   useEffect(() => {
@@ -497,6 +500,7 @@ export function StudySidebar({
     setStatus('idle');
     setError(null);
     setSource(null);
+    setEngineOrigin(null);
   }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
 
   // Memoize formatted lines to avoid expensive UCI->SAN conversion on every render
@@ -575,6 +579,11 @@ export function StudySidebar({
         )}
       </div>
       {error && <div className="patch-analysis-error">{error}</div>}
+      {engineOrigin && (
+        <div className="patch-analysis-source">
+          {engineOrigin}
+        </div>
+      )}
       <div className="patch-analysis-lines">
         {!engineEnabled && (
           <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>

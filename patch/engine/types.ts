@@ -11,4 +11,5 @@ export type EngineSource = 'backend' | 'lichess-cloud' | 'sf-catachess' | 'stock
 export interface EngineAnalysis {
   source: EngineSource;
   lines: EngineLine[];
+  origin?: 'browser DB' | 'indexDB' | 'mongoDB' | 'lichessCloud' | 'stockfishWASM' | 'SFCata';
 }

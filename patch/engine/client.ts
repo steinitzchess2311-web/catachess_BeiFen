@@ -130,6 +130,7 @@ async function callSfcata(
   return {
     source: mapBackendSource(data.source),
     lines: Array.isArray(data.lines) ? data.lines : [],
+    origin: 'SFCata',
   };
 }
 
@@ -149,7 +150,7 @@ async function callLichessCloud(
 
   const data = await lichessResp.json();
   const lines = parseLichessCloudEval(data);
-  return { source: 'lichess-cloud', lines };
+  return { source: 'lichess-cloud', lines, origin: 'lichessCloud' };
 }
 
 export async function analyzeAuto(
@@ -168,9 +169,12 @@ export async function analyzeAuto(
     // Step 1: Memory + IndexedDB
     const cacheResult = await cacheManager.get({ fen, depth, multipv });
     if (cacheResult.data) {
+      const origin = cacheResult.source === 'memory' ? 'browser DB' : 'indexDB';
+      console.log(`[ENGINE SOURCE] ${origin}`);
       return {
         source: cacheResult.data.source,
         lines: cacheResult.data.lines,
+        origin,
       };
     }
 
@@ -179,6 +183,7 @@ export async function analyzeAuto(
       cacheManager.recordNetworkCall();
       const mongoCached = await lookupMongoCache(fen, depth, multipv);
       if (mongoCached && Array.isArray(mongoCached.lines) && mongoCached.lines.length > 0) {
+        console.log('[ENGINE SOURCE] mongoDB');
         const timestamp = mongoCached.timestamp || Date.now();
         await cacheManager.set(
           { fen, depth, multipv },
@@ -194,6 +199,7 @@ export async function analyzeAuto(
         return {
           source: mapBackendSource(mongoCached.source),
           lines: mongoCached.lines,
+          origin: 'mongoDB',
         };
       }
     } catch (error) {
@@ -207,6 +213,7 @@ export async function analyzeAuto(
         cacheManager.recordNetworkCall();
         const cloudResult = await callLichessCloud(fen, multipv);
         if (cloudResult.lines.length > 0) {
+          console.log('[ENGINE SOURCE] lichessCloud');
           const timestamp = Date.now();
           await cacheManager.set(
             { fen, depth, multipv },
@@ -224,7 +231,7 @@ export async function analyzeAuto(
           } catch (error) {
             console.warn('[ENGINE CLIENT] MongoDB store failed (cloud):', error);
           }
-          return cloudResult;
+          return { ...cloudResult, origin: 'lichessCloud' };
         }
       } catch (error) {
         console.warn('[ENGINE CLIENT] Lichess Cloud failed:', error);
@@ -235,6 +242,7 @@ export async function analyzeAuto(
     try {
       const wasmResult = await analyzeWithWasm(fen, depth, multipv, 30000);
       if (wasmResult.lines.length > 0) {
+        console.log('[ENGINE SOURCE] stockfishWASM');
         const timestamp = Date.now();
         await cacheManager.set(
           { fen, depth, multipv },
@@ -252,7 +260,7 @@ export async function analyzeAuto(
         } catch (error) {
           console.warn('[ENGINE CLIENT] MongoDB store failed (wasm):', error);
         }
-        return wasmResult;
+        return { ...wasmResult, origin: 'stockfishWASM' };
       }
     } catch (error) {
       console.warn('[ENGINE CLIENT] Stockfish WASM failed:', error);
@@ -261,6 +269,7 @@ export async function analyzeAuto(
     // Step 5: SFCata fallback
     cacheManager.recordNetworkCall();
     const sfResult = await callSfcata(fen, depth, multipv);
+    console.log('[ENGINE SOURCE] SFCata');
     if (sfResult.lines.length > 0) {
       const timestamp = Date.now();
       await cacheManager.set(
@@ -290,7 +299,7 @@ export async function analyzeAuto(
       }
     }
 
-    return sfResult;
+    return { ...sfResult, origin: 'SFCata' };
   })();
 
   IN_FLIGHT.set(cacheKey, run);
