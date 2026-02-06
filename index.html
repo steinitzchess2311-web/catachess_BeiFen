@@ -20,7 +20,7 @@
 
     if (!token || !userId) {
       // Not authenticated, redirect to login
-      window.location.href = '/frontend/ui/modules/login/layout/LoginPage.html?redirect=/workspace-select.html';
+      window.location.href = '/frontend/ui/modules/mainPage/layout/index.html';
     } else {
       // Check if workspace ID is provided in URL
       const urlParams = new URLSearchParams(window.location.search);

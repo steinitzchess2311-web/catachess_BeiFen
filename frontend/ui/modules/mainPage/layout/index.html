@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CataChess</title>
+  <meta name="description" content="CataChess - analysis, study, and training." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/frontend/ui/modules/mainPage/styles/index.css" />
+</head>
+<body>
+  <main class="landing">
+    <header class="landing-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">♜</span>
+        <span class="brand-name">CataChess</span>
+      </div>
+      <button id="main-login-cta" class="cta">Sign In</button>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Workspace-ready chess lab</p>
+        <h1>Plan, analyze, and build your repertoire in one focused space.</h1>
+        <p class="lede">
+          Study trees, annotated PGNs, and analysis tools stay organized so you
+          can move from idea to training session without friction.
+        </p>
+        <div class="hero-actions">
+          <button id="main-login-primary" class="cta cta-primary">Go to Login</button>
+          <a class="ghost" href="/frontend/workspace-select.html">Open Workspace</a>
+        </div>
+      </div>
+
+      <div class="hero-card" role="presentation" aria-hidden="true">
+        <div class="card-row">
+          <span class="card-label">Today</span>
+          <span class="card-value">Rapid prep</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Focus</span>
+          <span class="card-value">Endgames + tactics</span>
+        </div>
+        <div class="card-row">
+          <span class="card-label">Next</span>
+          <span class="card-value">Annotate + test</span>
+        </div>
+        <div class="card-footer">Everything in one board-aware workspace.</div>
+      </div>
+    </section>
+
+    <section class="pillars">
+      <article>
+        <h2>Workspace-first</h2>
+        <p>Create focused spaces for openings, training blocks, and engine analysis.</p>
+      </article>
+      <article>
+        <h2>Context-rich</h2>
+        <p>Notes, PGNs, and plans stay grouped so you never lose the thread.</p>
+      </article>
+      <article>
+        <h2>Fast navigation</h2>
+        <p>Jump between studies and nodes with fewer clicks and less noise.</p>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="/frontend/ui/modules/mainPage/events/index.js"></script>
+</body>
+</html>
