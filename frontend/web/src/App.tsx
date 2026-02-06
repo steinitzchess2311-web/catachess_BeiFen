@@ -26,6 +26,7 @@ import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/Header";
 import AboutPage from "./components/AboutPage";
+import LandingPage from "./components/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
 import PlayerDetail from "@patch/modules/tagger/pages/PlayerDetail";
 import AccountPage from "../AccountPage";
@@ -325,7 +326,7 @@ function Layout() {
       <Header username={username} isAuthed={authed} />
       <main>
         <Routes>
-          <Route path="/" element={<LandingEntry />} />
+          <Route path="/" element={<LandingPage isAuthed={authed} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -385,22 +386,6 @@ function Layout() {
       <TerminalLauncher customCommands={[catamazeCommand]} />
     </>
   );
-}
-
-function LandingEntry() {
-  const authed = isAuthed();
-
-  useEffect(() => {
-    if (!authed) {
-      window.location.replace("/ui/modules/mainPage/layout/index.html");
-    }
-  }, [authed]);
-
-  if (authed) {
-    return <Navigate to="/workspace-select" replace />;
-  }
-
-  return <div />;
 }
 
 
