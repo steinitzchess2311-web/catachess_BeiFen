@@ -6,18 +6,28 @@ const Developer = () => {
       style={{
         width: "100%",
         maxWidth: "100%",
-        border: "2px solid #000",
-        marginBottom: "20px",
-        padding: "16px",
+        borderRadius: "20px",
+        border: "1px solid rgba(26, 27, 31, 0.12)",
+        background: "rgba(255, 255, 255, 0.7)",
+        boxShadow: "0 16px 36px rgba(28, 23, 18, 0.1)",
+        padding: "22px",
         display: "grid",
         gridTemplateColumns:
           "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)",
         alignItems: "center",
-        gap: "16px",
+        gap: "18px",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "8px",
+          minWidth: 0,
+        }}
+      >
         <img
           src="/assets/developers/CataDragon.png"
           alt="CataDragon"
@@ -30,19 +40,30 @@ const Developer = () => {
             objectFit: "contain",
           }}
         />
+        <div style={{ fontSize: "14px", fontWeight: 600, color: "#2f2a26" }}>
+          CataDragon
+        </div>
       </div>
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          fontSize: "16px",
-          lineHeight: 1.6,
-          color: "#1a1b1f",
+          fontSize: "15px",
+          lineHeight: 1.7,
+          color: "#2f2a26",
         }}
       >
         CataDragon is the co-developer of this website. He loves playing Clash Royale.
       </div>
-      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "8px",
+          minWidth: 0,
+        }}
+      >
         <img
           src="/assets/developers/ChessNut.jpg"
           alt="ChessNut"
@@ -55,14 +76,17 @@ const Developer = () => {
             objectFit: "contain",
           }}
         />
+        <div style={{ fontSize: "14px", fontWeight: 600, color: "#2f2a26" }}>
+          ChessNut
+        </div>
       </div>
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          fontSize: "16px",
-          lineHeight: 1.6,
-          color: "#1a1b1f",
+          fontSize: "15px",
+          lineHeight: 1.7,
+          color: "#2f2a26",
         }}
       >
         ChessNut is the co-developer of this website. She has a cat named nut.

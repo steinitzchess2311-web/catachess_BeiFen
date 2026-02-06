@@ -4,31 +4,43 @@ const Intro = () => {
   return (
     <div
       style={{
-        height: "200px",
         width: "100%",
         maxWidth: "100%",
-        border: "2px solid #000",
-        marginBottom: "20px",
-        padding: "20px 24px",
+        borderRadius: "20px",
+        border: "1px solid rgba(26, 27, 31, 0.12)",
+        background: "linear-gradient(145deg, #fff8f0, #efe0d3)",
+        boxShadow: "0 18px 40px rgba(28, 23, 18, 0.12)",
+        padding: "26px 28px",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        gap: "10px",
+        gap: "12px",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ fontSize: "20px", fontWeight: 600 }}>
-        About ChessorTag
+      <div
+        style={{
+          fontSize: "12px",
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "#9b3f1e",
+          fontWeight: 600,
+        }}
+      >
+        About
       </div>
-      <div style={{ fontSize: "16px", lineHeight: 1.6 }}>
+      <div style={{ fontSize: "22px", fontWeight: 700, color: "#2f2a26" }}>
+        ChessorTag
+      </div>
+      <div style={{ fontSize: "16px", lineHeight: 1.7, color: "#1a1b1f" }}>
         ChessorTag is a platform that offers:
       </div>
       <ul
         style={{
           margin: 0,
-          paddingLeft: "18px",
+          paddingLeft: "20px",
           fontSize: "16px",
-          lineHeight: 1.6,
+          lineHeight: 1.7,
+          color: "#1a1b1f",
           wordBreak: "break-word",
         }}
       >
