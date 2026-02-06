@@ -1,6 +1,7 @@
 import React from "react";
 import Intro from "./Intro";
 import Developer from "./Developer";
+import UserManual from "./userManual";
 
 const AboutPage = () => {
   return (
@@ -16,6 +17,7 @@ const AboutPage = () => {
     >
       <Intro />
       <Developer />
+      <UserManual />
     </div>
   );
 };
