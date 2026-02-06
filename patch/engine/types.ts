@@ -6,7 +6,7 @@ export interface EngineLine {
   pv: string[];
 }
 
-export type EngineSource = 'backend' | 'lichess-cloud' | 'sf-catachess';
+export type EngineSource = 'backend' | 'lichess-cloud' | 'sf-catachess' | 'stockfish-wasm';
 
 export interface EngineAnalysis {
   source: EngineSource;

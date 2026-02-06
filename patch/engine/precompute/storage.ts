@@ -35,9 +35,19 @@ export class PrecomputeStorage {
 
     const promises: Promise<void>[] = [];
 
+    const cachedValue = {
+      fen: task.fen,
+      depth: task.depth,
+      multipv: task.multipv,
+      lines: result.lines,
+      source: result.source,
+      timestamp: Date.now(),
+      metadata,
+    };
+
     // Priority 1: Memory cache (fastest, must succeed)
     try {
-      cacheManager.setMemory(task.cacheKey, result);
+      cacheManager.setMemory(task.cacheKey, cachedValue);
       console.log(
         `[PRECOMPUTE STORAGE] ✓ Memory cache updated | ` +
         `Key: ${task.cacheKey.slice(0, 60)}...`
@@ -53,10 +63,7 @@ export class PrecomputeStorage {
     promises.push(
       (async () => {
         try {
-          await cacheManager.setIndexedDB(task.cacheKey, {
-            ...result,
-            metadata,
-          });
+          await cacheManager.setIndexedDB(task.cacheKey, cachedValue);
           console.log(
             `[PRECOMPUTE STORAGE] ✓ IndexedDB updated | ` +
             `Key: ${task.cacheKey.slice(0, 60)}...`

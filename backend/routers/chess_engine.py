@@ -38,6 +38,14 @@ class AnalyzeResponse(BaseModel):
     cache_metadata: dict | None = None  # MongoDB cache metadata for frontend logging
 
 
+class CacheStoreRequest(BaseModel):
+    fen: str
+    depth: int
+    multipv: int
+    lines: list[dict]
+    source: str
+
+
 # Initialize engine client
 # Note: We replaced the complex get_engine() factory with direct EngineClient usage
 engine = EngineClient()
@@ -226,6 +234,68 @@ async def cache_stats():
             "cache": {"enabled": False, "error": str(e)},
             "hot_positions": [],
         }
+
+
+@router.get("/cache/lookup")
+async def cache_lookup(fen: str, depth: int = 15, multipv: int = 3):
+    """
+    Lookup MongoDB cache entry without triggering engine.
+    """
+    try:
+        mongo_cache = await get_mongo_cache()
+        cache_result = await mongo_cache.get(
+            fen=fen,
+            depth=depth,
+            multipv=multipv,
+            engine_mode="auto",
+        )
+        if not cache_result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Cache miss"
+            )
+
+        ts = cache_result.get("timestamp")
+        timestamp_ms = int(ts.timestamp() * 1000) if ts else None
+
+        return {
+            "lines": cache_result.get("lines", []),
+            "source": cache_result.get("source"),
+            "timestamp_ms": timestamp_ms,
+            "hit_count": cache_result.get("hit_count", 0),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Cache lookup error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cache lookup failed: {str(e)}"
+        )
+
+
+@router.post("/cache/store")
+async def cache_store(request: CacheStoreRequest):
+    """
+    Store analysis result in MongoDB cache (no engine call).
+    """
+    try:
+        mongo_cache = await get_mongo_cache()
+        await mongo_cache.set(
+            fen=request.fen,
+            depth=request.depth,
+            multipv=request.multipv,
+            engine_mode="auto",
+            lines=request.lines,
+            source=request.source,
+        )
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Cache store error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cache store failed: {str(e)}"
+        )
 
 
 @router.get("/queue/stats")

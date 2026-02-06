@@ -95,11 +95,11 @@ class MongoEngineCache:
         except Exception as e:
             logger.warning(f"[MONGODB CACHE] Index creation warning: {e}")
 
-    def _generate_cache_key(self, fen: str, depth: int, multipv: int, engine_mode: str) -> str:
-        """Generate unique cache key"""
-        return f"fen:{fen}|depth:{depth}|multipv:{multipv}|mode:{engine_mode}"
+    def _generate_cache_key(self, fen: str, depth: int, multipv: int) -> str:
+        """Generate unique cache key (engine-agnostic)"""
+        return f"fen:{fen}|depth:{depth}|multipv:{multipv}"
 
-    async def get(self, fen: str, depth: int, multipv: int, engine_mode: str) -> Optional[dict]:
+    async def get(self, fen: str, depth: int, multipv: int, engine_mode: str | None = None) -> Optional[dict]:
         """
         Get cached analysis result
 
@@ -109,7 +109,7 @@ class MongoEngineCache:
         if not self.initialized or self.collection is None:
             return None
 
-        cache_key = self._generate_cache_key(fen, depth, multipv, engine_mode)
+        cache_key = self._generate_cache_key(fen, depth, multipv)
         query_start = time.time()
 
         try:
@@ -147,7 +147,7 @@ class MongoEngineCache:
         fen: str,
         depth: int,
         multipv: int,
-        engine_mode: str,
+        engine_mode: str | None = None,
         lines: list[dict],
         source: str
     ) -> bool:
@@ -160,7 +160,7 @@ class MongoEngineCache:
         if not self.initialized or self.collection is None:
             return False
 
-        cache_key = self._generate_cache_key(fen, depth, multipv, engine_mode)
+        cache_key = self._generate_cache_key(fen, depth, multipv)
         store_start = time.time()
 
         try:
@@ -175,7 +175,7 @@ class MongoEngineCache:
                         "fen": fen,
                         "depth": depth,
                         "multipv": multipv,
-                        "engine_mode": engine_mode,
+                        "engine_mode": engine_mode or "auto",
                         "lines": lines,
                         "source": source,
                         "timestamp": now,

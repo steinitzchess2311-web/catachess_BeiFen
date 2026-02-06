@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStudy } from '../studyContext';
 import { uciLineToSan } from '../chessJS/uci';
 import { getFullmoveNumber, getTurn } from '../chessJS/fen';
-import { analyzeWithFallback, API_BASE } from '../engine/client';
+import { analyzeAuto, API_BASE } from '../engine/client';
 import type { EngineLine, EngineSource } from '../engine/types';
 import { ChapterList } from './ChapterList';
 import { getCacheManager } from '../engine/cache';
@@ -102,9 +102,6 @@ export function StudySidebar({
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
   const [engineEnabled, setEngineEnabled] = useState(false);
-  const [engineMode, setEngineMode] = useState<'cloud' | 'sf'>('sf');
-  const [cloudBlocked, setCloudBlocked] = useState(false);
-  const [engineNotice, setEngineNotice] = useState<string | null>(null);
   const [lines, setLines] = useState<EngineLine[]>([]);
   const [status, setStatus] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +116,7 @@ export function StudySidebar({
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [selectedCoach, setSelectedCoach] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<string>('');
-  const [selectedEngine, setSelectedEngine] = useState<'cloud' | 'sf'>('sf');
+  const [selectedEngine, setSelectedEngine] = useState<'auto'>('auto');
   const [imitatorTargets, setImitatorTargets] = useState<
     Array<{
       id: string;
@@ -127,7 +124,7 @@ export function StudySidebar({
       source?: 'library' | 'user';
       player?: string;
       playerId?: string;
-      engine?: 'cloud' | 'sf';
+      engine?: 'auto';
       kind: 'coach' | 'player' | 'engine';
     }>
   >([]);
@@ -215,50 +212,13 @@ export function StudySidebar({
 
   const analyzePosition = async (fen: string) => {
     if (!fen || inFlightRef.current) return;
-    if (engineMode === 'cloud' && cloudBlocked) return;
     const now = Date.now();
     if (now < nextAllowedRef.current) return;
 
     console.log('[ENGINE] ===== Analysis Request =====');
     console.log('[ENGINE] FEN:', fen.slice(0, 50) + '...');
 
-    // Query cache (cascades through memory → indexeddb)
-    const cacheResult = await cacheManager.get({
-      fen,
-      depth,
-      multipv,
-      engineMode,
-    });
-
-    if (cacheResult.data) {
-      const cacheHitStart = performance.now();
-      console.log(`[ENGINE] ✓ CACHE HIT from ${cacheResult.source?.toUpperCase()}!`);
-      console.log('[ENGINE] Cached at:', new Date(cacheResult.data.timestamp).toISOString());
-      console.log('[ENGINE] Source:', cacheResult.data.source);
-      console.log('[ENGINE] Lines:', cacheResult.data.lines.length);
-
-      console.log('[ENGINE PERF] ⏱️ About to trigger setState (will cause re-render)...');
-      const setStateStart = performance.now();
-
-      // Batch state updates
-      setLines(cacheResult.data.lines);
-      setSource(cacheResult.data.source);
-      setStatus('ready');
-      setLastUpdated(cacheResult.data.timestamp);
-      setHealth('ok');
-
-      const setStateDuration = performance.now() - setStateStart;
-      const totalCacheHitDuration = performance.now() - cacheHitStart;
-
-      console.log(`[ENGINE PERF] setState calls completed: ${setStateDuration.toFixed(2)}ms`);
-      console.log(`[ENGINE PERF] Total cache hit handling: ${totalCacheHitDuration.toFixed(2)}ms`);
-      console.log('[ENGINE PERF] ⚠️ React will now re-render component...');
-      console.log('[ENGINE PERF] Note: Watch for [COMPONENT PERF] logs to see render time');
-      return;
-    }
-
     console.log('[ENGINE] ✗ CACHE MISS - Calling engine');
-    cacheManager.recordNetworkCall();
     inFlightRef.current = true;
 
     const setStatusStart = performance.now();
@@ -270,7 +230,7 @@ export function StudySidebar({
     const apiCallStart = performance.now();
     try {
       const fetchStart = performance.now();
-      const result = await analyzeWithFallback(fen, depth, multipv, engineMode);
+      const result = await analyzeAuto(fen, depth, multipv);
       const fetchDuration = performance.now() - fetchStart;
 
       console.log(`[ENGINE PERF] ===== API Call Complete =====`);
@@ -286,18 +246,6 @@ export function StudySidebar({
       setLastUpdated(timestamp);
       setHealth('ok');
 
-      // Store in cache (saves to memory + indexeddb)
-      await cacheManager.set(
-        { fen, depth, multipv, engineMode },
-        {
-          fen,
-          depth,
-          multipv,
-          lines: result.lines,
-          source: result.source,
-          timestamp,
-        }
-      );
       const processDuration = performance.now() - processStart;
 
       const totalDuration = performance.now() - apiCallStart;
@@ -308,17 +256,9 @@ export function StudySidebar({
       if (e?.message?.includes('429')) {
         nextAllowedRef.current = Date.now() + FALLBACK_BACKOFF_MS;
       }
-      if (engineMode === 'cloud') {
-        setCloudBlocked(true);
-        setEngineNotice('Cloud Eval unavailable. Please select SFCata engine.');
-        setStatus('error');
-        setError(e?.message || 'Engine request failed');
-        setHealth('down');
-      } else {
-        setStatus('error');
-        setError(e?.message || 'Engine request failed');
-        setHealth('down');
-      }
+      setStatus('error');
+      setError(e?.message || 'Engine request failed');
+      setHealth('down');
     } finally {
       inFlightRef.current = false;
     }
@@ -358,11 +298,9 @@ export function StudySidebar({
 
     analyzePosition(state.currentFen);
     if (pollRef.current) window.clearInterval(pollRef.current);
-    if (engineMode === 'sf') {
-      pollRef.current = window.setInterval(() => {
-        analyzePosition(state.currentFen);
-      }, 2000);
-    }
+    pollRef.current = window.setInterval(() => {
+      analyzePosition(state.currentFen);
+    }, 2000);
 
     return () => {
       if (pollRef.current) {
@@ -370,7 +308,7 @@ export function StudySidebar({
         pollRef.current = null;
       }
     };
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv, engineMode, cloudBlocked]);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
 
   useEffect(() => {
     if (activeTab !== 'imitator') return;
@@ -443,7 +381,7 @@ export function StudySidebar({
             fen: state.currentFen,
             depth,
             multipv,
-            engine: target.engine ?? 'sf',
+            engine: target.engine ?? 'auto',
           };
           console.log('[imitator] engine request', { target: target.label, payload });
           const resp = await fetch(`${API_BASE}/api/engine/analyze`, {
@@ -551,8 +489,6 @@ export function StudySidebar({
     setError(null);
     setLastUpdated(null);
     setSource(null);
-    setCloudBlocked(false);
-    setEngineNotice(null);
   }, [engineEnabled]);
 
   useEffect(() => {
@@ -561,9 +497,7 @@ export function StudySidebar({
     setStatus('idle');
     setError(null);
     setSource(null);
-    setCloudBlocked(false);
-    setEngineNotice(null);
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv, engineMode]);
+  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
 
   // Memoize formatted lines to avoid expensive UCI->SAN conversion on every render
   const formattedLines = useMemo(() => {
@@ -640,8 +574,7 @@ export function StudySidebar({
           </span>
         )}
       </div>
-      {engineNotice && <div className="patch-analysis-error">{engineNotice}</div>}
-      {!engineNotice && error && <div className="patch-analysis-error">{error}</div>}
+      {error && <div className="patch-analysis-error">{error}</div>}
       <div className="patch-analysis-lines">
         {!engineEnabled && (
           <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
@@ -816,9 +749,6 @@ export function StudySidebar({
                     const enabled = e.target.checked;
                     setEngineEnabled(enabled);
                     if (enabled) {
-                      setEngineMode('sf');
-                      setCloudBlocked(false);
-                      setEngineNotice(null);
                     }
                   }}
                   aria-label="Engine"
@@ -828,18 +758,7 @@ export function StudySidebar({
             </div>
             <div className="patch-analysis-field">
               <span className="patch-analysis-label">Engine</span>
-              <select
-                value={engineMode}
-                disabled={!engineEnabled}
-                onChange={(e) => {
-                  setEngineMode(e.target.value as 'cloud' | 'sf');
-                  setCloudBlocked(false);
-                  setEngineNotice(null);
-                }}
-              >
-                <option value="cloud">Lichess Cloud</option>
-                <option value="sf">SFCata</option>
-              </select>
+              <span className="patch-analysis-value">Auto</span>
             </div>
           </div>
           {renderAnalysis()}
@@ -935,10 +854,9 @@ export function StudySidebar({
               <span className="patch-analysis-label">Add Engine</span>
               <select
                 value={selectedEngine}
-                onChange={(e) => setSelectedEngine(e.target.value as 'cloud' | 'sf')}
+                onChange={(e) => setSelectedEngine(e.target.value as 'auto')}
               >
-                <option value="cloud">Lichess Cloud</option>
-                <option value="sf">SFCata</option>
+                <option value="auto">Auto</option>
               </select>
             </div>
             <button
@@ -946,7 +864,7 @@ export function StudySidebar({
               className="patch-imitator-add"
               onClick={() => {
                 const engine = selectedEngine;
-                const label = engine === 'sf' ? 'SFCata' : 'Lichess Cloud';
+                const label = 'Engine (Auto)';
                 const id = `engine:${engine}`;
                 setImitatorTargets((prev) => {
                   if (prev.some((item) => item.id === id)) return prev;

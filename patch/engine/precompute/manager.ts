@@ -5,6 +5,7 @@
  */
 
 import { analyzeWithFallback } from '../client';
+import { generateCacheKey } from '../cache/utils';
 import type { EngineAnalysis } from '../types';
 import { MoveParser } from './move-parser';
 import { PriorityQueue } from './queue';
@@ -358,8 +359,7 @@ export class PrecomputeManager {
       const result = await analyzeWithFallback(
         task.fen,
         task.depth,
-        task.multipv,
-        'sf'
+        task.multipv
       );
 
       console.log(
@@ -538,7 +538,7 @@ export class PrecomputeManager {
   }
 
   private generateCacheKey(fen: string, depth: number, multipv: number): string {
-    return `fen:${fen}|depth:${depth}|multipv:${multipv}|mode:sf`;
+    return generateCacheKey({ fen, depth, multipv });
   }
 
   private getTaskDelay(task: PrecomputeTask): number {

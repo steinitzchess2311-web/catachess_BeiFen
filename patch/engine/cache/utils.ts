@@ -10,7 +10,7 @@ import type { CacheKey, CacheLayer } from './types';
  * Generate a unique cache key from parameters
  */
 export function generateCacheKey(params: CacheKey): string {
-  return `${params.engineMode}:${params.depth}:${params.multipv}:${params.fen}`;
+  return `auto:${params.depth}:${params.multipv}:${params.fen}`;
 }
 
 /**
@@ -20,14 +20,13 @@ export function parseCacheKey(key: string): CacheKey | null {
   const parts = key.split(':');
   if (parts.length < 4) return null;
 
-  const engineMode = parts[0] as 'cloud' | 'sf';
   const depth = parseInt(parts[1], 10);
   const multipv = parseInt(parts[2], 10);
   const fen = parts.slice(3).join(':');
 
   if (isNaN(depth) || isNaN(multipv)) return null;
 
-  return { engineMode, depth, multipv, fen };
+  return { depth, multipv, fen };
 }
 
 /**

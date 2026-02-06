@@ -51,10 +51,9 @@ async def test_flow():
     test_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     depth = 14
     multipv = 3
-    engine_mode = "sf"
 
     print(f"\n🧪 Test Position: {test_fen[:50]}...")
-    print(f"   Depth: {depth}, MultiPV: {multipv}, Engine: {engine_mode}")
+    print(f"   Depth: {depth}, MultiPV: {multipv}")
 
     try:
         # Initialize MongoDB cache
@@ -72,7 +71,7 @@ async def test_flow():
         print("✅ MongoDB cache initialized")
 
         # Generate cache key
-        cache_key = cache._generate_cache_key(test_fen, depth, multipv, engine_mode)
+        cache_key = cache._generate_cache_key(test_fen, depth, multipv)
         print(f"\n🔑 Cache Key: {cache_key[:80]}...")
 
         # Step 2: Check if already in cache (clean slate)
@@ -80,7 +79,7 @@ async def test_flow():
         print("Step 2: Check Initial Cache State")
         print("-" * 80)
 
-        initial_result = await cache.get(test_fen, depth, multipv, engine_mode)
+        initial_result = await cache.get(test_fen, depth, multipv)
 
         if initial_result:
             print(f"⚠️  Position already in cache (hit_count: {initial_result.get('hit_count', 0)})")
@@ -151,7 +150,7 @@ async def test_flow():
             fen=test_fen,
             depth=depth,
             multipv=multipv,
-            engine_mode=engine_mode,
+            engine_mode="auto",
             lines=lines,
             source=source
         )
@@ -168,7 +167,7 @@ async def test_flow():
         print("-" * 80)
 
         verify_start = time.time()
-        cached_result = await cache.get(test_fen, depth, multipv, engine_mode)
+        cached_result = await cache.get(test_fen, depth, multipv)
         verify_duration = time.time() - verify_start
 
         if cached_result:
@@ -198,7 +197,7 @@ async def test_flow():
         print("✅ Hit count incremented")
 
         # Verify increment
-        final_result = await cache.get(test_fen, depth, multipv, engine_mode)
+        final_result = await cache.get(test_fen, depth, multipv)
         if final_result:
             new_hit_count = final_result.get('hit_count', 0)
             print(f"✅ New hit count: {new_hit_count}")

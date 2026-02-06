@@ -16,6 +16,7 @@ export interface CachedAnalysis {
   lines: EngineLine[];
   source: EngineSource;
   timestamp: number;
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -25,7 +26,6 @@ export interface CacheKey {
   fen: string;
   depth: number;
   multipv: number;
-  engineMode: 'cloud' | 'sf';
 }
 
 /**

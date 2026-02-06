@@ -9,14 +9,14 @@ export function parseLichessCloudEval(data: any): EngineLine[] {
   }));
 }
 
-type SfEntry = {
+export type SfEntry = {
   depth: number;
   multipv: number;
   score: number | string;
   pv: string[];
 };
 
-function parseSfInfoLine(line: string): SfEntry | null {
+export function parseSfInfoLine(line: string): SfEntry | null {
   if (!line.startsWith('info')) return null;
   const tokens = line.trim().split(/\s+/);
   const depthIndex = tokens.indexOf('depth');
