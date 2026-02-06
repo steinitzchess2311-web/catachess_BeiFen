@@ -29,37 +29,6 @@
   color: #1a1b1f;
 }
 
-.landing-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding-top: 8px;
-}
-
-.landing-actions .cta,
-.landing-actions .ghost {
-  border: 1px solid rgba(26, 27, 31, 0.18);
-  background: transparent;
-  color: #1a1b1f;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.landing-actions .cta:hover,
-.landing-actions .ghost:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(26, 27, 31, 0.12);
-}
-
-.landing-actions .cta-primary {
-  background: #d46435;
-  color: #fff;
-  border: none;
-}
 
 @media (max-width: 720px) {
   .landing-page {
