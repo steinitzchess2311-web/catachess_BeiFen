@@ -9,12 +9,14 @@ const AboutPage = () => {
         // Keep content scrollable beneath the fixed header.
         maxHeight: "calc(100vh - 64px)",
         overflowY: "auto",
+        overflowX: "hidden",
       }}
     >
       <div
         style={{
           height: "200px",
           width: "100%",
+          maxWidth: "100%",
           border: "2px solid #000",
           marginBottom: "20px",
           padding: "20px 24px",
@@ -22,6 +24,7 @@ const AboutPage = () => {
           flexDirection: "column",
           justifyContent: "center",
           gap: "10px",
+          boxSizing: "border-box",
         }}
       >
         <div style={{ fontSize: "20px", fontWeight: 600 }}>
@@ -30,7 +33,15 @@ const AboutPage = () => {
         <div style={{ fontSize: "16px", lineHeight: 1.6 }}>
           ChessorTag is a platform that offers:
         </div>
-        <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "16px", lineHeight: 1.6 }}>
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: "18px",
+            fontSize: "16px",
+            lineHeight: 1.6,
+            wordBreak: "break-word",
+          }}
+        >
           <li>
             A detailed report based on your uploaded games, highlighting your weaknesses,
             strengths, and areas of improvement
