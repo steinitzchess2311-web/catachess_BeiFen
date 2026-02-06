@@ -10,24 +10,38 @@ const Developer = () => {
         marginBottom: "20px",
         padding: "16px",
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
         alignItems: "center",
         gap: "16px",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "flex-start" }}>
+      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
         <img
           src="/assets/developers/CataDragon.png"
           alt="CataDragon"
-          style={{ maxWidth: "100%", height: "auto", display: "block" }}
+          loading="eager"
+          style={{
+            width: "100%",
+            maxWidth: "280px",
+            height: "auto",
+            display: "block",
+            objectFit: "contain",
+          }}
         />
       </div>
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div style={{ display: "flex", justifyContent: "center", minWidth: 0 }}>
         <img
           src="/assets/developers/ChessNut.jpg"
           alt="ChessNut"
-          style={{ maxWidth: "100%", height: "auto", display: "block" }}
+          loading="eager"
+          style={{
+            width: "100%",
+            maxWidth: "280px",
+            height: "auto",
+            display: "block",
+            objectFit: "contain",
+          }}
         />
       </div>
     </div>
