@@ -26,7 +26,7 @@ import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/Header";
 import AboutPage from "./components/AboutPage";
-import LandingPage from "./components/LandingPage";
+import LandingPage from "./pages/Landing/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
 import PlayerDetail from "@patch/modules/tagger/pages/PlayerDetail";
 import AccountPage from "../AccountPage";
