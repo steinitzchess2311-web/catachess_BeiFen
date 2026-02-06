@@ -29,26 +29,64 @@ body {
   gap: 48px;
 }
 
-.landing-header {
+.app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
-  font-size: 1.05rem;
+  padding: 0 24px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(219, 219, 219, 0.8);
+  border-radius: 18px;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  backdrop-filter: blur(10px);
 }
 
-.brand {
-  display: inline-flex;
+.header-left .logo {
+  display: flex;
   align-items: center;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(26, 27, 31, 0.1);
+  text-decoration: none;
+  color: #202124;
 }
 
-.nav-actions {
-  display: inline-flex;
-  gap: 10px;
+.header-left .app-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.header-center .nav-link {
+  font-size: 16px;
+  font-weight: 500;
+  color: #5f6368;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.header-center .nav-link:hover {
+  background-color: #f1f3f4;
+}
+
+.header-right .username {
+  font-size: 16px;
+  font-weight: 600;
+  color: #202124;
+  text-decoration: none;
+}
+
+.header-right .nav-link {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .cta,
@@ -110,10 +148,12 @@ body {
 }
 
 @media (max-width: 720px) {
-  .landing-header {
+  .app-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+    height: auto;
+    padding: 16px;
   }
 
   .hero-card {

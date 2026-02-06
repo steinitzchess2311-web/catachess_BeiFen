@@ -12,9 +12,22 @@
 </head>
 <body>
   <main class="landing">
-    <header class="landing-header">
-      <div class="brand">ChessorTag.org</div>
-      <div class="nav-actions">
+    <header class="app-header">
+      <div class="header-left">
+        <a href="/" class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="black" strokeWidth="2" strokeLinejoin="round"/>
+            <path d="M2 7L12 12L22 7" stroke="black" strokeWidth="2" strokeLinejoin="round"/>
+            <path d="M12 22V12" stroke="black" strokeWidth="2" strokeLinejoin="round"/>
+          </svg>
+          <span class="app-name">ChessorTag.org</span>
+        </a>
+      </div>
+      <nav class="header-center" />
+      <div class="header-right">
+        <a href="/players" class="nav-link">Players</a>
+        <a href="/about" class="nav-link">About Us</a>
+        <a id="header-username" href="/account" class="username" hidden>Account</a>
         <button id="top-login" class="ghost">Login</button>
         <button id="top-signup" class="cta cta-primary">Sign up</button>
       </div>
