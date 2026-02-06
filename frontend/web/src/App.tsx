@@ -25,7 +25,7 @@ import studyLayout from "@ui/modules/study/layout/index.html?raw";
 import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/Header";
-import AboutPage from "./components/AboutPage";
+import AboutPage from "./components/aboutPage/AboutPage";
 import LandingPage from "./pages/Landing/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
 import PlayerDetail from "@patch/modules/tagger/pages/PlayerDetail";
