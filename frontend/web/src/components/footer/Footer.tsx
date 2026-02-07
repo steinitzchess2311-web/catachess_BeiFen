@@ -1,57 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { EnvelopeClosedIcon, GlobeIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
 import "./Footer.css";
 
 const Footer: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-      const scrollBottom = scrollTop + windowHeight;
-      const currentScrollY = window.scrollY;
-
-      // Show footer when at bottom, hide when scrolling up
-      const threshold = 50;
-      const isAtBottom = scrollBottom >= documentHeight - threshold;
-      const isScrollingUp = currentScrollY < lastScrollY;
-
-      if (isAtBottom) {
-        setIsVisible(true);
-      } else if (isScrollingUp) {
-        setIsVisible(false);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    // Throttle scroll events for performance
-    let timeoutId: number | null = null;
-    const throttledScroll = () => {
-      if (timeoutId === null) {
-        timeoutId = window.setTimeout(() => {
-          handleScroll();
-          timeoutId = null;
-        }, 50);
-      }
-    };
-
-    window.addEventListener("scroll", throttledScroll);
-    handleScroll(); // Check initial state
-
-    return () => {
-      window.removeEventListener("scroll", throttledScroll);
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [lastScrollY]);
-
   return (
-    <footer className={`app-footer ${isVisible ? "visible" : ""}`}>
+    <footer className="app-footer">
       <div className="footer-gradient-overlay"></div>
       <div className="footer-content">
         <div className="footer-section footer-main">
