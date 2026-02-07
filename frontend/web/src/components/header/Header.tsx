@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from 'react-router-dom';
 import "./Header.css";
+import logoImage from "../../assets/logo.jpg";
 
 interface HeaderProps {
   username: string | null;
@@ -36,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
     <header className="app-header">
       <div className="header-left">
         <Link to="/" className="logo" onContextMenu={handleLogoContextMenu}>
-          <img src="/assets/logo.jpg" alt="ChessorTag" className="logo-image" />
+          <img src={logoImage} alt="ChessorTag" className="logo-image" />
         </Link>
       </div>
       <nav className="header-center" />
