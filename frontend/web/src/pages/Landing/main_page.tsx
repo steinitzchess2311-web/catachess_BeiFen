@@ -52,10 +52,10 @@ const MainPage = () => {
         <Link
           to="/login"
           style={{
-            alignSelf: "center",
+            alignSelf: "flex-end",
             border: "2px solid #000",
             padding: "12px 24px",
-            fontSize: "18px",
+            fontSize: "40px",
             fontWeight: 600,
             color: "inherit",
             textDecoration: "none",
