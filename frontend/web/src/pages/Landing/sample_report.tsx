@@ -6,7 +6,7 @@ const SampleReport = () => {
       style={{
         display: "grid",
         gridTemplateColumns: "60% 1fr",
-        gap: "50px",
+        gap: "0",
         alignItems: "center",
         padding: "50px",
         border: "2px solid #000",
