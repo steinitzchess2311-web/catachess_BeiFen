@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import "./Header.css";
 import logoImage from "../../assets/logo.jpg";
 
@@ -12,6 +12,8 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
   const displayName = username?.trim() || 'Account';
   const rightClickCountRef = useRef(0);
   const rightClickTimerRef = useRef<number | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogoContextMenu = () => {
     rightClickCountRef.current += 1;
@@ -33,10 +35,23 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
     }
   };
 
+  const handleLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (location.pathname !== '/workspace-select') {
+      return;
+    }
+    event.preventDefault();
+    navigate('/workspace-select', { state: { resetWorkspace: Date.now() } });
+  };
+
   return (
     <header className="app-header">
       <div className="header-left">
-        <Link to="/workspace-select" className="logo" onContextMenu={handleLogoContextMenu}>
+        <Link
+          to="/workspace-select"
+          className="logo"
+          onClick={handleLogoClick}
+          onContextMenu={handleLogoContextMenu}
+        >
           <img src={logoImage} alt="ChessorTag" className="logo-image" />
         </Link>
       </div>

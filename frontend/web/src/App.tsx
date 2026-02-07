@@ -220,7 +220,9 @@ function WorkspaceSelect() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const initialParentId = searchParams.get("parent") || "root";
+  const resetWorkspace = (location.state as { resetWorkspace?: number } | null)?.resetWorkspace;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -233,7 +235,7 @@ function WorkspaceSelect() {
       },
       initialParentId,
     });
-  }, [navigate, initialParentId]);
+  }, [navigate, initialParentId, resetWorkspace]);
 
   return (
     <div>
