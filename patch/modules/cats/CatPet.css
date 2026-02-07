@@ -1,0 +1,32 @@
+/**
+ * CatPet Styles
+ */
+
+.cat-pet-container {
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+.cat-pet-container:hover {
+  opacity: 0.95;
+}
+
+.cat-pet-container.dragging {
+  opacity: 0.8;
+  transition: none;
+}
+
+.cat-sprite {
+  display: block;
+  pointer-events: none;
+  will-change: background-position;
+}
+
+/* Smooth pixel art rendering */
+.cat-sprite {
+  -ms-interpolation-mode: nearest-neighbor;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

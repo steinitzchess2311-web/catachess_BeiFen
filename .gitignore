@@ -36,6 +36,11 @@ venv.bak/
 # VS Code
 .vscode/
 
+# TypeScript config for local development only
+frontend/web/tsconfig.json
+frontend/web/tsconfig.node.json
+patch/tsconfig.json
+
 # Claude Code
 .claude/
 
