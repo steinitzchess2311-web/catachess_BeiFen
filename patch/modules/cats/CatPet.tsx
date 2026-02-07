@@ -82,60 +82,98 @@ export function CatPet({
     };
   }, [enableAI]);
 
-  // Route change detection - trigger fall animation
+  // Route change detection - trigger fall animation only if cat is in upper 3/4 of screen
   useEffect(() => {
     if (location.pathname !== prevPath.current) {
       prevPath.current = location.pathname;
 
-      // Stop AI and trigger fall
+      // Check if cat is in upper 3/4 of screen (needs to fall)
+      const fallThreshold = window.innerHeight * 0.75;
+      const shouldFall = position.y < fallThreshold;
+
+      // Stop AI
       behaviorEngine.current?.stop();
       movementEngine.current?.stopMovement();
-      setCurrentAnimation('fall');
 
-      // Fall animation with rotation
-      if (movementEngine.current) {
-        movementEngine.current.fall(
-          (pos, rot) => {
-            setPosition(pos);
-            setRotation(rot);
-          },
-          () => {
-            // After landing, return to idle
-            setRotation(0);
-            setCurrentAnimation('idle');
+      if (shouldFall) {
+        // Trigger fall animation
+        setCurrentAnimation('fall');
 
-            // Restart AI behavior
-            if (enableAI && behaviorEngine.current) {
-              const handleStateChange = (newState: CatState) => {
-                setCurrentAnimation(newState);
+        if (movementEngine.current) {
+          movementEngine.current.fall(
+            (pos, rot) => {
+              setPosition(pos);
+              setRotation(rot);
+            },
+            () => {
+              // After landing, return to idle
+              setRotation(0);
+              setCurrentAnimation('idle');
 
-                if (newState === 'walk' && movementEngine.current) {
-                  setRotation(0);
-                  const target = movementEngine.current.generateRandomTarget();
-                  movementEngine.current.moveTo(target, (pos, dir) => {
-                    setPosition(pos);
-                    setDirection(dir);
-                  });
-                } else if (newState === 'climb' && movementEngine.current) {
-                  const target = movementEngine.current.generateClimbTarget();
-                  movementEngine.current.climb(target, (pos, dir, rot) => {
-                    setPosition(pos);
-                    setDirection(dir);
-                    setRotation(rot);
-                  });
-                } else if (movementEngine.current) {
-                  setRotation(0);
-                  movementEngine.current.stopMovement();
-                }
-              };
+              // Restart AI behavior
+              if (enableAI && behaviorEngine.current) {
+                const handleStateChange = (newState: CatState) => {
+                  setCurrentAnimation(newState);
 
-              behaviorEngine.current.start(handleStateChange);
+                  if (newState === 'walk' && movementEngine.current) {
+                    setRotation(0);
+                    const target = movementEngine.current.generateRandomTarget();
+                    movementEngine.current.moveTo(target, (pos, dir) => {
+                      setPosition(pos);
+                      setDirection(dir);
+                    });
+                  } else if (newState === 'climb' && movementEngine.current) {
+                    const target = movementEngine.current.generateClimbTarget();
+                    movementEngine.current.climb(target, (pos, dir, rot) => {
+                      setPosition(pos);
+                      setDirection(dir);
+                      setRotation(rot);
+                    });
+                  } else if (movementEngine.current) {
+                    setRotation(0);
+                    movementEngine.current.stopMovement();
+                  }
+                };
+
+                behaviorEngine.current.start(handleStateChange);
+              }
             }
-          }
-        );
+          );
+        }
+      } else {
+        // Cat is already at bottom, just restart AI without falling
+        setRotation(0);
+        setCurrentAnimation('idle');
+
+        if (enableAI && behaviorEngine.current) {
+          const handleStateChange = (newState: CatState) => {
+            setCurrentAnimation(newState);
+
+            if (newState === 'walk' && movementEngine.current) {
+              setRotation(0);
+              const target = movementEngine.current.generateRandomTarget();
+              movementEngine.current.moveTo(target, (pos, dir) => {
+                setPosition(pos);
+                setDirection(dir);
+              });
+            } else if (newState === 'climb' && movementEngine.current) {
+              const target = movementEngine.current.generateClimbTarget();
+              movementEngine.current.climb(target, (pos, dir, rot) => {
+                setPosition(pos);
+                setDirection(dir);
+                setRotation(rot);
+              });
+            } else if (movementEngine.current) {
+              setRotation(0);
+              movementEngine.current.stopMovement();
+            }
+          };
+
+          behaviorEngine.current.start(handleStateChange);
+        }
       }
     }
-  }, [location.pathname, enableAI]);
+  }, [location.pathname, enableAI, position.y]);
 
   // Pause AI during user interaction
   useEffect(() => {
