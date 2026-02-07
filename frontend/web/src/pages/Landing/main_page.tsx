@@ -24,7 +24,7 @@ const MainPage = () => {
       />
       <div
         style={{
-          border: "2px solid #000",
+          border: "2px solid transparent",
           height: "100%",
           padding: "28px 32px 28px 0",
           boxSizing: "border-box",
