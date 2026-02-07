@@ -16,12 +16,21 @@ const MainPage = () => {
     >
       <div
         style={{
-          border: "2px solid #000",
+          border: "2px solid transparent",
           width: "100%",
           aspectRatio: "1 / 1",
           justifySelf: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+        <img
+          src="/assets/photos/main_page.png"
+          alt="Main page preview"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
       <div
         style={{
           border: "2px solid transparent",
