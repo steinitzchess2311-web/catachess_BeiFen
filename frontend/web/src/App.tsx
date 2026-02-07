@@ -294,8 +294,6 @@ function WorkspacePage() {
 
 function Layout() {
   const [username, setUsername] = useState<string | null>(null);
-  const [showFooter, setShowFooter] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const authed = isAuthed();
   const catamazeStateRef = useRef({
     gameId: null as string | null,
@@ -329,49 +327,6 @@ function Layout() {
     };
     fetchUser();
   }, [authed]);
-
-  // Footer scroll logic
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-      const scrollBottom = scrollTop + windowHeight;
-      const currentScrollY = window.scrollY;
-
-      const threshold = 50;
-      const isAtBottom = scrollBottom >= documentHeight - threshold;
-      const isScrollingUp = currentScrollY < lastScrollY;
-
-      if (isAtBottom) {
-        setShowFooter(true);
-      } else if (isScrollingUp) {
-        setShowFooter(false);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    let timeoutId: number | null = null;
-    const throttledScroll = () => {
-      if (timeoutId === null) {
-        timeoutId = window.setTimeout(() => {
-          handleScroll();
-          timeoutId = null;
-        }, 50);
-      }
-    };
-
-    window.addEventListener("scroll", throttledScroll);
-    handleScroll();
-
-    return () => {
-      window.removeEventListener("scroll", throttledScroll);
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [lastScrollY]);
 
   return (
     <>
@@ -435,7 +390,7 @@ function Layout() {
           <Route path="*" element={<div>404</div>} />
         </Routes>
       </main>
-      <Footer isVisible={showFooter} />
+      <Footer />
       <TerminalLauncher customCommands={[catamazeCommand]} />
       {authed && ENABLE_CAT_PET && <CatPet />}
     </>
