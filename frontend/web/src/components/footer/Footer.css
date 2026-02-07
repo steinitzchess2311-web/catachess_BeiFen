@@ -1,6 +1,13 @@
+/* Ensure transparent background for padding area */
+body {
+  background: var(--bg-app, #F8F9FA);
+  margin: 0;
+}
+
 /* Add spacing between page content and footer */
 main {
   padding-bottom: 60px;
+  background: transparent;
 }
 
 .app-footer {
