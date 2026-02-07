@@ -14,14 +14,14 @@ const Footer: React.FC = () => {
       const scrollBottom = scrollTop + windowHeight;
       const currentScrollY = window.scrollY;
 
-      // Show footer when near bottom and scrolling down
-      const threshold = 100;
-      const isNearBottom = scrollBottom >= documentHeight - threshold;
-      const isScrollingDown = currentScrollY > lastScrollY;
+      // Show footer when at bottom, hide when scrolling up
+      const threshold = 50;
+      const isAtBottom = scrollBottom >= documentHeight - threshold;
+      const isScrollingUp = currentScrollY < lastScrollY;
 
-      if (isNearBottom && isScrollingDown) {
+      if (isAtBottom) {
         setIsVisible(true);
-      } else if (!isNearBottom || !isScrollingDown) {
+      } else if (isScrollingUp) {
         setIsVisible(false);
       }
 
