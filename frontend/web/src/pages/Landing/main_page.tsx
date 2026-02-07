@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import mainPageImage from "../../assets/photos/main_page.png";
 
 const MainPage = () => {
   return (
@@ -26,7 +27,7 @@ const MainPage = () => {
         }}
       >
         <img
-          src="/assets/photos/main_page.png"
+          src={mainPageImage}
           alt="Main page preview"
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
