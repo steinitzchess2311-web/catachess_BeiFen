@@ -31,7 +31,6 @@ const MainPage = () => {
           flexDirection: "column",
           justifyContent: "center",
           gap: "18px",
-          textAlign: "center",
         }}
       >
         <div style={{ fontSize: "32px", fontWeight: 700, lineHeight: 1.2 }}>
