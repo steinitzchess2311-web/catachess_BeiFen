@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { EnvelopeClosedIcon, GlobeIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
 import "./Footer.css";
 
 const Footer: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -10,12 +12,20 @@ const Footer: React.FC = () => {
       const documentHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY;
       const scrollBottom = scrollTop + windowHeight;
+      const currentScrollY = window.scrollY;
 
-      // Show footer when within 300px of bottom
-      const threshold = 300;
-      const shouldShow = scrollBottom >= documentHeight - threshold;
+      // Show footer when near bottom and scrolling down
+      const threshold = 100;
+      const isNearBottom = scrollBottom >= documentHeight - threshold;
+      const isScrollingDown = currentScrollY > lastScrollY;
 
-      setIsVisible(shouldShow);
+      if (isNearBottom && isScrollingDown) {
+        setIsVisible(true);
+      } else if (!isNearBottom || !isScrollingDown) {
+        setIsVisible(false);
+      }
+
+      setLastScrollY(currentScrollY);
     };
 
     // Throttle scroll events for performance
@@ -25,7 +35,7 @@ const Footer: React.FC = () => {
         timeoutId = window.setTimeout(() => {
           handleScroll();
           timeoutId = null;
-        }, 100);
+        }, 50);
       }
     };
 
@@ -38,7 +48,7 @@ const Footer: React.FC = () => {
         window.clearTimeout(timeoutId);
       }
     };
-  }, []);
+  }, [lastScrollY]);
 
   return (
     <footer className={`app-footer ${isVisible ? "visible" : ""}`}>
@@ -57,17 +67,18 @@ const Footer: React.FC = () => {
         <div className="footer-section footer-contact">
           <h3 className="footer-heading">Contact</h3>
           <div className="contact-item">
-            <span className="contact-icon">✉</span>
+            <EnvelopeClosedIcon className="contact-icon" />
             <a href="mailto:info@steinitzchess.org" className="contact-link">
               info@steinitzchess.org
             </a>
           </div>
           <div className="contact-item">
-            <span className="contact-icon">💬</span>
+            <ChatBubbleIcon className="contact-icon" />
+            <span className="contact-label">WeChat ID:</span>
             <span className="contact-text">Wxib_l3c01kg3a10086</span>
           </div>
           <div className="contact-item">
-            <span className="contact-icon">🌐</span>
+            <GlobeIcon className="contact-icon" />
             <a
               href="https://steinitzchess.org"
               target="_blank"
@@ -88,6 +99,9 @@ const Footer: React.FC = () => {
             <span className="appreciation-name">Zhian Chen</span>
             <span className="appreciation-name">Liren Ding</span>
             <span className="appreciation-name">Yaochen Yu</span>
+            <span className="appreciation-name">Quanhao Li</span>
+            <span className="appreciation-name">Jimi Ha</span>
+            <span className="appreciation-name">Dragon Milky</span>
           </div>
         </div>
       </div>
@@ -95,7 +109,7 @@ const Footer: React.FC = () => {
       <div className="footer-bottom">
         <div className="footer-divider"></div>
         <p className="footer-copyright">
-          © {new Date().getFullYear()} CataChess. Crafted with passion for chess enthusiasts.
+          © {new Date().getFullYear()} HaJiMiBo South North Green Bean.
         </p>
       </div>
     </footer>
