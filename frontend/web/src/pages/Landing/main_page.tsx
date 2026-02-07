@@ -36,7 +36,7 @@ const MainPage = () => {
       >
         <div
           style={{
-            fontSize: "28px",
+            fontSize: "40px",
             fontWeight: 700,
             lineHeight: 1.2,
             textAlign: "right",
@@ -55,7 +55,7 @@ const MainPage = () => {
             alignSelf: "flex-end",
             border: "2px solid #000",
             padding: "12px 24px",
-            fontSize: "40px",
+            fontSize: "18px",
             fontWeight: 600,
             color: "inherit",
             textDecoration: "none",
