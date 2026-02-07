@@ -19,10 +19,10 @@
   color: #202124;
 }
 
-.header-left .app-name {
-  font-size: 22px;
-  font-weight: 500;
-  margin-left: 8px;
+.header-left .logo-image {
+  height: 60px;
+  width: auto;
+  display: block;
 }
 
 .header-center .nav-link {
@@ -46,7 +46,7 @@
 }
 
 .header-right .nav-link {
-    font-size: 16px;
+    font-size: 30px;
     font-weight: 500;
     color: #1a73e8;
     text-decoration: none;
