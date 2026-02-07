@@ -99,9 +99,9 @@ const Footer: React.FC = () => {
             <span className="appreciation-name">Zhian Chen</span>
             <span className="appreciation-name">Liren Ding</span>
             <span className="appreciation-name">Yaochen Yu</span>
-            <span className="appreciation-name">Quanhao Li</span>
-            <span className="appreciation-name">Jimi Ha</span>
-            <span className="appreciation-name">Dragon Milky</span>
+            <span className="appreciation-name">ZiFei Luo</span>
+            <span className="appreciation-name">Yuxuan Zheng</span>
+            <span className="appreciation-name">Ziyang Huang</span>
           </div>
         </div>
       </div>
