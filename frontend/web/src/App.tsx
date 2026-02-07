@@ -25,6 +25,7 @@ import studyLayout from "@ui/modules/study/layout/index.html?raw";
 import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/header/Header";
+import Footer from "./components/footer/Footer";
 import AboutPage from "./pages/aboutPage/AboutPage";
 import LandingPage from "./pages/Landing/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
@@ -38,6 +39,9 @@ import "@patch/styles/index.css";
 
 // Entry switch configuration: default to patch unless explicitly disabled
 const USE_PATCH_STUDY = import.meta.env.VITE_USE_PATCH_STUDY !== "false";
+
+// Cat pet feature toggle
+const ENABLE_CAT_PET = false;
 
 const TOKEN_KEY = "catachess_token";
 const USER_ID_KEY = "catachess_user_id";
@@ -386,8 +390,9 @@ function Layout() {
           <Route path="*" element={<div>404</div>} />
         </Routes>
       </main>
+      <Footer />
       <TerminalLauncher customCommands={[catamazeCommand]} />
-      {authed && <CatPet />}
+      {authed && ENABLE_CAT_PET && <CatPet />}
     </>
   );
 }
