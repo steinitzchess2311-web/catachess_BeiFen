@@ -10,7 +10,7 @@ const MainPage = () => {
         gap: "0",
         alignItems: "center",
         padding: "50px",
-        border: "2px solid #000",
+        border: "2px solid transparent",
         boxSizing: "border-box",
       }}
     >
