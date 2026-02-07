@@ -31,7 +31,7 @@ const MainPage = () => {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: "18px",
+          gap: "37px",
         }}
       >
         <div
