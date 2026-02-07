@@ -1,4 +1,6 @@
 import React from "react";
+import MainPage from "./main_page";
+import SampleReport from "./sample_report";
 
 const LandingPage = () => {
   return (
@@ -11,28 +13,9 @@ const LandingPage = () => {
         boxSizing: "border-box",
       }}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "60% 1fr",
-          gap: "50px",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            border: "2px solid #000",
-            height: "100%",
-          }}
-        />
-        <div
-          style={{
-            border: "2px solid #000",
-            width: "100%",
-            aspectRatio: "1 / 1",
-            justifySelf: "center",
-          }}
-        />
+      <div style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
+        <MainPage />
+        <SampleReport />
       </div>
     </div>
   );
