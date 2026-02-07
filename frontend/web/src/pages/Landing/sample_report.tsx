@@ -15,7 +15,7 @@ const SampleReport = () => {
     >
       <div
         style={{
-          border: "2px solid #000",
+          border: "2px solid transparent",
           height: "100%",
           padding: "28px 0 28px 32px",
           boxSizing: "border-box",
