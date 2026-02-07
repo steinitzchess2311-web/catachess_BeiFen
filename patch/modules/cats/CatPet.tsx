@@ -1,24 +1,28 @@
 /**
  * CatPet - Main Desktop Pet Component
  *
- * Features:
- * - Draggable cat sprite
- * - Animated idle state
- * - Self-contained in patch/modules/cats
+ * Phase 2 Features:
+ * - AI behavior system (idle, walk, sit, sleep, play)
+ * - Random movement with boundaries
+ * - Click interaction
+ * - Smooth animations and transitions
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Cat } from './components/Cat';
+import { BehaviorEngine } from './engine/BehaviorEngine';
+import { MovementEngine } from './engine/MovementEngine';
 import type { CatPetProps, Position, CatState } from './types';
 import './CatPet.css';
 
 const DEFAULT_POSITION: Position = { x: 100, y: 100 };
-const DEFAULT_SCALE = 2;
+const DEFAULT_SCALE = 3;
 
 export function CatPet({
   initialPosition = DEFAULT_POSITION,
   scale = DEFAULT_SCALE,
   enableDrag = true,
+  enableAI = true,
   onInteraction,
 }: CatPetProps = {}) {
   const [position, setPosition] = useState<Position>(initialPosition);
@@ -28,28 +32,86 @@ export function CatPet({
 
   const dragOffset = useRef<Position>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const behaviorEngine = useRef<BehaviorEngine | null>(null);
+  const movementEngine = useRef<MovementEngine | null>(null);
+  const isUserInteracting = useRef(false);
 
-  // Handle mouse down - start dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!enableDrag) return;
+  // Initialize engines
+  useEffect(() => {
+    if (!enableAI) return;
 
-    e.preventDefault();
-    setIsDragging(true);
+    behaviorEngine.current = new BehaviorEngine();
+    movementEngine.current = new MovementEngine(position);
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (rect) {
-      dragOffset.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+    const handleStateChange = (newState: CatState) => {
+      setCurrentAnimation(newState);
+
+      if (newState === 'walk' && movementEngine.current) {
+        const target = movementEngine.current.generateRandomTarget();
+        movementEngine.current.moveTo(target, (pos, dir) => {
+          setPosition(pos);
+          setDirection(dir);
+        });
+      } else if (movementEngine.current) {
+        movementEngine.current.stopMovement();
+      }
+    };
+
+    behaviorEngine.current.start(handleStateChange);
+
+    return () => {
+      behaviorEngine.current?.destroy();
+      movementEngine.current?.destroy();
+    };
+  }, [enableAI, position.x, position.y]);
+
+  // Pause AI during user interaction
+  useEffect(() => {
+    if (isDragging || isUserInteracting.current) {
+      behaviorEngine.current?.stop();
+      movementEngine.current?.stopMovement();
+    } else if (enableAI && behaviorEngine.current) {
+      const handleStateChange = (newState: CatState) => {
+        setCurrentAnimation(newState);
+
+        if (newState === 'walk' && movementEngine.current) {
+          const target = movementEngine.current.generateRandomTarget();
+          movementEngine.current.moveTo(target, (pos, dir) => {
+            setPosition(pos);
+            setDirection(dir);
+          });
+        } else if (movementEngine.current) {
+          movementEngine.current.stopMovement();
+        }
       };
-    }
 
-    if (onInteraction) {
-      onInteraction('drag-start');
+      behaviorEngine.current.start(handleStateChange);
     }
-  };
+  }, [isDragging, enableAI]);
 
-  // Handle mouse move - dragging
+  // Mouse down - start dragging
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!enableDrag) return;
+
+      e.preventDefault();
+      setIsDragging(true);
+      isUserInteracting.current = true;
+
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        dragOffset.current = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        };
+      }
+
+      onInteraction?.('drag-start');
+    },
+    [enableDrag, onInteraction]
+  );
+
+  // Mouse move and up - dragging
   useEffect(() => {
     if (!isDragging) return;
 
@@ -58,13 +120,13 @@ export function CatPet({
       const newY = e.clientY - dragOffset.current.y;
 
       setPosition({ x: newX, y: newY });
+      movementEngine.current?.setPosition({ x: newX, y: newY });
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
-      if (onInteraction) {
-        onInteraction('drag-end');
-      }
+      isUserInteracting.current = false;
+      onInteraction?.('drag-end');
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -76,13 +138,28 @@ export function CatPet({
     };
   }, [isDragging, onInteraction]);
 
-  // Handle click
-  const handleClick = () => {
-    if (onInteraction) {
-      onInteraction('click');
-    }
-    console.log('[CAT PET] Meow! 🐱');
-  };
+  // Click interaction
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (isDragging) return;
+
+      e.stopPropagation();
+      isUserInteracting.current = true;
+
+      if (behaviorEngine.current) {
+        behaviorEngine.current.handleInteraction((newState) => {
+          setCurrentAnimation(newState);
+        });
+      }
+
+      onInteraction?.('click');
+
+      setTimeout(() => {
+        isUserInteracting.current = false;
+      }, 100);
+    },
+    [isDragging, onInteraction]
+  );
 
   return (
     <div

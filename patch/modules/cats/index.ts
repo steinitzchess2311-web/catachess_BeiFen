@@ -16,3 +16,5 @@ export type {
 } from './types';
 
 export { SPRITE_CONFIG, ANIMATIONS } from './engine/SpriteConfig';
+export { BehaviorEngine } from './engine/BehaviorEngine';
+export { MovementEngine } from './engine/MovementEngine';

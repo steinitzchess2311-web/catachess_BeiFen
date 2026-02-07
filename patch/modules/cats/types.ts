@@ -25,6 +25,7 @@ export interface CatPetProps {
   initialPosition?: Position;
   scale?: number;
   enableDrag?: boolean;
+  enableAI?: boolean;
   onInteraction?: (type: string) => void;
 }
 
