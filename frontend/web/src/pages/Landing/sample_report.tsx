@@ -1,4 +1,5 @@
 import React from "react";
+import sampleReportImage from "../../assets/photos/sample_report.jpg";
 
 const SampleReport = () => {
   return (
@@ -64,12 +65,21 @@ const SampleReport = () => {
       </div>
       <div
         style={{
-          border: "2px solid #000",
+          border: "2px solid transparent",
           width: "100%",
           aspectRatio: "1 / 1",
           justifySelf: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+        <img
+          src={sampleReportImage}
+          alt="Sample report"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
     </div>
   );
 };
