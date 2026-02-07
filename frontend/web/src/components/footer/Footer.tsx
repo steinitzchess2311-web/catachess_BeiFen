@@ -2,9 +2,13 @@ import React from "react";
 import { EnvelopeClosedIcon, GlobeIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
 import "./Footer.css";
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  isVisible: boolean;
+}
+
+const Footer: React.FC<FooterProps> = ({ isVisible }) => {
   return (
-    <footer className="app-footer">
+    <footer className={`app-footer ${isVisible ? "visible" : ""}`}>
       <div className="footer-gradient-overlay"></div>
       <div className="footer-content">
         <div className="footer-section footer-main">
