@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
   return (
     <header className="app-header">
       <div className="header-left">
-        <Link to="/" className="logo" onContextMenu={handleLogoContextMenu}>
+        <Link to="/workspace-select" className="logo" onContextMenu={handleLogoContextMenu}>
           <img src={logoImage} alt="ChessorTag" className="logo-image" />
         </Link>
       </div>
