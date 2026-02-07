@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStudy } from '../studyContext';
 import { uciLineToSan } from '../chessJS/uci';
-import { getFullmoveNumber, getTurn } from '../chessJS/fen';
-import { analyzeAuto, API_BASE } from '../engine/client';
-import type { EngineLine, EngineSource } from '../engine/types';
 import { ChapterList } from './ChapterList';
 import { getCacheManager } from '../engine/cache';
-import { cancelPrecompute } from '../engine/precompute';
+import { AnalysisSettings } from './components/AnalysisSettings';
+import { AnalysisPanel } from './components/AnalysisPanel';
+import { ImitatorSettings } from './components/ImitatorSettings';
+import { ImitatorPanel } from './components/ImitatorPanel';
+import { useEngineAnalysis } from './hooks/useEngineAnalysis';
+import { useImitator } from './hooks/useImitator';
+import { formatSanWithMoveNumbers } from './utils/formatters';
 
 export interface StudySidebarProps {
   chapters: Array<{ id: string; title?: string; order?: number }>;
@@ -19,44 +22,6 @@ export interface StudySidebarProps {
     order: string[],
     context: { draggedId: string; targetId: string; placement: 'before' | 'after' }
   ) => Promise<void> | void;
-}
-
-const FALLBACK_BACKOFF_MS = 10000;
-
-function formatScore(raw: number | string): string {
-  if (typeof raw === 'string') {
-    if (raw.startsWith('mate')) {
-      const mate = raw.slice(4);
-      return `M${mate}`;
-    }
-    return raw;
-  }
-  const value = raw / 100;
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${value.toFixed(2)}`;
-}
-
-function formatSanWithMoveNumbers(sanMoves: string[], fen: string): string {
-  if (sanMoves.length === 0) return '';
-  const turn = getTurn(fen) || 'w';
-  let moveNumber = getFullmoveNumber(fen) || 1;
-  const parts: string[] = [];
-  let isWhite = turn === 'w';
-  let isFirst = true;
-  for (const san of sanMoves) {
-    if (isWhite) {
-      parts.push(`${moveNumber}.${san}`);
-    } else if (isFirst && turn === 'b') {
-      parts.push(`${moveNumber}...${san}`);
-      moveNumber += 1;
-    } else {
-      parts.push(`${san}`);
-      moveNumber += 1;
-    }
-    isFirst = false;
-    isWhite = !isWhite;
-  }
-  return parts.join(' ');
 }
 
 export function StudySidebar({
@@ -102,62 +67,24 @@ export function StudySidebar({
   const [depth, setDepth] = useState(14);
   const [multipv, setMultipv] = useState(3);
   const [engineEnabled, setEngineEnabled] = useState(false);
-  const [lines, setLines] = useState<EngineLine[]>([]);
-  const [status, setStatus] = useState<'idle' | 'running' | 'ready' | 'error'>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
-  const [health, setHealth] = useState<'unknown' | 'ok' | 'down'>('unknown');
-  const [source, setSource] = useState<EngineSource | null>(null);
-  const [engineOrigin, setEngineOrigin] = useState<string | null>(null);
-  const [coachOptions, setCoachOptions] = useState<string[]>([]);
-  const [playerOptions, setPlayerOptions] = useState<Array<{ id: string; name: string }>>([]);
-  const [coachStatus, setCoachStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [playerStatus, setPlayerStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [coachError, setCoachError] = useState<string | null>(null);
-  const [playerError, setPlayerError] = useState<string | null>(null);
-  const [selectedCoach, setSelectedCoach] = useState<string>('');
-  const [selectedPlayer, setSelectedPlayer] = useState<string>('');
-  const [selectedEngine, setSelectedEngine] = useState<'auto'>('auto');
-  const [imitatorTargets, setImitatorTargets] = useState<
-    Array<{
-      id: string;
-      label: string;
-      source?: 'library' | 'user';
-      player?: string;
-      playerId?: string;
-      engine?: 'auto';
-      kind: 'coach' | 'player' | 'engine';
-    }>
-  >([]);
-  const [imitatorResults, setImitatorResults] = useState<
-    Record<
-      string,
-      {
-        status: 'idle' | 'running' | 'ready' | 'error';
-        moves: Array<{
-          move: string;
-          uci?: string;
-          score_cp?: number | null;
-          tags?: string[];
-          probability?: number;
-        }>;
-        updated?: number;
-        error?: string | null;
-      }
-    >
-  >({});
-  const inFlightRef = useRef(false);
-  const pollRef = useRef<number | null>(null);
-  const nextAllowedRef = useRef<number>(0);
-  const imitatorRequestRef = useRef(0);
-  const lastPrecomputeParamsRef = useRef<{
-    fen: string;
-    depth: number;
-    multipv: number;
-  } | null>(null);
 
   // Get the global cache manager instance
   const cacheManager = getCacheManager();
+
+  // Use custom hooks
+  const engineAnalysis = useEngineAnalysis({
+    enabled: activeTab === 'analysis' && engineEnabled,
+    fen: state.currentFen,
+    depth,
+    multipv,
+  });
+
+  const imitator = useImitator({
+    enabled: activeTab === 'imitator',
+    fen: state.currentFen,
+    depth,
+    multipv,
+  });
 
   // Monitor component render performance
   useEffect(() => {
@@ -167,7 +94,7 @@ export function StudySidebar({
     console.log(`[COMPONENT PERF] Render duration: ${renderDuration.toFixed(2)}ms`);
     console.log('[COMPONENT PERF] Active tab:', activeTab);
     console.log('[COMPONENT PERF] Engine enabled:', engineEnabled);
-    console.log('[COMPONENT PERF] Lines count:', lines.length);
+    console.log('[COMPONENT PERF] Lines count:', engineAnalysis.lines.length);
     console.log('[COMPONENT PERF] Formatted lines count:', formattedLines.length);
 
     // Schedule a post-paint check
@@ -188,337 +115,22 @@ export function StudySidebar({
     };
   }, [cacheManager]);
 
-  const resolveTaggerBase = () => {
-    try {
-      const env = (import.meta as any)?.env;
-      const base = env?.VITE_TAGGER_BLACKBOX_URL || env?.VITE_TAGGER_BASE;
-      if (base) return base as string;
-    } catch {
-      // ignore
-    }
-    return 'https://tagger.catachess.com';
-  };
-
-  const TAGGER_BASE = resolveTaggerBase();
-
-  const formatProbability = (value?: number) => {
-    if (value === undefined || value === null || Number.isNaN(value)) return '—';
-    return `${(value * 100).toFixed(1)}%`;
-  };
-
-  const formatTags = (tags?: string[]) => {
-    if (!tags || tags.length === 0) return '—';
-    return tags.join(', ');
-  };
-
-  const analyzePosition = async (fen: string) => {
-    if (!fen || inFlightRef.current) return;
-    const now = Date.now();
-    if (now < nextAllowedRef.current) return;
-
-    console.log('[ENGINE] ===== Analysis Request =====');
-    console.log('[ENGINE] FEN:', fen.slice(0, 50) + '...');
-
-    console.log('[ENGINE] ✗ CACHE MISS - Calling engine');
-    inFlightRef.current = true;
-
-    const setStatusStart = performance.now();
-    setStatus('running');
-    setError(null);
-    const setStatusDuration = performance.now() - setStatusStart;
-    console.log(`[ENGINE PERF] Set status to 'running': ${setStatusDuration.toFixed(2)}ms`);
-
-    const apiCallStart = performance.now();
-    try {
-      const fetchStart = performance.now();
-      const result = await analyzeAuto(fen, depth, multipv);
-      const fetchDuration = performance.now() - fetchStart;
-
-      console.log(`[ENGINE PERF] ===== API Call Complete =====`);
-      console.log(`[ENGINE PERF] Network + Backend: ${fetchDuration.toFixed(1)}ms`);
-      console.log('[ENGINE PERF] Source:', result.source);
-      console.log('[ENGINE PERF] Lines received:', result.lines.length);
-
-      const processStart = performance.now();
-      setLines(result.lines);
-      setSource(result.source);
-      setEngineOrigin(result.origin ?? null);
-      setStatus('ready');
-      const timestamp = Date.now();
-      setLastUpdated(timestamp);
-      setHealth('ok');
-
-      const processDuration = performance.now() - processStart;
-
-      const totalDuration = performance.now() - apiCallStart;
-      console.log(`[ENGINE PERF] Process result + cache: ${processDuration.toFixed(2)}ms`);
-      console.log(`[ENGINE PERF] Total API handling: ${totalDuration.toFixed(1)}ms`);
-      console.log('[ENGINE PERF] Note: useMemo will run on next render to format lines');
-    } catch (e: any) {
-      if (e?.message?.includes('429')) {
-        nextAllowedRef.current = Date.now() + FALLBACK_BACKOFF_MS;
-      }
-      setStatus('error');
-      setError(e?.message || 'Engine request failed');
-      setHealth('down');
-    } finally {
-      inFlightRef.current = false;
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab !== 'analysis' || !engineEnabled) return;
-
-    // Cancel any ongoing precomputation if position parameters changed
-    const lastParams = lastPrecomputeParamsRef.current;
-    const paramsChanged = lastParams !== null && (
-      lastParams.fen !== state.currentFen ||
-      lastParams.depth !== depth ||
-      lastParams.multipv !== multipv
-    );
-
-    if (paramsChanged) {
-      console.log('[PRECOMPUTE] 🔄 Position parameters changed, cancelling previous session');
-      if (lastParams.fen !== state.currentFen) {
-        console.log(`[PRECOMPUTE]   FEN changed: ${lastParams.fen.slice(0, 30)}... → ${state.currentFen.slice(0, 30)}...`);
-      }
-      if (lastParams.depth !== depth) {
-        console.log(`[PRECOMPUTE]   Depth changed: ${lastParams.depth} → ${depth}`);
-      }
-      if (lastParams.multipv !== multipv) {
-        console.log(`[PRECOMPUTE]   MultiPV changed: ${lastParams.multipv} → ${multipv}`);
-      }
-      cancelPrecompute();
-    }
-
-    // Update last params
-    lastPrecomputeParamsRef.current = {
-      fen: state.currentFen,
-      depth: depth,
-      multipv: multipv,
-    };
-
-    analyzePosition(state.currentFen);
-    if (pollRef.current) window.clearInterval(pollRef.current);
-    pollRef.current = window.setInterval(() => {
-      analyzePosition(state.currentFen);
-    }, 2000);
-
-    return () => {
-      if (pollRef.current) {
-        window.clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
-
-  useEffect(() => {
-    if (activeTab !== 'imitator') return;
-
-    const loadCoaches = async () => {
-      setCoachStatus('loading');
-      setCoachError(null);
-      try {
-        const resp = await fetch(`${TAGGER_BASE}/tagger/imitator/players?source=library`);
-        if (!resp.ok) throw new Error(`Coach list failed (${resp.status})`);
-        const data = await resp.json();
-        const players = Array.isArray(data.players) ? data.players : [];
-        setCoachOptions(players);
-        setCoachStatus('ready');
-        if (!selectedCoach && players.length > 0) setSelectedCoach(players[0]);
-      } catch (e: any) {
-        console.error('[imitator] load coaches failed', e);
-        setCoachStatus('error');
-        setCoachError(e?.message || 'Failed to load coaches');
-      }
-    };
-
-    const loadPlayers = async () => {
-      setPlayerStatus('loading');
-      setPlayerError(null);
-      try {
-        const resp = await fetch(
-          `${TAGGER_BASE}/tagger/imitator/players?source=user&status=success&include_ids=true`
-        );
-        if (!resp.ok) throw new Error(`Player list failed (${resp.status})`);
-        const data = await resp.json();
-        const players = Array.isArray(data.players) ? data.players : [];
-        setPlayerOptions(players);
-        setPlayerStatus('ready');
-        if (!selectedPlayer && players.length > 0) setSelectedPlayer(players[0].id);
-      } catch (e: any) {
-        console.error('[imitator] load players failed', e);
-        setPlayerStatus('error');
-        setPlayerError(e?.message || 'Failed to load players');
-      }
-    };
-
-    if (coachStatus === 'idle') void loadCoaches();
-    if (playerStatus === 'idle') void loadPlayers();
-  }, [activeTab, TAGGER_BASE, coachStatus, playerStatus, selectedCoach, selectedPlayer]);
-
-  useEffect(() => {
-    if (activeTab !== 'imitator') return;
-    if (!state.currentFen || imitatorTargets.length === 0) return;
-
-    const currentRequest = imitatorRequestRef.current + 1;
-    imitatorRequestRef.current = currentRequest;
-
-    setImitatorResults((prev) => {
-      const next = { ...prev };
-      for (const target of imitatorTargets) {
-        next[target.id] = {
-          ...next[target.id],
-          status: 'running',
-          error: null,
-        };
-      }
-      return next;
-    });
-
-    const run = async () => {
-      const tasks = imitatorTargets.map(async (target) => {
-        if (target.kind === 'engine') {
-          const payload = {
-            fen: state.currentFen,
-            depth,
-            multipv,
-            engine: target.engine ?? 'auto',
-          };
-          console.log('[imitator] engine request', { target: target.label, payload });
-          const resp = await fetch(`${API_BASE}/api/engine/analyze`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          if (!resp.ok) {
-            const text = await resp.text();
-            throw new Error(text || `Engine error (${resp.status})`);
-          }
-          const data = await resp.json();
-          const lines = Array.isArray(data?.lines) ? (data.lines as EngineLine[]) : [];
-          const moves = lines.reduce<Array<{
-            move: string;
-            uci?: string;
-            score_cp?: number | null;
-            tags?: string[];
-          }>>((acc, line) => {
-            const pv = Array.isArray(line.pv) ? line.pv : [];
-            const first = pv[0];
-            if (!first) return acc;
-            const evalTag = line.score !== undefined ? `Eval ${formatScore(line.score)}` : null;
-            acc.push({
-              move: first,
-              uci: first,
-              score_cp: typeof line.score === 'number' ? line.score : null,
-              tags: evalTag ? [evalTag] : undefined,
-            });
-            return acc;
-          }, []);
-          return { moves };
-        }
-        const payload: Record<string, any> = {
-          fen: state.currentFen,
-          top_n: 5,
-          depth: 14,
-          source: target.source,
-        };
-        if (target.playerId) payload.player_id = target.playerId;
-        if (target.player) payload.player = target.player;
-        console.log('[imitator] request', { target: target.label, payload });
-        const resp = await fetch(`${TAGGER_BASE}/tagger/imitator`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!resp.ok) {
-          const text = await resp.text();
-          throw new Error(text || `Imitator error (${resp.status})`);
-        }
-        const text = await resp.text();
-        if (!text) {
-          throw new Error('Imitator returned empty response');
-        }
-        try {
-          return JSON.parse(text);
-        } catch (error) {
-          console.error('[imitator] json parse failed', { text });
-          throw new Error('Imitator returned invalid JSON');
-        }
-      });
-
-      const results = await Promise.allSettled(tasks);
-      if (imitatorRequestRef.current !== currentRequest) return;
-
-      setImitatorResults((prev) => {
-        const next = { ...prev };
-        results.forEach((result, index) => {
-          const target = imitatorTargets[index];
-          if (!target) return;
-          if (result.status === 'fulfilled') {
-            next[target.id] = {
-              status: 'ready',
-              moves: Array.isArray(result.value?.moves) ? result.value.moves : [],
-              updated: Date.now(),
-              error: null,
-            };
-          } else {
-            console.error('[imitator] analyze failed', result.reason);
-            next[target.id] = {
-              status: 'error',
-              moves: [],
-              updated: Date.now(),
-              error: result.reason?.message || 'Imitator failed',
-            };
-          }
-        });
-        return next;
-      });
-    };
-
-    void run();
-  }, [activeTab, state.currentFen, imitatorTargets, depth, multipv, TAGGER_BASE, API_BASE]);
-
-  useEffect(() => {
-    if (engineEnabled) return;
-    if (pollRef.current) {
-      window.clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    setStatus('idle');
-    setHealth('down');
-    setLines([]);
-    setError(null);
-    setLastUpdated(null);
-    setSource(null);
-    setEngineOrigin(null);
-  }, [engineEnabled]);
-
-  useEffect(() => {
-    if (activeTab !== 'analysis' || !engineEnabled) return;
-    setLines([]);
-    setStatus('idle');
-    setError(null);
-    setSource(null);
-    setEngineOrigin(null);
-  }, [activeTab, engineEnabled, state.currentFen, depth, multipv]);
-
   // Memoize formatted lines to avoid expensive UCI->SAN conversion on every render
   const formattedLines = useMemo(() => {
     const memoStart = performance.now();
     console.log('[ENGINE PERF] ===== Formatting Lines (useMemo triggered) =====');
-    console.log('[ENGINE PERF] Lines to format:', lines.length);
+    console.log('[ENGINE PERF] Lines to format:', engineAnalysis.lines.length);
     console.log('[ENGINE PERF] Current FEN:', state.currentFen.slice(0, 50) + '...');
     console.log('[ENGINE PERF] ⚠️ useMemo is running - dependencies changed');
 
-    if (lines.length === 0) {
+    if (engineAnalysis.lines.length === 0) {
       console.log('[ENGINE PERF] No lines to format');
       return [];
     }
 
-    const result = lines.map((line, index) => {
+    const result = engineAnalysis.lines.map((line, index) => {
       const lineStart = performance.now();
-      console.log(`[ENGINE PERF] Line ${index + 1}/${lines.length} - Starting conversion`);
+      console.log(`[ENGINE PERF] Line ${index + 1}/${engineAnalysis.lines.length} - Starting conversion`);
       console.log(`[ENGINE PERF]   - UCI PV length: ${line.pv?.length || 0} moves`);
 
       // Step 1: UCI to SAN conversion
@@ -553,139 +165,46 @@ export function StudySidebar({
     const memoDuration = performance.now() - memoStart;
     console.log('[ENGINE PERF] ===== Formatting Complete =====');
     console.log(`[ENGINE PERF] Total formatting time: ${memoDuration.toFixed(2)}ms`);
-    console.log(`[ENGINE PERF] Average per line: ${(memoDuration / lines.length).toFixed(2)}ms`);
+    console.log(`[ENGINE PERF] Average per line: ${(memoDuration / engineAnalysis.lines.length).toFixed(2)}ms`);
 
     return result;
-  }, [lines, state.currentFen]);
+  }, [engineAnalysis.lines, state.currentFen]);
 
-  const renderAnalysis = () => (
-    <div className="patch-analysis-panel">
-      <div className="patch-analysis-status">
-        <span className={`patch-analysis-badge is-${status}`}>{status}</span>
-        <span className="patch-analysis-health">
-          {!engineEnabled
-            ? 'Engine Off'
-            : health === 'ok'
-              ? 'Engine OK'
-              : health === 'down'
-                ? 'Engine Down'
-                : 'Engine Unknown'}
-        </span>
-        {engineOrigin && <span className="patch-analysis-source">{engineOrigin}</span>}
-        {lastUpdated && (
-          <span className="patch-analysis-updated">
-            {new Date(lastUpdated).toLocaleTimeString()}
-          </span>
-        )}
-      </div>
-      {error && <div className="patch-analysis-error">{error}</div>}
-      <div className="patch-analysis-lines">
-        {!engineEnabled && (
-          <div className="patch-analysis-empty">No analysis yet. Turn on engine to analyze.</div>
-        )}
-        {engineEnabled && formattedLines.length === 0 && (
-          <div className="patch-analysis-empty">No analysis yet.</div>
-        )}
-        {(() => {
-          const linesRenderStart = performance.now();
-          console.log(`[RENDER PERF] ===== Rendering ${formattedLines.length} analysis lines =====`);
+  // Imitator handlers
+  const handleAddCoach = () => {
+    const name = imitator.selectedCoach;
+    if (!name) return;
+    imitator.addTarget({
+      id: `coach:${name}`,
+      label: name,
+      source: 'library',
+      player: name,
+      kind: 'coach',
+    });
+  };
 
-          const elements = formattedLines.map((line, index) => {
-            const lineRenderStart = performance.now();
-            const element = (
-              <div key={`pv-${line.multipv}`} className="patch-analysis-line">
-                <div className="patch-analysis-score">{formatScore(line.score)}</div>
-                <div className="patch-analysis-pv">
-                  {line.sanText || (line.pv?.join(' ') ?? '')}
-                </div>
-              </div>
-            );
-            const lineRenderDuration = performance.now() - lineRenderStart;
-            console.log(`[RENDER PERF] Line ${index + 1}/${formattedLines.length}: ${lineRenderDuration.toFixed(3)}ms`);
-            return element;
-          });
+  const handleAddPlayer = () => {
+    const player = imitator.playerOptions.find((item) => item.id === imitator.selectedPlayer);
+    if (!player) return;
+    imitator.addTarget({
+      id: `player:${player.id}`,
+      label: player.name,
+      source: 'user',
+      playerId: player.id,
+      kind: 'player',
+    });
+  };
 
-          const linesRenderDuration = performance.now() - linesRenderStart;
-          console.log(`[RENDER PERF] All lines JSX created: ${linesRenderDuration.toFixed(2)}ms`);
-          console.log('[RENDER PERF] Note: DOM update happens AFTER this');
-
-          return elements;
-        })()}
-      </div>
-    </div>
-  );
-
-  const renderImitatorPanel = () => (
-    <div className="patch-analysis-panel patch-imitator-panel">
-      {imitatorTargets.length === 0 && (
-        <div className="patch-analysis-empty">
-          Add a coach, player, or engine to generate style-guided moves.
-        </div>
-      )}
-      {imitatorTargets.map((target) => {
-        const result = imitatorResults[target.id] || { status: 'idle', moves: [] };
-        const moves = Array.isArray(result.moves) ? result.moves : [];
-        return (
-          <div key={target.id} className="patch-imitator-card">
-            <div className="patch-imitator-header">
-              <div>
-                <div className="patch-imitator-title">{target.label}</div>
-                <div className="patch-imitator-meta">
-                  {target.kind === 'engine' ? 'Engine' : target.kind === 'coach' ? 'Coach' : 'Player'}
-                  {result.updated && (
-                    <span className="patch-imitator-updated">
-                      {new Date(result.updated).toLocaleTimeString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="patch-imitator-remove"
-                onClick={() => {
-                  setImitatorTargets((prev) => prev.filter((item) => item.id !== target.id));
-                  setImitatorResults((prev) => {
-                    const next = { ...prev };
-                    delete next[target.id];
-                    return next;
-                  });
-                }}
-              >
-                Remove
-              </button>
-            </div>
-            <div className="patch-imitator-status">
-              <span className={`patch-analysis-badge is-${result.status}`}>{result.status}</span>
-              {result.error && <span className="patch-analysis-error">{result.error}</span>}
-            </div>
-            <div className="patch-imitator-moves">
-              {result.status === 'running' && (
-                <div className="patch-analysis-empty">Analyzing...</div>
-              )}
-              {result.status !== 'running' && moves.length === 0 && (
-                <div className="patch-analysis-empty">No moves yet.</div>
-              )}
-              {moves.map((move, idx) => (
-                <div key={`${target.id}-${idx}`} className="patch-imitator-row">
-                  <div className="patch-imitator-prob">{formatProbability(move.probability)}</div>
-                  <div
-                    className={`patch-imitator-move${Array.isArray(move.flags) && move.flags.includes('inaccuracy')
-                      ? ' is-inaccuracy'
-                      : ''}`}
-                  >
-                    {move.move || move.uci}
-                    {move.tags && move.tags.length > 0 && (
-                      <span className="patch-imitator-tags">{formatTags(move.tags)}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  const handleAddEngine = () => {
+    const engine = imitator.selectedEngine;
+    const label = 'Engine (Auto)';
+    imitator.addTarget({
+      id: `engine:${engine}`,
+      label,
+      engine,
+      kind: 'engine',
+    });
+  };
 
   return (
     <div className="patch-sidebar-content">
@@ -727,172 +246,50 @@ export function StudySidebar({
 
       {activeTab === 'analysis' && (
         <div className="patch-analysis-scroll">
-          <div className="patch-analysis-settings">
-            <div className="patch-analysis-field">
-              <span className="patch-analysis-label">Depth</span>
-              <select value={depth} onChange={(e) => setDepth(Number(e.target.value))}>
-                {[8, 10, 12, 14, 16, 18, 20].map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-            <div className="patch-analysis-field">
-              <span className="patch-analysis-label">Lines</span>
-              <select value={multipv} onChange={(e) => setMultipv(Number(e.target.value))}>
-                {[1, 2, 3, 4, 5].map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div className="patch-analysis-toggle">
-              <label className="patch-toggle">
-                <input
-                  type="checkbox"
-                  checked={engineEnabled}
-                  onChange={(e) => {
-                    const enabled = e.target.checked;
-                    setEngineEnabled(enabled);
-                    if (enabled) {
-                    }
-                  }}
-                  aria-label="Engine"
-                />
-                <span className="patch-toggle-track" />
-              </label>
-            </div>
-            <div className="patch-analysis-field">
-              <span className="patch-analysis-label">Engine</span>
-              <span className="patch-analysis-value">Auto</span>
-            </div>
-          </div>
-          {renderAnalysis()}
+          <AnalysisSettings
+            depth={depth}
+            onDepthChange={setDepth}
+            multipv={multipv}
+            onMultipvChange={setMultipv}
+            engineEnabled={engineEnabled}
+            onEngineEnabledChange={setEngineEnabled}
+          />
+          <AnalysisPanel
+            engineEnabled={engineEnabled}
+            lines={formattedLines}
+            status={engineAnalysis.status}
+            health={engineAnalysis.health}
+            error={engineAnalysis.error}
+            lastUpdated={engineAnalysis.lastUpdated}
+            engineOrigin={engineAnalysis.engineOrigin}
+          />
         </div>
       )}
 
       {activeTab === 'imitator' && (
         <div className="patch-analysis-scroll">
-          <div className="patch-imitator-settings">
-            <div className="patch-imitator-field">
-              <span className="patch-analysis-label">Add Coach</span>
-              <select
-                value={selectedCoach}
-                onChange={(e) => setSelectedCoach(e.target.value)}
-                disabled={coachStatus !== 'ready'}
-              >
-                {coachStatus === 'loading' && <option>Loading...</option>}
-                {coachStatus === 'error' && <option>Unavailable</option>}
-                {coachStatus === 'ready' &&
-                  coachOptions.map((name) => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              className="patch-imitator-add"
-              disabled={!selectedCoach || coachStatus !== 'ready'}
-              onClick={() => {
-                const name = selectedCoach;
-                if (!name) return;
-                const id = `coach:${name}`;
-                setImitatorTargets((prev) => {
-                  if (prev.some((item) => item.id === id)) return prev;
-                  return [
-                    ...prev,
-                    {
-                      id,
-                      label: name,
-                      source: 'library',
-                      player: name,
-                      kind: 'coach',
-                    },
-                  ];
-                });
-              }}
-            >
-              Add
-            </button>
-            <div className="patch-imitator-field">
-              <span className="patch-analysis-label">Add Players</span>
-              <select
-                value={selectedPlayer}
-                onChange={(e) => setSelectedPlayer(e.target.value)}
-                disabled={playerStatus !== 'ready'}
-              >
-                {playerStatus === 'loading' && <option>Loading...</option>}
-                {playerStatus === 'error' && <option>Unavailable</option>}
-                {playerStatus === 'ready' &&
-                  playerOptions.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <button
-              type="button"
-              className="patch-imitator-add"
-              disabled={!selectedPlayer || playerStatus !== 'ready'}
-              onClick={() => {
-                const player = playerOptions.find((item) => item.id === selectedPlayer);
-                if (!player) return;
-                const id = `player:${player.id}`;
-                setImitatorTargets((prev) => {
-                  if (prev.some((item) => item.id === id)) return prev;
-                  return [
-                    ...prev,
-                    {
-                      id,
-                      label: player.name,
-                      source: 'user',
-                      playerId: player.id,
-                      kind: 'player',
-                    },
-                  ];
-                });
-              }}
-            >
-              Add
-            </button>
-            <div className="patch-imitator-field">
-              <span className="patch-analysis-label">Add Engine</span>
-              <select
-                value={selectedEngine}
-                onChange={(e) => setSelectedEngine(e.target.value as 'auto')}
-              >
-                <option value="auto">Auto</option>
-              </select>
-            </div>
-            <button
-              type="button"
-              className="patch-imitator-add"
-              onClick={() => {
-                const engine = selectedEngine;
-                const label = 'Engine (Auto)';
-                const id = `engine:${engine}`;
-                setImitatorTargets((prev) => {
-                  if (prev.some((item) => item.id === id)) return prev;
-                  return [
-                    ...prev,
-                    {
-                      id,
-                      label,
-                      engine,
-                      kind: 'engine',
-                    },
-                  ];
-                });
-              }}
-            >
-              Add
-            </button>
-          </div>
-          {(coachError || playerError) && (
-            <div className="patch-analysis-error">
-              {coachError || playerError}
-            </div>
-          )}
-          {renderImitatorPanel()}
+          <ImitatorSettings
+            coachOptions={imitator.coachOptions}
+            selectedCoach={imitator.selectedCoach}
+            onCoachChange={imitator.setSelectedCoach}
+            coachStatus={imitator.coachStatus}
+            onAddCoach={handleAddCoach}
+            playerOptions={imitator.playerOptions}
+            selectedPlayer={imitator.selectedPlayer}
+            onPlayerChange={imitator.setSelectedPlayer}
+            playerStatus={imitator.playerStatus}
+            onAddPlayer={handleAddPlayer}
+            selectedEngine={imitator.selectedEngine}
+            onEngineChange={imitator.setSelectedEngine}
+            onAddEngine={handleAddEngine}
+            coachError={imitator.coachError}
+            playerError={imitator.playerError}
+          />
+          <ImitatorPanel
+            targets={imitator.targets}
+            results={imitator.results}
+            onRemoveTarget={imitator.removeTarget}
+          />
         </div>
       )}
     </div>
