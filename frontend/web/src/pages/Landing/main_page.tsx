@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const MainPage = () => {
   return (
@@ -41,17 +42,20 @@ const MainPage = () => {
           Bobby Fischer, Garry Kasparov, Ding Liren, Mihail Tal, Petrosian, and so
           much more!
         </div>
-        <div
+        <Link
+          to="/login"
           style={{
             alignSelf: "center",
             border: "2px solid #000",
             padding: "12px 24px",
             fontSize: "18px",
             fontWeight: 600,
+            color: "inherit",
+            textDecoration: "none",
           }}
         >
           Start your journey
-        </div>
+        </Link>
       </div>
     </div>
   );
