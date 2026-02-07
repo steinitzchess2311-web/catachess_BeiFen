@@ -16,7 +16,7 @@ import type { CatPetProps, Position, CatState } from './types';
 import './CatPet.css';
 
 const DEFAULT_POSITION: Position = { x: 100, y: 100 };
-const DEFAULT_SCALE = 3;
+const DEFAULT_SCALE = 0.5;
 
 export function CatPet({
   initialPosition = DEFAULT_POSITION,
@@ -63,7 +63,7 @@ export function CatPet({
       behaviorEngine.current?.destroy();
       movementEngine.current?.destroy();
     };
-  }, [enableAI, position.x, position.y]);
+  }, [enableAI]);
 
   // Pause AI during user interaction
   useEffect(() => {

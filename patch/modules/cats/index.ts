@@ -15,6 +15,6 @@ export type {
   Animation,
 } from './types';
 
-export { SPRITE_CONFIG, ANIMATIONS } from './engine/SpriteConfig';
+export { SPRITE_CONFIGS, getSpriteSheetUrl } from './engine/SpriteConfig';
 export { BehaviorEngine } from './engine/BehaviorEngine';
 export { MovementEngine } from './engine/MovementEngine';

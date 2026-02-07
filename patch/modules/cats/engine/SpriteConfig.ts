@@ -1,82 +1,63 @@
 /**
- * Sprite Sheet Configuration
- *
- * Based on the provided sprite sheet with pixel art cat
+ * Sprite Configuration - Multiple sprite sheets with different dimensions
  */
 
-import type { Animation, SpriteFrame } from '../types';
+import type { CatState } from '../types';
 
-// Sprite sheet dimensions
-export const SPRITE_CONFIG = {
-  frameWidth: 32,      // Width of each frame in pixels
-  frameHeight: 32,     // Height of each frame in pixels
-  columns: 4,          // Number of columns in the sprite sheet
-  rows: 6,             // Number of rows in the sprite sheet
-} as const;
+export interface SpriteSheetConfig {
+  fileName: string;
+  frameCount: number;
+  frameWidth: number;
+  frameHeight: number;
+  duration: number;
+}
 
 /**
- * Animation definitions
- * Each animation specifies which frames to play
+ * Configuration for each animation state
+ * Each animation uses its own sprite sheet with specific dimensions
  */
-export const ANIMATIONS: Record<string, Animation> = {
+export const SPRITE_CONFIGS: Record<CatState, SpriteSheetConfig> = {
   idle: {
-    name: 'idle',
-    frames: [
-      { row: 0, col: 0 },
-      { row: 0, col: 1 },
-      { row: 0, col: 2 },
-      { row: 0, col: 3 },
-    ],
-    duration: 200, // 200ms per frame = 0.8s total for 4 frames
-    loop: true,
+    fileName: 'idle.png',
+    frameCount: 3,
+    frameWidth: 244,
+    frameHeight: 242,
+    duration: 200,
   },
   walk: {
-    name: 'walk',
-    frames: [
-      { row: 1, col: 0 },
-      { row: 1, col: 1 },
-      { row: 1, col: 2 },
-      { row: 1, col: 3 },
-    ],
+    fileName: 'walk.png',
+    frameCount: 3,
+    frameWidth: 258,
+    frameHeight: 240,
     duration: 150,
-    loop: true,
   },
   sit: {
-    name: 'sit',
-    frames: [
-      { row: 3, col: 0 },
-      { row: 3, col: 1 },
-    ],
+    fileName: 'idle.png', // Reuse idle for sit
+    frameCount: 3,
+    frameWidth: 244,
+    frameHeight: 242,
     duration: 300,
-    loop: true,
   },
   sleep: {
-    name: 'sleep',
-    frames: [
-      { row: 2, col: 0 },
-      { row: 2, col: 1 },
-      { row: 2, col: 2 },
-    ],
+    fileName: 'rest.png',
+    frameCount: 2,
+    frameWidth: 386,
+    frameHeight: 212,
     duration: 500,
-    loop: true,
   },
   play: {
-    name: 'play',
-    frames: [
-      { row: 5, col: 0 },
-      { row: 5, col: 1 },
-    ],
+    fileName: 'walk.png', // Reuse walk for play
+    frameCount: 3,
+    frameWidth: 258,
+    frameHeight: 240,
     duration: 200,
-    loop: true,
   },
-} as const;
+};
 
 /**
- * Get background position for a specific frame
+ * Get sprite sheet URL for a given animation
  */
-export function getFramePosition(frame: SpriteFrame): { x: number; y: number } {
-  return {
-    x: -(frame.col * SPRITE_CONFIG.frameWidth),
-    y: -(frame.row * SPRITE_CONFIG.frameHeight),
-  };
+export function getSpriteSheetUrl(animation: CatState): string {
+  const config = SPRITE_CONFIGS[animation];
+  return new URL(`../assets/${config.fileName}`, import.meta.url).href;
 }
