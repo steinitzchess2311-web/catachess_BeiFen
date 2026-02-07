@@ -15,7 +15,7 @@ import { MovementEngine } from './engine/MovementEngine';
 import type { CatPetProps, Position, CatState } from './types';
 import './CatPet.css';
 
-const DEFAULT_POSITION: Position = { x: 100, y: 100 };
+const DEFAULT_POSITION: Position = { x: 50, y: window.innerHeight - 200 };
 const DEFAULT_SCALE = 0.5;
 
 export function CatPet({
@@ -25,7 +25,10 @@ export function CatPet({
   enableAI = true,
   onInteraction,
 }: CatPetProps = {}) {
-  const [position, setPosition] = useState<Position>(initialPosition);
+  const [position, setPosition] = useState<Position>(() => ({
+    x: initialPosition?.x ?? 50,
+    y: initialPosition?.y ?? (typeof window !== 'undefined' ? window.innerHeight - 200 : 500),
+  }));
   const [isDragging, setIsDragging] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState<CatState>('idle');
   const [direction, setDirection] = useState<'left' | 'right'>('right');
