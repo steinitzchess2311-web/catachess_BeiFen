@@ -387,7 +387,7 @@ function Layout() {
         </Routes>
       </main>
       <TerminalLauncher customCommands={[catamazeCommand]} />
-      <CatPet />
+      {authed && <CatPet />}
     </>
   );
 }
