@@ -17,7 +17,7 @@ const SampleReport = () => {
         style={{
           border: "2px solid #000",
           height: "100%",
-          padding: "28px 32px 28px 0",
+          padding: "28px 0 28px 32px",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -38,6 +38,7 @@ const SampleReport = () => {
               padding: "12px 24px",
               fontSize: "18px",
               fontWeight: 600,
+              lineHeight: 1,
             }}
           >
             See Sample Report
@@ -48,6 +49,7 @@ const SampleReport = () => {
               padding: "12px 24px",
               fontSize: "18px",
               fontWeight: 600,
+              lineHeight: 1,
             }}
           >
             Create Your Own
