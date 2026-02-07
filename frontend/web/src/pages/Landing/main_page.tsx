@@ -7,7 +7,7 @@ const MainPage = () => {
       style={{
         display: "grid",
         gridTemplateColumns: "40% 1fr",
-        gap: "50px",
+        gap: "0",
         alignItems: "center",
         padding: "50px",
         border: "2px solid #000",
@@ -26,7 +26,7 @@ const MainPage = () => {
         style={{
           border: "2px solid #000",
           height: "100%",
-          padding: "0",
+          padding: "28px 32px 28px 0",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
