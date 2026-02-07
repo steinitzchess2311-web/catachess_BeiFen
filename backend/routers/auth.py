@@ -28,7 +28,54 @@ from core.security.rate_limiter import rate_limit
 from core.log.log_api import logger
 from core.errors import UserAlreadyExistsError, get_error_response, get_http_status_code
 
+# Workspace initialization imports
+from modules.workspace.db.session import get_db_config
+from modules.workspace.db.repos.node_repo import NodeRepository
+from modules.workspace.db.repos.study_repo import StudyRepository
+from modules.workspace.storage.r2_client import create_r2_client_from_env
+from modules.workspace.events.bus import EventBus
+from modules.workspace.domain.services.workspace_init_service import WorkspaceInitService
+
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+async def _initialize_default_workspace(user_id: str) -> None:
+    """
+    Initialize default workspace content for a new user.
+
+    Creates:
+    - Root workspace node
+    - Two folders: "White Repertoire", "Black Repertoire"
+    - One sample study: "Ding Liren - Jan-Krzysztof Duda"
+
+    Args:
+        user_id: User ID to create workspace for
+    """
+    try:
+        # Get workspace database config and create async session
+        db_config = get_db_config()
+        async with db_config.async_session_maker() as session:
+            # Create repositories
+            node_repo = NodeRepository(session)
+            study_repo = StudyRepository(session)
+            r2_client = create_r2_client_from_env()
+            event_bus = EventBus()
+
+            # Create and run workspace init service
+            workspace_init_service = WorkspaceInitService(
+                session=session,
+                node_repo=node_repo,
+                study_repo=study_repo,
+                r2_client=r2_client,
+                event_bus=event_bus,
+            )
+
+            await workspace_init_service.initialize_workspace_for_user(user_id)
+            await session.commit()
+
+    except Exception as e:
+        logger.error(f"Workspace initialization failed for user {user_id}: {e}", exc_info=True)
+        raise
 
 
 # Request/Response Schemas
@@ -101,6 +148,14 @@ async def register(
         )
 
         logger.info(f"User registered successfully: {user.username} (id={user.id})")
+
+        # Initialize default workspace content for new user
+        try:
+            await _initialize_default_workspace(str(user.id))
+            logger.info(f"Default workspace initialized for user {user.id}")
+        except Exception as e:
+            logger.error(f"Failed to initialize workspace for user {user.id}: {e}", exc_info=True)
+            # Don't fail registration if workspace init fails
 
         # Send verification code email (only for email users)
         verification_sent = False
