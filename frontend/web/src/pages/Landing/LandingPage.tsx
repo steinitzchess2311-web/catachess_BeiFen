@@ -7,7 +7,7 @@ const LandingPage = () => {
         // Allow vertical scrolling when content overflows.
         overflowY: "auto",
         overflowX: "hidden",
-        padding: "24px",
+        padding: "72px 60px",
         boxSizing: "border-box",
       }}
     >
