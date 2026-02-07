@@ -1,28 +1,39 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
-import "./LandingPage.css";
 
-interface LandingPageProps {
-  isAuthed: boolean;
-}
-
-const LandingPage: React.FC<LandingPageProps> = ({ isAuthed }) => {
-  if (isAuthed) {
-    return <Navigate to="/workspace-select" replace />;
-  }
-
+const LandingPage = () => {
   return (
-    <section className="landing-page">
-      <div className="landing-card">
-        <h1>Welcome to ChessorTag.org!</h1>
-        <p>
-          Want to learn from former World Chess Champions? Want to know your playing weakness and strengths? Want to see how you perform in different aspects compared to World Chess Championship Candidates? You are in the right place!
-        </p>
-        <p>
-          Create an account today to access your detailed report that evaluates you on multiple dimensions, comparing your performance to the top grandmasters! You may also select a famous player as your own virtual coach! The choices include Bobby Fischer, Garry Kasparov, Ding Liren, Mihail Tal, Petrosian, and so much more! Come unlock your own personal grandmaster coach.
-        </p>
+    <div
+      style={{
+        // Allow vertical scrolling when content overflows.
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: "0 24px",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "60% 1fr",
+          gap: "24px",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            border: "2px solid #000",
+            height: "100%",
+          }}
+        />
+        <div
+          style={{
+            border: "2px solid #000",
+            width: "100%",
+            aspectRatio: "1 / 1",
+            justifySelf: "center",
+          }}
+        />
       </div>
-    </section>
+    </div>
   );
 };
 
