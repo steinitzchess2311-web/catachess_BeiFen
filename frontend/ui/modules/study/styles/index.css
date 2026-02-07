@@ -9,7 +9,6 @@
         1fr
         var(--splitter-width)
         var(--study-right-width);
-    min-height: calc(100vh - 100px);
     background-color: var(--bg-app);
     font-family: var(--font-family);
 }
