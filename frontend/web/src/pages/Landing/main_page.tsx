@@ -45,9 +45,11 @@ const MainPage = () => {
           Join Us to Learn from World Chess Champions!
         </div>
         <div style={{ fontSize: "18px", lineHeight: 1.6, color: "#2f2a26", textAlign: "right" }}>
-          Unlock your own personal virtual Grandmaster Coach! You may select from
-          Bobby Fischer, Garry Kasparov, Ding Liren, Mihail Tal, Petrosian, and so
-          much more!
+          Unlock your own personal virtual Grandmaster Coach! You may
+          <br />
+          select from Bobby Fischer, Garry Kasparov, Ding Liren, Mihail Tal,
+          <br />
+          Petrosian, and so much more!
         </div>
         <Link
           to="/login"
