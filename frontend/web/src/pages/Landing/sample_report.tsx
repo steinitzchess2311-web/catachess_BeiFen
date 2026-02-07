@@ -31,7 +31,7 @@ const SampleReport = () => {
         <div style={{ fontSize: "18px", lineHeight: 1.6, color: "#2f2a26" }}>
           Generate your report today to see your performance compared to World Candidates!
         </div>
-        <div style={{ display: "flex", gap: "240px" }}>
+        <div style={{ display: "flex", gap: "40px" }}>
           <a
             href="/sample_reports/yuyaochen_report.html"
             target="_blank"

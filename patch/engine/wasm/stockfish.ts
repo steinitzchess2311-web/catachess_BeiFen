@@ -1,25 +1,87 @@
 import type { EngineAnalysis, EngineLine } from '../types';
 import { parseSfInfoLine, type SfEntry } from '../parsers';
 
-const DEFAULT_WORKER_URL = '/stockfish.js';
+const DEFAULT_SCRIPT_URL = '/assets/stockfish/stockfish-lite-single.js';
+const DEFAULT_WASM_URL = '/assets/stockfish/stockfish-lite-single.wasm';
 const DEFAULT_TIMEOUT_MS = 30000;
 
-function resolveWorkerUrl(): string {
+type StockfishModule = {
+  listener?: (line: string) => void;
+  processCommand?: (cmd: string) => void;
+  ccall?: (...args: any[]) => any;
+};
+
+type StockfishFactory = (options: Record<string, any>) => Promise<StockfishModule>;
+
+let factoryPromise: Promise<StockfishFactory> | null = null;
+let modulePromise: Promise<StockfishModule> | null = null;
+let runQueue: Promise<EngineAnalysis> = Promise.resolve({ source: 'stockfish-wasm', lines: [] });
+
+function resolveEnv(name: string): string | undefined {
   try {
     const env = (import.meta as any)?.env;
-    const url = env?.VITE_STOCKFISH_WORKER_URL || env?.VITE_STOCKFISH_WASM_URL;
-    if (url) return url as string;
+    return env ? env[name] : undefined;
   } catch {
-    // ignore
+    return undefined;
   }
-  return DEFAULT_WORKER_URL;
 }
 
-function normalizeWorkerMessage(event: MessageEvent): string {
-  const data = (event as MessageEvent).data;
-  if (typeof data === 'string') return data;
-  if (typeof data?.data === 'string') return data.data;
-  return '';
+function resolveScriptUrl(): string {
+  return resolveEnv('VITE_STOCKFISH_WASM_SCRIPT_URL') || DEFAULT_SCRIPT_URL;
+}
+
+function resolveWasmUrl(): string {
+  return resolveEnv('VITE_STOCKFISH_WASM_BIN_URL') || DEFAULT_WASM_URL;
+}
+
+function loadScript(url: string): Promise<HTMLScriptElement> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.async = true;
+    script.onload = () => resolve(script);
+    script.onerror = () => reject(new Error(`Failed to load Stockfish script: ${url}`));
+    document.head.appendChild(script);
+  });
+}
+
+async function loadFactory(): Promise<StockfishFactory> {
+  if (factoryPromise) return factoryPromise;
+
+  factoryPromise = (async () => {
+    const scriptUrl = resolveScriptUrl();
+    const script = await loadScript(scriptUrl);
+    const exported = (script as any)._exports || (window as any).Stockfish;
+    if (!exported) {
+      throw new Error('Stockfish factory not found after loading script');
+    }
+    return exported as StockfishFactory;
+  })();
+
+  return factoryPromise;
+}
+
+async function loadModule(): Promise<StockfishModule> {
+  if (modulePromise) return modulePromise;
+
+  modulePromise = (async () => {
+    const factory = await loadFactory();
+    const wasmUrl = resolveWasmUrl();
+    const module = await factory({
+      locateFile: (path: string) => {
+        if (path.endsWith('.wasm')) return wasmUrl;
+        return path;
+      },
+    });
+
+    if (!module.processCommand && !module.ccall) {
+      throw new Error('Stockfish module missing processCommand/ccall');
+    }
+
+    return module;
+  })();
+
+  return modulePromise;
 }
 
 function buildLines(entries: SfEntry[]): EngineLine[] {
@@ -53,128 +115,62 @@ function buildLines(entries: SfEntry[]): EngineLine[] {
     }));
 }
 
-class StockfishWasmWorker {
-  private worker: Worker | null = null;
-  private readyPromise: Promise<void> | null = null;
-  private queue: Promise<EngineAnalysis> = Promise.resolve({ source: 'stockfish-wasm', lines: [] });
-
-  private ensureWorker(): Worker {
-    if (this.worker) return this.worker;
-    const url = resolveWorkerUrl();
-    this.worker = new Worker(url);
-    return this.worker;
+function sendCommand(module: StockfishModule, cmd: string): void {
+  if (module.processCommand) {
+    module.processCommand(cmd);
+    return;
   }
-
-  private async ensureReady(): Promise<void> {
-    if (this.readyPromise) return this.readyPromise;
-
-    const worker = this.ensureWorker();
-    this.readyPromise = new Promise((resolve, reject) => {
-      const onMessage = (event: MessageEvent) => {
-        const line = normalizeWorkerMessage(event);
-        if (line === 'uciok') {
-          worker.postMessage('isready');
-          return;
-        }
-        if (line === 'readyok') {
-          cleanup();
-          resolve();
-        }
-      };
-
-      const onError = (event: Event) => {
-        cleanup();
-        reject(new Error(`Stockfish WASM worker error: ${String(event)}`));
-      };
-
-      const cleanup = () => {
-        worker.removeEventListener('message', onMessage);
-        worker.removeEventListener('error', onError);
-      };
-
-      worker.addEventListener('message', onMessage);
-      worker.addEventListener('error', onError);
-      worker.postMessage('uci');
-    });
-
-    return this.readyPromise;
-  }
-
-  private async runExclusive(task: () => Promise<EngineAnalysis>): Promise<EngineAnalysis> {
-    const run = this.queue.then(task, task);
-    this.queue = run.catch(() => ({ source: 'stockfish-wasm', lines: [] }));
-    return run;
-  }
-
-  async analyze(fen: string, depth: number, multipv: number, timeoutMs: number): Promise<EngineAnalysis> {
-    return this.runExclusive(async () => {
-      await this.ensureReady();
-      const worker = this.ensureWorker();
-      const entries: SfEntry[] = [];
-
-      return await new Promise<EngineAnalysis>((resolve, reject) => {
-        let finished = false;
-        const timeout = setTimeout(() => {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          this.terminate();
-          reject(new Error('Stockfish WASM timeout'));
-        }, timeoutMs || DEFAULT_TIMEOUT_MS);
-
-        const cleanup = () => {
-          clearTimeout(timeout);
-          worker.removeEventListener('message', onMessage);
-          worker.removeEventListener('error', onError);
-        };
-
-        const onError = (event: Event) => {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          reject(new Error(`Stockfish WASM worker error: ${String(event)}`));
-        };
-
-        const onMessage = (event: MessageEvent) => {
-          const line = normalizeWorkerMessage(event);
-          if (!line) return;
-
-          if (line.startsWith('info ')) {
-            const parsed = parseSfInfoLine(line);
-            if (parsed) entries.push(parsed);
-            return;
-          }
-
-          if (line.startsWith('bestmove')) {
-            if (finished) return;
-            finished = true;
-            cleanup();
-            const lines = buildLines(entries);
-            resolve({ source: 'stockfish-wasm', lines });
-          }
-        };
-
-        worker.addEventListener('message', onMessage);
-        worker.addEventListener('error', onError);
-
-        worker.postMessage(`setoption name MultiPV value ${multipv}`);
-        worker.postMessage('ucinewgame');
-        worker.postMessage(`position fen ${fen}`);
-        worker.postMessage(`go depth ${depth}`);
-      });
-    });
-  }
-
-  terminate(): void {
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
-      this.readyPromise = null;
-    }
+  if (module.ccall) {
+    module.ccall('command', null, ['string'], [cmd]);
   }
 }
 
-const wasmWorker = new StockfishWasmWorker();
+async function runAnalysis(fen: string, depth: number, multipv: number, timeoutMs: number): Promise<EngineAnalysis> {
+  const module = await loadModule();
+  const entries: SfEntry[] = [];
+
+  return await new Promise<EngineAnalysis>((resolve, reject) => {
+    let finished = false;
+    const timeout = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      reject(new Error('Stockfish WASM timeout'));
+    }, timeoutMs || DEFAULT_TIMEOUT_MS);
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      module.listener = undefined;
+    };
+
+    module.listener = (line: string) => {
+      if (!line) return;
+      if (line.startsWith('info ')) {
+        const parsed = parseSfInfoLine(line);
+        if (parsed) entries.push(parsed);
+        return;
+      }
+      if (line.startsWith('bestmove')) {
+        if (finished) return;
+        finished = true;
+        cleanup();
+        const lines = buildLines(entries);
+        resolve({ source: 'stockfish-wasm', lines });
+      }
+    };
+
+    try {
+      sendCommand(module, `setoption name MultiPV value ${multipv}`);
+      sendCommand(module, 'ucinewgame');
+      sendCommand(module, `position fen ${fen}`);
+      sendCommand(module, `go depth ${depth}`);
+    } catch (error) {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(error instanceof Error ? error : new Error('Stockfish WASM failed'));
+    }
+  });
+}
 
 export async function analyzeWithWasm(
   fen: string,
@@ -182,5 +178,7 @@ export async function analyzeWithWasm(
   multipv: number,
   timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<EngineAnalysis> {
-  return wasmWorker.analyze(fen, depth, multipv, timeoutMs);
+  const run = runQueue.then(() => runAnalysis(fen, depth, multipv, timeoutMs));
+  runQueue = run.catch(() => ({ source: 'stockfish-wasm', lines: [] }));
+  return run;
 }
