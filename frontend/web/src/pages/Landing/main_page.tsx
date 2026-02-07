@@ -36,7 +36,7 @@ const MainPage = () => {
       >
         <div
           style={{
-            fontSize: "32px",
+            fontSize: "28px",
             fontWeight: 700,
             lineHeight: 1.2,
             textAlign: "right",
