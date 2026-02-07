@@ -9,11 +9,9 @@
         1fr
         var(--splitter-width)
         var(--study-right-width);
-    height: 100vh;
-    min-height: 100vh;
+    min-height: calc(100vh - 100px);
     background-color: var(--bg-app);
     font-family: var(--font-family);
-    overflow: hidden;
 }
 
 /* Panels */
@@ -95,7 +93,6 @@
 /* Chapter List */
 .chapter-list {
     flex: 1;
-    overflow-y: auto;
     min-height: 0;
 }
 
@@ -202,7 +199,6 @@
 .tab-content {
     display: none;
     flex: 1;
-    overflow-y: auto;
     padding: var(--space-md);
     min-height: 0;
 }
@@ -226,8 +222,6 @@
     line-height: 1.6;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: auto;
 }
 
 .move-tree-row {
