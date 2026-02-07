@@ -33,6 +33,7 @@ import AccountPage from "../AccountPage";
 import { PatchStudyPage } from "@patch/PatchStudyPage";
 import { TerminalLauncher } from "@patch/modules/terminal";
 import { createCataMazeCommand } from "@patch/modules/catamaze";
+import { CatPet } from "@patch/modules/cats";
 import "@patch/styles/index.css";
 
 // Entry switch configuration: default to patch unless explicitly disabled
@@ -386,6 +387,7 @@ function Layout() {
         </Routes>
       </main>
       <TerminalLauncher customCommands={[catamazeCommand]} />
+      <CatPet />
     </>
   );
 }

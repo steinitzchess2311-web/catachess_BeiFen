@@ -5,7 +5,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { CatState, SpriteFrame } from '../types';
 import { SPRITE_CONFIG, ANIMATIONS, getFramePosition } from '../engine/SpriteConfig';
-import spriteSheet from '../assets/cat-sprite.png';
+
+// Import sprite sheet - Vite will handle this
+const spriteSheet = new URL('../assets/cat-sprite.png', import.meta.url).href;
 
 export interface CatProps {
   animation: CatState;
