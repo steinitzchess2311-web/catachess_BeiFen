@@ -34,6 +34,12 @@ export function Cat({ animation, scale = 1, direction = 'right', className = '' 
       return;
     }
 
+    // If not animated, just show first frame
+    if (!config.animated) {
+      setCurrentFrame(0);
+      return;
+    }
+
     let frameIndex = 0;
 
     const animate = () => {

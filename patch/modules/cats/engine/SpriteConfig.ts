@@ -10,6 +10,7 @@ export interface SpriteSheetConfig {
   frameWidth: number;
   frameHeight: number;
   duration: number;
+  animated: boolean;
 }
 
 /**
@@ -19,10 +20,11 @@ export interface SpriteSheetConfig {
 export const SPRITE_CONFIGS: Record<CatState, SpriteSheetConfig> = {
   idle: {
     fileName: 'idle.png',
-    frameCount: 3,
+    frameCount: 1,
     frameWidth: 244,
     frameHeight: 242,
     duration: 200,
+    animated: false,
   },
   walk: {
     fileName: 'walk.png',
@@ -30,13 +32,15 @@ export const SPRITE_CONFIGS: Record<CatState, SpriteSheetConfig> = {
     frameWidth: 258,
     frameHeight: 240,
     duration: 150,
+    animated: true,
   },
   sit: {
-    fileName: 'idle.png', // Reuse idle for sit
-    frameCount: 3,
+    fileName: 'idle.png',
+    frameCount: 1,
     frameWidth: 244,
     frameHeight: 242,
     duration: 300,
+    animated: false,
   },
   sleep: {
     fileName: 'rest.png',
@@ -44,13 +48,15 @@ export const SPRITE_CONFIGS: Record<CatState, SpriteSheetConfig> = {
     frameWidth: 386,
     frameHeight: 212,
     duration: 500,
+    animated: true,
   },
   play: {
-    fileName: 'walk.png', // Reuse walk for play
+    fileName: 'walk.png',
     frameCount: 3,
     frameWidth: 258,
     frameHeight: 240,
     duration: 200,
+    animated: true,
   },
 };
 
