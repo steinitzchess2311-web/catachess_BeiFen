@@ -15,7 +15,7 @@ const LandingPage = () => {
         style={{
           display: "grid",
           gridTemplateColumns: "60% 1fr",
-          gap: "24px",
+          gap: "50px",
           alignItems: "center",
         }}
       >
