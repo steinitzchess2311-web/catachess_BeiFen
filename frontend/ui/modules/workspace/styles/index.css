@@ -90,7 +90,6 @@
 .workspace-main {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .main-header {
@@ -163,7 +162,6 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: var(--space-lg);
     padding: var(--space-lg);
-    overflow-y: auto;
 }
 
 /* Grid Items */
