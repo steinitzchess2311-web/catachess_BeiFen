@@ -34,7 +34,14 @@ const MainPage = () => {
           gap: "18px",
         }}
       >
-        <div style={{ fontSize: "32px", fontWeight: 700, lineHeight: 1.2 }}>
+        <div
+          style={{
+            fontSize: "32px",
+            fontWeight: 700,
+            lineHeight: 1.2,
+            textAlign: "right",
+          }}
+        >
           Join Us to Learn from World Chess Champions!
         </div>
         <div style={{ fontSize: "18px", lineHeight: 1.6, color: "#2f2a26", textAlign: "right" }}>
