@@ -26,7 +26,7 @@ const MainPage = () => {
         style={{
           border: "2px solid #000",
           height: "100%",
-          padding: "28px 32px",
+          padding: "28px 32px 28px 0",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
