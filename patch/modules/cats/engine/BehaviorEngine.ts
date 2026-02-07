@@ -7,8 +7,10 @@ import type { CatState } from '../types';
 export interface BehaviorConfig {
   idleDuration: [number, number];
   walkDuration: [number, number];
+  climbDuration: [number, number];
   sitDuration: [number, number];
   sleepDuration: [number, number];
+  playDuration: [number, number];
   transitionDelay: number;
 }
 
@@ -27,10 +29,12 @@ export class BehaviorEngine {
 
   constructor(config: Partial<BehaviorConfig> = {}) {
     this.config = {
-      idleDuration: config.idleDuration ?? [3000, 8000],
-      walkDuration: config.walkDuration ?? [2000, 5000],
-      sitDuration: config.sitDuration ?? [5000, 15000],
-      sleepDuration: config.sleepDuration ?? [10000, 30000],
+      idleDuration: config.idleDuration ?? [600000, 1200000],   // 10-20分钟
+      walkDuration: config.walkDuration ?? [30000, 60000],      // 30秒-1分钟，沿着地面慢慢走
+      climbDuration: config.climbDuration ?? [20000, 40000],    // 20-40秒，爬墙
+      sitDuration: config.sitDuration ?? [120000, 300000],      // 2-5分钟
+      sleepDuration: config.sleepDuration ?? [180000, 600000],  // 3-10分钟
+      playDuration: config.playDuration ?? [5000, 10000],       // 5-10秒
       transitionDelay: config.transitionDelay ?? 500,
     };
   }
@@ -73,14 +77,22 @@ export class BehaviorEngine {
 
   /**
    * Handle user interaction (click)
+   * Returns true if fall animation should be triggered
    */
-  handleInteraction(onStateChange: (state: CatState) => void): void {
-    if (this.currentState === 'sleep') {
+  handleInteraction(onStateChange: (state: CatState) => void): boolean {
+    if (this.currentState === 'climb') {
+      // Clicking while climbing causes cat to fall
+      this.stop();
+      return true;  // Trigger fall animation
+    } else if (this.currentState === 'sleep') {
       this.transitionTo('idle', onStateChange);
+      return false;
     } else if (this.currentState === 'idle') {
       this.transitionTo('play', onStateChange);
-      setTimeout(() => this.transitionTo('idle', onStateChange), 2000);
+      setTimeout(() => this.transitionTo('idle', onStateChange), 5000);
+      return false;
     }
+    return false;
   }
 
   /**
@@ -122,17 +134,21 @@ export class BehaviorEngine {
   private getStateWeights(): Record<CatState, number> {
     switch (this.currentState) {
       case 'idle':
-        return { walk: 0.5, sit: 0.3, sleep: 0.15, play: 0.05, idle: 0 };
+        return { walk: 0.5, climb: 0.15, sit: 0.2, sleep: 0.1, play: 0.05, idle: 0, fall: 0 };
       case 'walk':
-        return { idle: 0.6, sit: 0.25, sleep: 0.1, play: 0.05, walk: 0 };
+        return { idle: 0.6, climb: 0.15, sit: 0.15, sleep: 0.1, play: 0, walk: 0, fall: 0 };
+      case 'climb':
+        return { idle: 0.6, walk: 0.3, sit: 0.1, sleep: 0, play: 0, climb: 0, fall: 0 };
       case 'sit':
-        return { idle: 0.5, walk: 0.3, sleep: 0.2, play: 0, sit: 0 };
+        return { idle: 0.5, walk: 0.3, climb: 0.1, sleep: 0.1, play: 0, sit: 0, fall: 0 };
       case 'sleep':
-        return { idle: 0.7, sit: 0.2, walk: 0.1, play: 0, sleep: 0 };
+        return { idle: 0.8, walk: 0.1, sit: 0.1, climb: 0, play: 0, sleep: 0, fall: 0 };
       case 'play':
-        return { idle: 0.8, walk: 0.2, sit: 0, sleep: 0, play: 0 };
+        return { idle: 0.6, walk: 0.3, climb: 0.1, sit: 0, sleep: 0, play: 0, fall: 0 };
+      case 'fall':
+        return { idle: 1, walk: 0, climb: 0, sit: 0, sleep: 0, play: 0, fall: 0 };
       default:
-        return { idle: 1, walk: 0, sit: 0, sleep: 0, play: 0 };
+        return { idle: 1, walk: 0, climb: 0, sit: 0, sleep: 0, play: 0, fall: 0 };
     }
   }
 
@@ -145,11 +161,15 @@ export class BehaviorEngine {
         ? this.config.idleDuration
         : state === 'walk'
           ? this.config.walkDuration
-          : state === 'sit'
-            ? this.config.sitDuration
-            : state === 'sleep'
-              ? this.config.sleepDuration
-              : [2000, 3000];
+          : state === 'climb'
+            ? this.config.climbDuration
+            : state === 'sit'
+              ? this.config.sitDuration
+              : state === 'sleep'
+                ? this.config.sleepDuration
+                : state === 'play'
+                  ? this.config.playDuration
+                  : [1000, 2000];  // fall or other states
 
     return min + Math.random() * (max - min);
   }

@@ -9,13 +9,15 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Cat } from './components/Cat';
 import { BehaviorEngine } from './engine/BehaviorEngine';
 import { MovementEngine } from './engine/MovementEngine';
 import type { CatPetProps, Position, CatState } from './types';
 import './CatPet.css';
 
-const DEFAULT_POSITION: Position = { x: 50, y: window.innerHeight - 200 };
+const GROUND_OFFSET = 150;
+const DEFAULT_POSITION: Position = { x: 50, y: typeof window !== 'undefined' ? window.innerHeight - GROUND_OFFSET : 500 };
 const DEFAULT_SCALE = 0.5;
 
 export function CatPet({
@@ -25,13 +27,16 @@ export function CatPet({
   enableAI = true,
   onInteraction,
 }: CatPetProps = {}) {
+  const location = useLocation();
   const [position, setPosition] = useState<Position>(() => ({
     x: initialPosition?.x ?? 50,
-    y: initialPosition?.y ?? (typeof window !== 'undefined' ? window.innerHeight - 200 : 500),
+    y: initialPosition?.y ?? (typeof window !== 'undefined' ? window.innerHeight - GROUND_OFFSET : 500),
   }));
   const [isDragging, setIsDragging] = useState(false);
   const [currentAnimation, setCurrentAnimation] = useState<CatState>('idle');
   const [direction, setDirection] = useState<'left' | 'right'>('right');
+  const [rotation, setRotation] = useState(0);
+  const prevPath = useRef(location.pathname);
 
   const dragOffset = useRef<Position>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,12 +55,21 @@ export function CatPet({
       setCurrentAnimation(newState);
 
       if (newState === 'walk' && movementEngine.current) {
+        setRotation(0);
         const target = movementEngine.current.generateRandomTarget();
         movementEngine.current.moveTo(target, (pos, dir) => {
           setPosition(pos);
           setDirection(dir);
         });
+      } else if (newState === 'climb' && movementEngine.current) {
+        const target = movementEngine.current.generateClimbTarget();
+        movementEngine.current.climb(target, (pos, dir, rot) => {
+          setPosition(pos);
+          setDirection(dir);
+          setRotation(rot);  // Set rotation for climbing (90 or -90 degrees)
+        });
       } else if (movementEngine.current) {
+        setRotation(0);  // Reset rotation for idle, sit, sleep, play
         movementEngine.current.stopMovement();
       }
     };
@@ -68,6 +82,61 @@ export function CatPet({
     };
   }, [enableAI]);
 
+  // Route change detection - trigger fall animation
+  useEffect(() => {
+    if (location.pathname !== prevPath.current) {
+      prevPath.current = location.pathname;
+
+      // Stop AI and trigger fall
+      behaviorEngine.current?.stop();
+      movementEngine.current?.stopMovement();
+      setCurrentAnimation('fall');
+
+      // Fall animation with rotation
+      if (movementEngine.current) {
+        movementEngine.current.fall(
+          (pos, rot) => {
+            setPosition(pos);
+            setRotation(rot);
+          },
+          () => {
+            // After landing, return to idle
+            setRotation(0);
+            setCurrentAnimation('idle');
+
+            // Restart AI behavior
+            if (enableAI && behaviorEngine.current) {
+              const handleStateChange = (newState: CatState) => {
+                setCurrentAnimation(newState);
+
+                if (newState === 'walk' && movementEngine.current) {
+                  setRotation(0);
+                  const target = movementEngine.current.generateRandomTarget();
+                  movementEngine.current.moveTo(target, (pos, dir) => {
+                    setPosition(pos);
+                    setDirection(dir);
+                  });
+                } else if (newState === 'climb' && movementEngine.current) {
+                  const target = movementEngine.current.generateClimbTarget();
+                  movementEngine.current.climb(target, (pos, dir, rot) => {
+                    setPosition(pos);
+                    setDirection(dir);
+                    setRotation(rot);
+                  });
+                } else if (movementEngine.current) {
+                  setRotation(0);
+                  movementEngine.current.stopMovement();
+                }
+              };
+
+              behaviorEngine.current.start(handleStateChange);
+            }
+          }
+        );
+      }
+    }
+  }, [location.pathname, enableAI]);
+
   // Pause AI during user interaction
   useEffect(() => {
     if (isDragging || isUserInteracting.current) {
@@ -78,12 +147,21 @@ export function CatPet({
         setCurrentAnimation(newState);
 
         if (newState === 'walk' && movementEngine.current) {
+          setRotation(0);
           const target = movementEngine.current.generateRandomTarget();
           movementEngine.current.moveTo(target, (pos, dir) => {
             setPosition(pos);
             setDirection(dir);
           });
+        } else if (newState === 'climb' && movementEngine.current) {
+          const target = movementEngine.current.generateClimbTarget();
+          movementEngine.current.climb(target, (pos, dir, rot) => {
+            setPosition(pos);
+            setDirection(dir);
+            setRotation(rot);
+          });
         } else if (movementEngine.current) {
+          setRotation(0);
           movementEngine.current.stopMovement();
         }
       };
@@ -149,19 +227,65 @@ export function CatPet({
       e.stopPropagation();
       isUserInteracting.current = true;
 
-      if (behaviorEngine.current) {
-        behaviorEngine.current.handleInteraction((newState) => {
+      if (behaviorEngine.current && movementEngine.current) {
+        const shouldFall = behaviorEngine.current.handleInteraction((newState) => {
           setCurrentAnimation(newState);
         });
+
+        // If clicked while climbing, trigger fall animation
+        if (shouldFall) {
+          setCurrentAnimation('fall');
+          movementEngine.current.fall(
+            (pos, rot) => {
+              setPosition(pos);
+              setRotation(rot);
+            },
+            () => {
+              // After landing, return to idle
+              setRotation(0);
+              setCurrentAnimation('idle');
+
+              // Restart AI behavior
+              if (enableAI && behaviorEngine.current) {
+                const handleStateChange = (newState: CatState) => {
+                  setCurrentAnimation(newState);
+
+                  if (newState === 'walk' && movementEngine.current) {
+                    setRotation(0);
+                    const target = movementEngine.current.generateRandomTarget();
+                    movementEngine.current.moveTo(target, (pos, dir) => {
+                      setPosition(pos);
+                      setDirection(dir);
+                    });
+                  } else if (newState === 'climb' && movementEngine.current) {
+                    const target = movementEngine.current.generateClimbTarget();
+                    movementEngine.current.climb(target, (pos, dir, rot) => {
+                      setPosition(pos);
+                      setDirection(dir);
+                      setRotation(rot);
+                    });
+                  } else if (movementEngine.current) {
+                    setRotation(0);
+                    movementEngine.current.stopMovement();
+                  }
+                };
+
+                behaviorEngine.current.start(handleStateChange);
+              }
+
+              isUserInteracting.current = false;
+            }
+          );
+        } else {
+          setTimeout(() => {
+            isUserInteracting.current = false;
+          }, 100);
+        }
       }
 
       onInteraction?.('click');
-
-      setTimeout(() => {
-        isUserInteracting.current = false;
-      }, 100);
     },
-    [isDragging, onInteraction]
+    [isDragging, onInteraction, enableAI]
   );
 
   return (
@@ -179,7 +303,7 @@ export function CatPet({
       onMouseDown={handleMouseDown}
       onClick={handleClick}
     >
-      <Cat animation={currentAnimation} scale={scale} direction={direction} />
+      <Cat animation={currentAnimation} scale={scale} direction={direction} rotation={rotation} />
     </div>
   );
 }

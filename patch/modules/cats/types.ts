@@ -2,7 +2,7 @@
  * Cat Pet System - Type Definitions
  */
 
-export type CatState = 'idle' | 'walk' | 'sit' | 'sleep' | 'play';
+export type CatState = 'idle' | 'walk' | 'sit' | 'sleep' | 'play' | 'fall' | 'climb';
 
 export interface Position {
   x: number;

@@ -11,9 +11,10 @@ export interface CatProps {
   scale?: number;
   direction?: 'left' | 'right';
   className?: string;
+  rotation?: number;  // For fall animation
 }
 
-export function Cat({ animation, scale = 1, direction = 'right', className = '' }: CatProps) {
+export function Cat({ animation, scale = 1, direction = 'right', className = '', rotation = 0 }: CatProps) {
   const [currentFrame, setCurrentFrame] = useState(0);
   const animationRef = useRef<number | null>(null);
   const lastFrameTime = useRef(Date.now());
@@ -25,7 +26,12 @@ export function Cat({ animation, scale = 1, direction = 'right', className = '' 
     // Reset frame when animation changes
     if (prevAnimation.current !== animation) {
       prevAnimation.current = animation;
-      setCurrentFrame(0);
+      // For non-animated states (idle, sit, fall), randomly pick one frame
+      if (!config.animated && config.frameCount > 1) {
+        setCurrentFrame(Math.floor(Math.random() * config.frameCount));
+      } else {
+        setCurrentFrame(0);
+      }
       lastFrameTime.current = Date.now();
     }
 
@@ -34,9 +40,8 @@ export function Cat({ animation, scale = 1, direction = 'right', className = '' 
       return;
     }
 
-    // If not animated, just show first frame
+    // If not animated, just show the selected frame (don't change it)
     if (!config.animated) {
-      setCurrentFrame(0);
       return;
     }
 
@@ -89,7 +94,7 @@ export function Cat({ animation, scale = 1, direction = 'right', className = '' 
         backgroundSize: `${config.frameCount * config.frameWidth * scale}px ${config.frameHeight * scale}px`,
         backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
-        transform: direction === 'left' ? 'scaleX(-1)' : 'none',
+        transform: `${direction === 'left' ? 'scaleX(-1)' : ''} rotate(${rotation}deg)`,
         transition: 'none',
       }}
     />
