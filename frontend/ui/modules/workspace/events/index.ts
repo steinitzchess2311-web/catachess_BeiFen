@@ -4,6 +4,7 @@ import { api } from '../../../assets/api';
 import { makeDraggable } from '../../../core/drag';
 import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
 import CreateModal from '../../../../web/src/components/dialogBox/CreateModal';
+import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActionsModal';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -37,6 +38,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // Create modal container and React root
     let modalContainer: HTMLDivElement | null = null;
     let modalRoot: ReactDOM.Root | null = null;
+
+    // Create actions modal container and React root
+    let actionsModalContainer: HTMLDivElement | null = null;
+    let actionsModalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
@@ -624,29 +629,47 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     const openNodeActions = (node: any) => {
-        const { overlay } = mountModal('node-actions-template');
-        const title = overlay.querySelector('.modal-title') as HTMLElement;
-        const eyebrow = overlay.querySelector('.modal-eyebrow') as HTMLElement;
-        title.textContent = node.title;
-        eyebrow.textContent = node.node_type === 'folder' ? 'Folder' : 'Study';
-        const actions = overlay.querySelectorAll('.action-btn');
-        actions.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const action = (btn as HTMLButtonElement).dataset.action;
-                if (action === 'move') {
-                    overlay.remove();
-                    await openMoveModal(node);
+        // Create actions modal container if not exists
+        if (!actionsModalContainer) {
+            actionsModalContainer = document.createElement('div');
+            actionsModalContainer.id = 'node-actions-modal-root';
+            document.body.appendChild(actionsModalContainer);
+            actionsModalRoot = ReactDOM.createRoot(actionsModalContainer);
+        }
+
+        // Render NodeActionsModal React component
+        actionsModalRoot!.render(
+            React.createElement(NodeActionsModal, {
+                node: node,
+                onClose: () => {
+                    // Unmount modal
+                    if (actionsModalRoot) {
+                        actionsModalRoot.render(null);
+                    }
+                },
+                onMove: (n) => {
+                    // Close React modal and open native Move modal
+                    if (actionsModalRoot) {
+                        actionsModalRoot.render(null);
+                    }
+                    openMoveModal(n);
+                },
+                onRename: (n) => {
+                    // Close React modal and open native Rename modal
+                    if (actionsModalRoot) {
+                        actionsModalRoot.render(null);
+                    }
+                    openRenameModal(n);
+                },
+                onDelete: (n) => {
+                    // Close React modal and open native Delete confirm
+                    if (actionsModalRoot) {
+                        actionsModalRoot.render(null);
+                    }
+                    openDeleteConfirm(n);
                 }
-                if (action === 'delete') {
-                    overlay.remove();
-                    openDeleteConfirm(node);
-                }
-                if (action === 'rename') {
-                    overlay.remove();
-                    openRenameModal(node);
-                }
-            });
-        });
+            })
+        );
     };
 
     // 4. Initial Bindings
