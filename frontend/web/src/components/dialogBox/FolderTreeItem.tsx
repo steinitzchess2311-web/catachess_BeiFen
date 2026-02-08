@@ -16,7 +16,7 @@ const FolderIcon: React.FC = () => (
   </svg>
 );
 
-const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
+const FolderTreeItemComponent: React.FC<FolderTreeItemProps> = ({
   folder,
   level,
   onSelectFolder,
@@ -123,5 +123,8 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     </div>
   );
 };
+
+// Memoize to prevent unnecessary re-renders when parent re-renders
+const FolderTreeItem = React.memo(FolderTreeItemComponent);
 
 export default FolderTreeItem;

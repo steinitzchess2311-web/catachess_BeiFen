@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import FolderTree from './FolderTree';
 import { FolderNode, fetchFolders, resolvePathToId } from '../../utils/folderTree';
 import { api } from '@ui/assets/api';
@@ -88,11 +88,11 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
     }, 200);
   };
 
-  const handleSelectFolder = (folder: FolderNode) => {
+  const handleSelectFolder = useCallback((folder: FolderNode) => {
     setInputValue(folder.path);
     setIsDropdownOpen(false);
     inputRef.current?.blur();
-  };
+  }, []);
 
   const handleMove = async () => {
     setIsMoving(true);
@@ -136,11 +136,11 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
   };
 
   // Extract search term from input (last segment after /)
-  const getSearchTerm = () => {
+  const searchTerm = useMemo(() => {
     const parts = inputValue.split('/').filter(Boolean);
     if (parts.length <= 1) return '';
     return parts[parts.length - 1];
-  };
+  }, [inputValue]);
 
   return (
     <div className="move-modal-overlay">
@@ -170,7 +170,7 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
               <FolderTree
                 folders={rootFolders}
                 onSelectFolder={handleSelectFolder}
-                filterText={getSearchTerm()}
+                filterText={searchTerm}
               />
             </div>
           )}
