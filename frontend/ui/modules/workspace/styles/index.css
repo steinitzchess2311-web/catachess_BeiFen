@@ -103,8 +103,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
+    width: 600px;
+    height: 600px;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
     z-index: 1;
@@ -119,8 +119,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
+    width: 600px;
+    height: 600px;
     background: url('/assets/desktop/cat_mainpage.png') center center no-repeat;
     background-size: contain;
     z-index: 2;
@@ -216,8 +216,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
+    width: 600px;
+    height: 600px;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
     z-index: 5;
