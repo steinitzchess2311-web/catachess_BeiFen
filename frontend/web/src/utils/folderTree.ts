@@ -1,4 +1,4 @@
-import { api } from '../../../ui/assets/api';
+import { api } from '@ui/assets/api';
 
 export interface FolderNode {
   id: string;

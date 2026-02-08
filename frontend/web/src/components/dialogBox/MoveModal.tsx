@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FolderTree from './FolderTree';
 import { FolderNode, fetchFolders, resolvePathToId } from '../../utils/folderTree';
-import { api } from '../../../ui/assets/api';
+import { api } from '@ui/assets/api';
 import './MoveModal.css';
 
 interface MoveModalProps {
