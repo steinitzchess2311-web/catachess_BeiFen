@@ -109,7 +109,7 @@
     background-size: contain;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.8;
+    opacity: 1.0;
 }
 
 .main-header {
@@ -194,7 +194,7 @@
 
 /* Grid Items */
 .grid-item {
-    background-color: var(--surface);
+    background-color: rgba(255, 255, 255, 0.9);
     border-radius: var(--radius-md);
     padding: var(--space-md);
     display: flex;
