@@ -94,8 +94,9 @@
 
 .move-modal-label {
   display: block;
-  font-size: var(--font-sm);
+  font-size: 16px;
   font-weight: 500;
+  font-family: var(--font-family);
   color: var(--text-main);
   margin-bottom: var(--space-xs);
 }

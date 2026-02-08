@@ -146,7 +146,7 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
     <div className="move-modal-overlay">
       <div ref={modalRef} className="move-modal-card">
         <div className="move-modal-header">
-          <h3 className="move-modal-title">Move To</h3>
+          <h3 className="move-modal-title">📦 Move</h3>
           <button className="move-modal-close" onClick={onClose}>
             ×
           </button>

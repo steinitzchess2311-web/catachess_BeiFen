@@ -139,7 +139,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ node, onClose, onSuccess }) =
       <div ref={modalRef} className="rename-modal-card">
         <div className="rename-modal-header">
           <h3 className="rename-modal-title">
-            Rename {typeLabel}
+            ✏️ Rename
           </h3>
           <button className="rename-modal-close" onClick={onClose}>
             ×
