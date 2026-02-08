@@ -189,8 +189,9 @@
 }
 
 .folder-name {
-  flex: 1;
-  font-size: 25px;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: var(--font-family);
   color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
