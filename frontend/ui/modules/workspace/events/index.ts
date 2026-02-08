@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { api } from '../../../assets/api';
 import { makeDraggable } from '../../../core/drag';
 import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
+import NewItemButtons from '../../../../web/src/components/dialogBox/NewItemButtons';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -20,8 +21,6 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     const itemsGrid = container.querySelector('#items-grid') as HTMLElement;
     const breadcrumb = container.querySelector('#breadcrumb') as HTMLElement;
     const folderTree = container.querySelector('#folder-tree') as HTMLElement;
-    const newFolderBtn = container.querySelector('#new-folder-btn') as HTMLButtonElement;
-    const newStudyBtn = container.querySelector('#new-study-btn') as HTMLButtonElement;
     const pathInput = container.querySelector('#path-input') as HTMLInputElement;
     const searchInput = container.querySelector('#workspace-search-input') as HTMLInputElement;
     const searchClearBtn = container.querySelector('#workspace-search-clear') as HTMLButtonElement;
@@ -32,8 +31,29 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
     let dragNode: any | null = null;
+    let newItemButtonsRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
+
+    // Render NewItemButtons React component
+    const renderNewItemButtons = () => {
+        const newItemContainer = container.querySelector('#new-item-buttons-container') as HTMLElement;
+        if (!newItemContainer) return;
+
+        if (!newItemButtonsRoot) {
+            newItemButtonsRoot = ReactDOM.createRoot(newItemContainer);
+        }
+
+        newItemButtonsRoot.render(
+            React.createElement(NewItemButtons, {
+                currentParentId: currentParentId,
+                onSuccess: () => {
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                }
+            })
+        );
+    };
 
     // Fetch and render nodes for current folder
     const refreshNodes = async (parentId: string) => {
@@ -221,6 +241,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         renderBreadcrumb();
         await refreshNodes(id);
         updatePathInputDisplay();
+        renderNewItemButtons(); // Update React component with new currentParentId
     };
 
     const renderBreadcrumb = () => {
@@ -609,72 +630,9 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         });
     };
 
-    // Modal Handling
-    const openCreateModal = (prefillType?: 'folder' | 'study') => {
-        const modalTpl = document.getElementById('create-modal-template') as HTMLTemplateElement;
-        const modal = document.importNode(modalTpl.content, true);
-        const overlay = modal.querySelector('.modal-overlay') as HTMLElement;
-        const card = overlay.querySelector('.modal-card') as HTMLElement;
-        const closeBtns = overlay.querySelectorAll('.modal-close');
-        const confirmBtn = overlay.querySelector('#confirm-create') as HTMLButtonElement;
-        const typeSelect = overlay.querySelector('#new-type') as HTMLSelectElement;
-        const titleInput = overlay.querySelector('#new-title') as HTMLInputElement;
-        const titleError = overlay.querySelector('#new-title-error') as HTMLElement;
-
-        document.body.appendChild(overlay);
-
-        // Make draggable
-        makeDraggable(card, { handle: '.modal-header' });
-
-        const close = () => overlay.remove();
-        closeBtns.forEach(btn => btn.addEventListener('click', close));
-
-        if (prefillType) {
-            typeSelect.value = prefillType;
-            typeSelect.disabled = true;
-        }
-
-        const validateTitle = () => {
-            const value = titleInput.value;
-            if (value.includes('/')) {
-                titleError.textContent = 'No "/" in study or folder name';
-                confirmBtn.disabled = true;
-                return false;
-            }
-            titleError.textContent = '';
-            confirmBtn.disabled = false;
-            return true;
-        };
-
-        titleInput.addEventListener('input', validateTitle);
-
-        confirmBtn.addEventListener('click', async () => {
-            const title = titleInput.value;
-            const type = typeSelect.value;
-            if (!title) return;
-            if (!validateTitle()) return;
-
-            try {
-                // POST /api/v1/workspace/nodes
-                await api.post('/api/v1/workspace/nodes', {
-                    node_type: type,
-                    title: title,
-                    parent_id: currentParentId === 'root' ? null : currentParentId,
-                    visibility: 'private'
-                });
-                close();
-                allNodesCache = null;
-                refreshNodes(currentParentId);
-            } catch (error) {
-                console.error('Failed to create node:', error);
-                alert('Creation failed');
-            }
-        });
-    };
-
     // 4. Initial Bindings
-    newFolderBtn.addEventListener('click', () => openCreateModal('folder'));
-    newStudyBtn.addEventListener('click', () => openCreateModal('study'));
+    // Render NewItemButtons React component
+    renderNewItemButtons();
     pathInput?.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter') return;
         event.preventDefault();
