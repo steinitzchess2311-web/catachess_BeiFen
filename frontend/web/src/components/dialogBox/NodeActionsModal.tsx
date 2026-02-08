@@ -77,9 +77,8 @@ const NodeActionsModal: React.FC<NodeActionsModalProps> = ({
     <div className="node-actions-overlay">
       <div ref={modalRef} className="node-actions-card">
         <div className="node-actions-header">
-          <h3 className="node-actions-title">{node.title}</h3>
-          <div className="node-actions-info">
-            <span className="info-icon">ℹ</span>
+          <h3 className="node-actions-title">
+            {node.title}
             <div className="info-tooltip">
               <div className="tooltip-row">
                 <span className="tooltip-icon">{icon}</span>
@@ -88,7 +87,7 @@ const NodeActionsModal: React.FC<NodeActionsModalProps> = ({
               <div className="tooltip-item">Created at: {formatDate(node.created_at)}</div>
               <div className="tooltip-item">Last modified: {formatDate(node.updated_at)}</div>
             </div>
-          </div>
+          </h3>
           <button className="node-actions-close" onClick={onClose}>
             ×
           </button>

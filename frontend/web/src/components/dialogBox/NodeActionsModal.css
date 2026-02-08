@@ -53,6 +53,7 @@
 }
 
 .node-actions-title {
+  position: relative;
   flex: 1;
   margin: 0;
   font-size: 18px;
@@ -61,33 +62,12 @@
   color: var(--text-main);
   line-height: 1.4;
   word-break: break-word;
-}
-
-/* Info Button */
-.node-actions-info {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  font-style: normal;
   cursor: default;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
-.info-icon:hover {
-  background-color: var(--primary);
-  color: white;
+.node-actions-title:hover {
+  color: var(--primary);
 }
 
 /* Info Tooltip */
@@ -95,18 +75,19 @@
   display: none;
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   background-color: #1a1a1a;
   color: white;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   white-space: nowrap;
   font-size: var(--font-xs);
+  font-weight: 400;
   z-index: 1001;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.node-actions-info:hover .info-tooltip {
+.node-actions-title:hover .info-tooltip {
   display: block;
 }
 
