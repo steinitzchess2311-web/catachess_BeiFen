@@ -4,6 +4,7 @@ Auth Router - Authentication endpoints
 Endpoints:
     POST /auth/register - Register new user
     POST /auth/login - Login and get access token
+    POST /auth/logout - Logout current user
     POST /auth/verify-signup - Verify signup with code
     POST /auth/resend-verification - Resend verification code
 
@@ -24,9 +25,11 @@ from services.user_service import authenticate_user, create_user, get_user_by_id
 from services.signup_verification_service import SignupVerificationService
 from services.resend_email_service import ResendEmailService
 from core.security.jwt import create_access_token
+from core.security.current_user import get_current_user
 from core.security.rate_limiter import rate_limit
 from core.log.log_api import logger
 from core.errors import UserAlreadyExistsError, get_error_response, get_http_status_code
+from models.user import User
 
 # Workspace initialization imports
 from modules.workspace.db.session import get_db_config
@@ -303,6 +306,44 @@ def login_json(
     return TokenResponse(
         access_token=token,
         token_type="bearer",
+    )
+
+
+class LogoutResponse(BaseModel):
+    success: bool
+    message: str
+
+
+@router.post("/logout", response_model=LogoutResponse)
+def logout(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Logout current user.
+
+    Since we use JWT tokens (stateless authentication), the actual logout
+    happens on the client side by deleting the stored token.
+    This endpoint simply confirms the logout and logs the event.
+
+    The client should:
+    1. Call this endpoint
+    2. Delete the stored access_token from local storage
+    3. Redirect to login page
+
+    Args:
+        current_user: Authenticated user (auto-injected)
+
+    Returns:
+        Success confirmation
+
+    Raises:
+        401: User not authenticated
+    """
+    logger.info(f"Logout: {current_user.username} (id={current_user.id})")
+
+    return LogoutResponse(
+        success=True,
+        message="Logged out successfully",
     )
 
 
