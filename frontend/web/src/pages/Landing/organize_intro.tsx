@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import organizeIntroImage from "../../assets/photos/organize_intro.jpg";
 
 const OrganizeIntro = () => {
   return (
@@ -14,20 +15,23 @@ const OrganizeIntro = () => {
         boxSizing: "border-box",
       }}
     >
-      {/* Left: Placeholder square box for image */}
+      {/* Left: Image square */}
       <div
         style={{
-          border: "2px solid #ddd",
+          border: "2px solid transparent",
           width: "100%",
           aspectRatio: "1 / 1",
           justifySelf: "center",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#f5f5f5",
         }}
       >
-        {/* Placeholder - image will be added later */}
+        <img
+          src={organizeIntroImage}
+          alt="Organize your chess materials"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </div>
 
       {/* Right: Text content (right-aligned) */}
@@ -35,12 +39,12 @@ const OrganizeIntro = () => {
         style={{
           border: "2px solid transparent",
           height: "100%",
-          padding: "28px 32px 28px 0",
+          padding: "35px 40px 35px 0",
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: "37px",
+          gap: "45px",
         }}
       >
         <div
@@ -61,7 +65,9 @@ const OrganizeIntro = () => {
             textAlign: "right",
           }}
         >
-          We serve as your FREE online ChessBase that allows you to effectively organize your chess materials!
+          We serve as your FREE online ChessBase
+          <br />
+          that allows you to effectively organize your chess materials!
         </div>
         <Link
           to="/workspace-select"
@@ -71,7 +77,7 @@ const OrganizeIntro = () => {
             backgroundColor: "#1A73E8",
             border: "2px solid #1A73E8",
             borderRadius: "8px",
-            padding: "12px 24px",
+            padding: "14px 28px",
             fontSize: "18px",
             fontWeight: 600,
             color: "white",
