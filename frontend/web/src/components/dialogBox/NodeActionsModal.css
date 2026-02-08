@@ -45,16 +45,16 @@
 
 /* Header */
 .node-actions-header {
+  position: relative;
   padding: var(--space-lg);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  justify-content: center;
 }
 
 .node-actions-title {
   position: relative;
-  flex: 1;
   margin: 0;
   font-size: 20px;
   font-weight: 500;
@@ -62,6 +62,7 @@
   color: var(--text-main);
   line-height: 1.4;
   word-break: break-word;
+  text-align: center;
   cursor: default;
   transition: color 0.2s ease;
 }
@@ -117,6 +118,9 @@
 }
 
 .node-actions-close {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
   background: none;
   border: none;
   font-size: 28px;
@@ -130,8 +134,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
-  flex-shrink: 0;
 }
 
 .node-actions-close:hover {
