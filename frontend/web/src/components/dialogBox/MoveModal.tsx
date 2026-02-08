@@ -18,7 +18,7 @@ interface MoveModalProps {
 }
 
 const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState('root/');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [rootFolders, setRootFolders] = useState<FolderNode[]>([]);
   const [isMoving, setIsMoving] = useState(false);
@@ -159,10 +159,36 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
             type="text"
             className="move-modal-input"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              // Ensure "root/" prefix cannot be deleted
+              if (newValue.startsWith('root/')) {
+                setInputValue(newValue);
+              } else {
+                setInputValue('root/');
+              }
+            }}
+            onKeyDown={(e) => {
+              // Prevent deleting "root/" prefix
+              const input = e.currentTarget;
+              const cursorPos = input.selectionStart || 0;
+              const isDeleting = e.key === 'Backspace' || e.key === 'Delete';
+
+              if (isDeleting && cursorPos <= 5) {
+                e.preventDefault();
+              }
+            }}
+            onSelect={(e) => {
+              // Prevent cursor from moving before "root/"
+              const input = e.currentTarget;
+              const cursorPos = input.selectionStart || 0;
+
+              if (cursorPos < 5) {
+                input.setSelectionRange(5, 5);
+              }
+            }}
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            placeholder="root/..."
           />
 
           {isDropdownOpen && (
