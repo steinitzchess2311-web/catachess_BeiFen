@@ -13,6 +13,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   onSelectFolder,
   filterText,
 }) => {
+  console.log('[FolderTree] Rendering with', folders.length, 'folders, filterText:', filterText);
+
   // Extract last segment from path for filtering
   const getLastSegment = (path: string) => {
     const parts = path.split('/').filter(Boolean);
@@ -23,6 +25,8 @@ const FolderTree: React.FC<FolderTreeProps> = ({
   const filteredFolders = filterText
     ? folders.filter(f => getLastSegment(f.path).toLowerCase().startsWith(filterText.toLowerCase()))
     : folders;
+
+  console.log('[FolderTree] Filtered to', filteredFolders.length, 'folders');
 
   if (filteredFolders.length === 0) {
     return (
