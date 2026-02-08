@@ -78,7 +78,13 @@ const FolderTreeItemComponent: React.FC<FolderTreeItemProps> = ({
       >
         {/* Expand/collapse arrow */}
         {showExpandIcon && (
-          <span className="expand-icon" onClick={handleToggle}>
+          <span
+            className="expand-icon"
+            onMouseDown={(e) => {
+              e.preventDefault(); // Prevent input from losing focus
+              handleToggle(e);
+            }}
+          >
             {isExpanded ? '▼' : '▶'}
           </span>
         )}
