@@ -8,12 +8,22 @@ interface NodeActionsModalProps {
     node_type: 'folder' | 'study';
     version: number;
     parent_id: string | null;
+    created_at: string;
+    updated_at: string;
   };
   onClose: () => void;
   onMove: (node: any) => void;
   onRename: (node: any) => void;
   onDelete: (node: any) => void;
 }
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
+};
 
 const NodeActionsModal: React.FC<NodeActionsModalProps> = ({
   node,
@@ -61,17 +71,23 @@ const NodeActionsModal: React.FC<NodeActionsModalProps> = ({
   };
 
   const icon = node.node_type === 'folder' ? '📁' : '📖';
-  const typeLabel = node.node_type === 'folder' ? 'FOLDER' : 'STUDY';
+  const typeLabel = node.node_type === 'folder' ? 'Folder' : 'Study';
 
   return (
     <div className="node-actions-overlay">
       <div ref={modalRef} className="node-actions-card">
         <div className="node-actions-header">
-          <div className="node-actions-title-group">
-            <span className="node-actions-eyebrow">
-              {icon} {typeLabel}
-            </span>
-            <h3 className="node-actions-title">{node.title}</h3>
+          <h3 className="node-actions-title">{node.title}</h3>
+          <div className="node-actions-info">
+            <span className="info-icon">ℹ</span>
+            <div className="info-tooltip">
+              <div className="tooltip-row">
+                <span className="tooltip-icon">{icon}</span>
+                <span className="tooltip-type">{typeLabel}</span>
+              </div>
+              <div className="tooltip-item">Created at: {formatDate(node.created_at)}</div>
+              <div className="tooltip-item">Last modified: {formatDate(node.updated_at)}</div>
+            </div>
           </div>
           <button className="node-actions-close" onClick={onClose}>
             ×
