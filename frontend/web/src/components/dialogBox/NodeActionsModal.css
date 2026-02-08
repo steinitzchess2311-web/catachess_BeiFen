@@ -25,7 +25,7 @@
 
 .node-actions-card {
   background-color: var(--surface);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-3);
   width: 100%;
   max-width: 320px;
