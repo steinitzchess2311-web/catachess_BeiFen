@@ -4,8 +4,6 @@ import { FolderNode, fetchFolders } from '../../utils/folderTree';
 interface FolderTreeItemProps {
   folder: FolderNode;
   level: number;
-  expandedFolders: Set<string>;
-  onToggleExpand: (folderId: string) => void;
   onSelectFolder: (folder: FolderNode) => void;
 }
 
@@ -21,34 +19,31 @@ const FolderIcon: React.FC = () => (
 const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   folder,
   level,
-  expandedFolders,
-  onToggleExpand,
   onSelectFolder,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<FolderNode[]>([]);
   const [childrenLoaded, setChildrenLoaded] = useState(false);
-  const isExpanded = expandedFolders.has(folder.id);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // Save current state before toggling
-    const wasExpanded = isExpanded;
-
-    // Toggle expand/collapse
-    onToggleExpand(folder.id);
-
-    // Load children if we're expanding for the first time
-    if (!wasExpanded && !childrenLoaded) {
+    // If not loaded yet, load first
+    if (!childrenLoaded) {
       console.log('[FolderTree] Loading children for:', folder.title, folder.id);
       try {
         const folders = await fetchFolders(folder.id, folder.path);
         console.log('[FolderTree] Loaded', folders.length, 'folders:', folders);
         setChildren(folders);
         setChildrenLoaded(true);
+        // Expand after loading
+        setIsExpanded(true);
       } catch (error) {
         console.error('[FolderTree] Failed to load folders:', error);
       }
+    } else {
+      // Already loaded, just toggle
+      setIsExpanded(!isExpanded);
     }
   };
 
@@ -96,8 +91,6 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
                 key={child.id}
                 folder={child}
                 level={level + 1}
-                expandedFolders={expandedFolders}
-                onToggleExpand={onToggleExpand}
                 onSelectFolder={onSelectFolder}
               />
             ))

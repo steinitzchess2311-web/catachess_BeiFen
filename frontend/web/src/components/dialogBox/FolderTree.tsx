@@ -1,19 +1,15 @@
 import React from 'react';
 import FolderTreeItem from './FolderTreeItem';
-import { FolderNode, filterByPrefix } from '../../utils/folderTree';
+import { FolderNode } from '../../utils/folderTree';
 
 interface FolderTreeProps {
   folders: FolderNode[];
-  expandedFolders: Set<string>;
-  onToggleExpand: (folderId: string) => void;
   onSelectFolder: (folder: FolderNode) => void;
   filterText: string;
 }
 
 const FolderTree: React.FC<FolderTreeProps> = ({
   folders,
-  expandedFolders,
-  onToggleExpand,
   onSelectFolder,
   filterText,
 }) => {
@@ -43,8 +39,6 @@ const FolderTree: React.FC<FolderTreeProps> = ({
           key={folder.id}
           folder={folder}
           level={0}
-          expandedFolders={expandedFolders}
-          onToggleExpand={onToggleExpand}
           onSelectFolder={onSelectFolder}
         />
       ))}

@@ -21,7 +21,6 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
   const [inputValue, setInputValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [rootFolders, setRootFolders] = useState<FolderNode[]>([]);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [isMoving, setIsMoving] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -93,16 +92,6 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
     setInputValue(folder.path);
     setIsDropdownOpen(false);
     inputRef.current?.blur();
-  };
-
-  const handleToggleExpand = (folderId: string) => {
-    const newExpanded = new Set(expandedFolders);
-    if (newExpanded.has(folderId)) {
-      newExpanded.delete(folderId);
-    } else {
-      newExpanded.add(folderId);
-    }
-    setExpandedFolders(newExpanded);
   };
 
   const handleMove = async () => {
@@ -180,8 +169,6 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
             <div className="folder-dropdown">
               <FolderTree
                 folders={rootFolders}
-                expandedFolders={expandedFolders}
-                onToggleExpand={handleToggleExpand}
                 onSelectFolder={handleSelectFolder}
                 filterText={getSearchTerm()}
               />
