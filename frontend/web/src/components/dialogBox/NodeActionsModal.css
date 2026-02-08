@@ -46,7 +46,7 @@
 /* Header */
 .node-actions-header {
   position: relative;
-  padding: var(--space-xl) var(--space-lg);
+  padding: 80px var(--space-lg);
   display: flex;
   align-items: center;
   justify-content: center;
