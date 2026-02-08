@@ -199,7 +199,10 @@
 }
 
 .folder-children {
-  /* No additional styling needed */
+  /* Debug: add visible border to see if this element is rendering */
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.1);
+  min-height: 20px;
 }
 
 .folder-loading {
