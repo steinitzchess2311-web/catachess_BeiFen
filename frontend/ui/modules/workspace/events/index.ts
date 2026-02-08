@@ -8,11 +8,15 @@ import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActio
 import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
 import RenameModal from '../../../../web/src/components/dialogBox/RenameModal';
 import DeleteModal from '../../../../web/src/components/dialogBox/DeleteModal';
+import SortToggles from '../../../../web/src/components/workspace/SortToggles';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
     initialParentId?: string;
 };
+
+type SortKey = 'created' | 'modified' | null;
+type SortDir = 'asc' | 'desc';
 
 export async function initWorkspace(container: HTMLElement, options: WorkspaceOptions = {}) {
     // 1. Load Workspace Template
@@ -37,6 +41,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
     let dragNode: any | null = null;
+    let sortKey: SortKey = null;
+    let sortDir: SortDir = 'asc';
 
     // Create modal container and React root
     let modalContainer: HTMLDivElement | null = null;
@@ -95,6 +101,29 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         );
     };
 
+    // Sort nodes based on current sort settings
+    const sortNodes = (nodes: any[]): any[] => {
+        if (!sortKey) return nodes;
+
+        const sorted = [...nodes].sort((a, b) => {
+            let aValue: string;
+            let bValue: string;
+
+            if (sortKey === 'created') {
+                aValue = a.created_at;
+                bValue = b.created_at;
+            } else {
+                aValue = a.updated_at;
+                bValue = b.updated_at;
+            }
+
+            const comparison = aValue.localeCompare(bValue);
+            return sortDir === 'asc' ? comparison : -comparison;
+        });
+
+        return sorted;
+    };
+
     // Fetch and render nodes for current folder
     const refreshNodes = async (parentId: string) => {
         try {
@@ -107,11 +136,13 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     const renderItems = (nodes: any[]) => {
+        // Apply sorting before rendering
+        const sortedNodes = sortNodes(nodes);
         itemsGrid.innerHTML = '';
         const folderTpl = document.getElementById('folder-item-template') as HTMLTemplateElement;
         const studyTpl = document.getElementById('study-item-template') as HTMLTemplateElement;
 
-        nodes.forEach(node => {
+        sortedNodes.forEach(node => {
             const tpl = node.node_type === 'folder' ? folderTpl : studyTpl;
             const item = document.importNode(tpl.content, true);
             const itemDiv = item.querySelector('.grid-item') as HTMLElement;
@@ -750,6 +781,33 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         const root = ReactDOM.createRoot(logoutContainer);
         root.render(React.createElement(LogoutButton));
     }
+
+    // Render SortToggles React component
+    const sortTogglesContainer = container.querySelector('#sort-toggles-container') as HTMLElement;
+    let sortTogglesRoot: ReactDOM.Root | null = null;
+
+    const renderSortToggles = () => {
+        if (!sortTogglesContainer) return;
+
+        if (!sortTogglesRoot) {
+            sortTogglesRoot = ReactDOM.createRoot(sortTogglesContainer);
+        }
+
+        sortTogglesRoot.render(
+            React.createElement(SortToggles, {
+                sortKey,
+                sortDir,
+                onSortChange: (key: SortKey, dir: SortDir) => {
+                    sortKey = key;
+                    sortDir = dir;
+                    renderSortToggles(); // Re-render toggles to update UI
+                    refreshNodes(currentParentId); // Re-fetch and re-render items
+                }
+            })
+        );
+    };
+
+    renderSortToggles();
 
     // Initial load
     if (startParentId && startParentId !== 'root') {

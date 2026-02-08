@@ -175,6 +175,12 @@
     flex: 0 0 320px;
 }
 
+.view-options {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
 #path-input {
     width: 100%;
     padding: 6px 10px;

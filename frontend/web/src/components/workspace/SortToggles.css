@@ -1,0 +1,44 @@
+.sort-toggles {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.sort-toggle:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.sort-toggle[data-state="on"] {
+  background-color: #1A73E8;
+  border-color: #1A73E8;
+  color: white;
+}
+
+.sort-toggle[data-state="on"]:hover {
+  background-color: #1557b0;
+  border-color: #1557b0;
+}
+
+.sort-toggle-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.sort-direction-icon {
+  width: 14px;
+  height: 14px;
+}
