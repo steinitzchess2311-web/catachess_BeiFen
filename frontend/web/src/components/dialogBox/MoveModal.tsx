@@ -94,24 +94,28 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
   };
 
   const handleMove = async () => {
-    if (!inputValue.trim()) {
-      alert('Please select a destination folder');
-      return;
-    }
-
     setIsMoving(true);
 
     try {
-      const targetFolderId = await resolvePathToId(inputValue);
+      // Allow empty input or "root" or "Root" to move to root folder
+      const trimmedInput = inputValue.trim();
+      const normalizedInput = trimmedInput.toLowerCase();
 
-      if (!targetFolderId) {
-        alert('Invalid path. Please select a valid folder.');
-        setIsMoving(false);
-        return;
+      let targetFolderId: string | null = 'root';
+
+      // If input is not empty and not just "root", resolve the path
+      if (trimmedInput && normalizedInput !== 'root' && normalizedInput !== 'root/') {
+        targetFolderId = await resolvePathToId(inputValue);
+
+        if (!targetFolderId) {
+          alert('Invalid path. Please select a valid folder.');
+          setIsMoving(false);
+          return;
+        }
       }
 
       // Prevent moving folder into itself or its descendants
-      if (node.node_type === 'folder' && node.path && inputValue.startsWith(node.path)) {
+      if (node.node_type === 'folder' && node.path && inputValue && inputValue.startsWith(node.path)) {
         alert('Cannot move a folder into itself or its descendants');
         setIsMoving(false);
         return;
