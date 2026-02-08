@@ -32,6 +32,18 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
     fetchFolders('root', 'root').then(setRootFolders);
   }, []);
 
+  // Shake input on invalid path
+  const shakeInput = () => {
+    if (!inputRef.current) return;
+    inputRef.current.classList.remove('shake');
+    // Trigger reflow to restart animation
+    void inputRef.current.offsetWidth;
+    inputRef.current.classList.add('shake');
+    setTimeout(() => {
+      inputRef.current?.classList.remove('shake');
+    }, 300);
+  };
+
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -108,7 +120,7 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
         targetFolderId = await resolvePathToId(inputValue);
 
         if (!targetFolderId) {
-          alert('Invalid path. Please select a valid folder.');
+          shakeInput();
           setIsMoving(false);
           return;
         }
@@ -116,7 +128,7 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
 
       // Prevent moving folder into itself or its descendants
       if (node.node_type === 'folder' && node.path && inputValue && inputValue.startsWith(node.path)) {
-        alert('Cannot move a folder into itself or its descendants');
+        shakeInput();
         setIsMoving(false);
         return;
       }

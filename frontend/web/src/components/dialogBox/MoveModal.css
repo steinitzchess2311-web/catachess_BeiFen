@@ -117,6 +117,23 @@
   border-color: var(--primary);
 }
 
+.move-modal-input.shake {
+  animation: shake 0.3s ease-in-out;
+  border-color: var(--error);
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
 /* Folder Dropdown */
 .folder-dropdown {
   position: absolute;
