@@ -26,23 +26,36 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   const [childrenLoaded, setChildrenLoaded] = useState(false);
 
   const handleToggle = async (e: React.MouseEvent) => {
+    console.log('[FolderTreeItem] ===== TOGGLE CLICKED =====');
+    console.log('[FolderTreeItem] Folder:', folder.title);
+    console.log('[FolderTreeItem] Current state - isExpanded:', isExpanded, 'childrenLoaded:', childrenLoaded, 'children.length:', children.length);
+
     e.stopPropagation();
 
     // If not loaded yet, load first
     if (!childrenLoaded) {
-      console.log('[FolderTree] Loading children for:', folder.title, folder.id);
+      console.log('[FolderTreeItem] Children not loaded yet, fetching...');
+      console.log('[FolderTreeItem] Loading children for:', folder.title, folder.id);
       try {
         const folders = await fetchFolders(folder.id, folder.path);
-        console.log('[FolderTree] Loaded', folders.length, 'folders:', folders);
+        console.log('[FolderTreeItem] API returned', folders.length, 'folders:', folders);
+
+        console.log('[FolderTreeItem] Setting children state...');
         setChildren(folders);
+
+        console.log('[FolderTreeItem] Setting childrenLoaded to true...');
         setChildrenLoaded(true);
-        // Expand after loading
+
+        console.log('[FolderTreeItem] Setting isExpanded to true...');
         setIsExpanded(true);
+
+        console.log('[FolderTreeItem] All states updated!');
       } catch (error) {
-        console.error('[FolderTree] Failed to load folders:', error);
+        console.error('[FolderTreeItem] ❌ Failed to load folders:', error);
       }
     } else {
       // Already loaded, just toggle
+      console.log('[FolderTreeItem] Children already loaded, toggling from', isExpanded, 'to', !isExpanded);
       setIsExpanded(!isExpanded);
     }
   };
@@ -55,7 +68,7 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   // Only show expand icon if not yet loaded or has children
   const showExpandIcon = !childrenLoaded || children.length > 0;
 
-  console.log('[FolderTreeItem]', folder.title, '| isExpanded:', isExpanded, '| childrenLoaded:', childrenLoaded, '| children.length:', children.length);
+  console.log('[FolderTreeItem] 🔄 RENDER:', folder.title, '| isExpanded:', isExpanded, '| childrenLoaded:', childrenLoaded, '| children.length:', children.length, '| showExpandIcon:', showExpandIcon);
 
   return (
     <div className="folder-tree-item">
