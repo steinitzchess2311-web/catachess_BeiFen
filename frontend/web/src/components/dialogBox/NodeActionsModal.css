@@ -75,7 +75,8 @@
   display: none;
   position: absolute;
   top: calc(100% + 8px);
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: #1a1a1a;
   color: white;
   padding: var(--space-sm) var(--space-md);
