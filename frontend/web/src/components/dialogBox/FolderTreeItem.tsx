@@ -36,17 +36,20 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     // If not loaded yet, load children first
     if (!childrenLoaded) {
       setIsLoading(true);
+      onToggleExpand(folder.id); // Expand immediately to show loading state
+
       try {
         const folders = await fetchFolders(folder.id, folder.path);
         setChildren(folders);
         setChildrenLoaded(true);
 
-        // Only expand if there are actually children
-        if (folders.length > 0) {
+        // If no children, collapse back
+        if (folders.length === 0) {
           onToggleExpand(folder.id);
         }
       } catch (error) {
         console.error('Failed to load folders:', error);
+        onToggleExpand(folder.id); // Collapse on error
       } finally {
         setIsLoading(false);
       }
@@ -88,9 +91,14 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       </div>
 
       {/* Children */}
-      {isExpanded && childrenLoaded && children.length > 0 && (
+      {isExpanded && (
         <div className="folder-children">
-          {children.map((child) => (
+          {isLoading && (
+            <div className="folder-loading" style={{ paddingLeft: `${(level + 1) * 20}px` }}>
+              Loading...
+            </div>
+          )}
+          {!isLoading && childrenLoaded && children.map((child) => (
             <FolderTreeItem
               key={child.id}
               folder={child}
