@@ -161,6 +161,7 @@
 .folder-tree-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
   cursor: pointer;
@@ -189,7 +190,7 @@
 
 .folder-name {
   flex: 1;
-  font-size: var(--font-md);
+  font-size: 25px;
   color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
