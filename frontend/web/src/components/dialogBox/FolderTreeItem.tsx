@@ -32,11 +32,14 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // Always toggle first
+    // Save current state before toggling
+    const wasExpanded = isExpanded;
+
+    // Toggle expand/collapse
     onToggleExpand(folder.id);
 
-    // Load children if not loaded yet and we're expanding
-    if (!childrenLoaded && !isExpanded) {
+    // Load children if we're expanding for the first time
+    if (!wasExpanded && !childrenLoaded) {
       try {
         const folders = await fetchFolders(folder.id, folder.path);
         setChildren(folders);
