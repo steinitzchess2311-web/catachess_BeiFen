@@ -189,21 +189,7 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
-    z-index: 3;
-    isolation: isolate;
-}
-
-/* 白色半透明蒙层 - 冲淡有卡片区域的猫咪颜色 */
-.items-grid::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    z-index: 2;
-    pointer-events: none;
+    background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Grid Items */
