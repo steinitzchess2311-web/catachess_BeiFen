@@ -37,26 +37,52 @@ const SampleReport = () => {
             href="/sample_reports/yuyaochen_report.html"
             target="_blank"
             rel="noreferrer"
+            className="landing-button"
             style={{
-              border: "2px solid #000",
+              backgroundColor: "#1A73E8",
+              border: "2px solid #1A73E8",
+              borderRadius: "8px",
               padding: "12px 24px",
               fontSize: "18px",
               fontWeight: 600,
               lineHeight: 1,
-              color: "inherit",
+              color: "white",
               textDecoration: "none",
               display: "inline-block",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#1A73E8";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#1A73E8";
+              e.currentTarget.style.color = "white";
             }}
           >
             See Sample Report
           </a>
           <div
+            className="landing-button"
             style={{
-              border: "2px solid #000",
+              backgroundColor: "#1A73E8",
+              border: "2px solid #1A73E8",
+              borderRadius: "8px",
               padding: "12px 24px",
               fontSize: "18px",
               fontWeight: 600,
               lineHeight: 1,
+              color: "white",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "#1A73E8";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#1A73E8";
+              e.currentTarget.style.color = "white";
             }}
           >
             Create Your Own

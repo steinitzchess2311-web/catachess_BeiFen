@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import mainPageImage from "../../assets/photos/main_page.png";
 
-const MainPage = () => {
+const OrganizeIntro = () => {
   return (
     <div
       style={{
@@ -15,23 +14,23 @@ const MainPage = () => {
         boxSizing: "border-box",
       }}
     >
+      {/* Left: Placeholder square box for image */}
       <div
         style={{
-          border: "2px solid transparent",
+          border: "2px solid #ddd",
           width: "100%",
           aspectRatio: "1 / 1",
           justifySelf: "center",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          backgroundColor: "#f5f5f5",
         }}
       >
-        <img
-          src={mainPageImage}
-          alt="Main page preview"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        {/* Placeholder - image will be added later */}
       </div>
+
+      {/* Right: Text content (right-aligned) */}
       <div
         style={{
           border: "2px solid transparent",
@@ -52,17 +51,20 @@ const MainPage = () => {
             textAlign: "right",
           }}
         >
-          Join Us to Learn from World Chess Champions!
+          Freely Organize Your Chess Materials!
         </div>
-        <div style={{ fontSize: "18px", lineHeight: 1.6, color: "#2f2a26", textAlign: "right" }}>
-          Unlock your own personal virtual Grandmaster Coach! You may
-          <br />
-          select from Bobby Fischer, Garry Kasparov, Ding Liren, Mihail Tal,
-          <br />
-          Petrosian, and so much more!
+        <div
+          style={{
+            fontSize: "18px",
+            lineHeight: 1.6,
+            color: "#2f2a26",
+            textAlign: "right",
+          }}
+        >
+          We serve as your FREE online ChessBase that allows you to effectively organize your chess materials!
         </div>
         <Link
-          to="/login"
+          to="/workspace-select"
           className="landing-button"
           style={{
             alignSelf: "flex-end",
@@ -85,11 +87,11 @@ const MainPage = () => {
             e.currentTarget.style.color = "white";
           }}
         >
-          Start your journey
+          Get Started for Free
         </Link>
       </div>
     </div>
   );
 };
 
-export default MainPage;
+export default OrganizeIntro;
