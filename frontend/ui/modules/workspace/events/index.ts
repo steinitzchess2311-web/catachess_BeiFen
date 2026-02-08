@@ -5,6 +5,7 @@ import { makeDraggable } from '../../../core/drag';
 import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
 import CreateModal from '../../../../web/src/components/dialogBox/CreateModal';
 import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActionsModal';
+import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -42,6 +43,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // Create actions modal container and React root
     let actionsModalContainer: HTMLDivElement | null = null;
     let actionsModalRoot: ReactDOM.Root | null = null;
+
+    // Create move modal container and React root
+    let moveModalContainer: HTMLDivElement | null = null;
+    let moveModalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
@@ -487,35 +492,36 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         return [{ id: 'root', label: 'Root', path: '/root/' }, ...folders];
     };
 
-    const openMoveModal = async (node: any) => {
-        const { overlay, close } = mountModal('move-node-template');
-        const select = overlay.querySelector('#move-destination') as HTMLSelectElement;
-        const confirmBtn = overlay.querySelector('#confirm-move') as HTMLButtonElement;
-        const optionsList = await fetchFolderOptions();
-        optionsList.forEach(option => {
-            if (node.node_type === 'folder' && option.path.startsWith(node.path)) {
-                return;
-            }
-            const opt = document.createElement('option');
-            opt.value = option.id;
-            opt.textContent = option.label;
-            select.appendChild(opt);
-        });
+    const openMoveModal = (node: any) => {
+        // Create move modal container if not exists
+        if (!moveModalContainer) {
+            moveModalContainer = document.createElement('div');
+            moveModalContainer.id = 'move-modal-root';
+            document.body.appendChild(moveModalContainer);
+            moveModalRoot = ReactDOM.createRoot(moveModalContainer);
+        }
 
-        confirmBtn.addEventListener('click', async () => {
-            const newParentId = select.value === 'root' ? null : select.value;
-            try {
-                await api.post(`/api/v1/workspace/nodes/${node.id}/move`, {
-                    new_parent_id: newParentId,
-                    version: node.version,
-                });
-                close();
-                refreshNodes(currentParentId);
-            } catch (error) {
-                console.error('Failed to move node:', error);
-                alert('Move failed');
-            }
-        });
+        // Render MoveModal React component
+        moveModalRoot!.render(
+            React.createElement(MoveModal, {
+                node: node,
+                onClose: () => {
+                    // Unmount modal
+                    if (moveModalRoot) {
+                        moveModalRoot.render(null);
+                    }
+                },
+                onSuccess: () => {
+                    // Unmount modal
+                    if (moveModalRoot) {
+                        moveModalRoot.render(null);
+                    }
+                    // Refresh nodes and clear cache
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                }
+            })
+        );
     };
 
     const openDeleteConfirm = (node: any) => {
