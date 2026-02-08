@@ -189,8 +189,22 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
-    background-color: rgba(255, 255, 255, 0.6);
-    mix-blend-mode: lighten;
+}
+
+/* 浅色猫 - 只在 items-grid 区域显示（卡片下方的猫被冲淡） */
+.items-grid::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
+    background-size: contain;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.8;
 }
 
 /* Grid Items */
@@ -205,7 +219,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     position: relative;
-    z-index: 1;
+    z-index: 10;
 }
 
 .grid-item:hover {
