@@ -55,6 +55,8 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
   // Only show expand icon if not yet loaded or has children
   const showExpandIcon = !childrenLoaded || children.length > 0;
 
+  console.log('[FolderTreeItem]', folder.title, '| isExpanded:', isExpanded, '| childrenLoaded:', childrenLoaded, '| children.length:', children.length);
+
   return (
     <div className="folder-tree-item">
       <div
@@ -81,19 +83,23 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       {/* Children */}
       {isExpanded && (
         <div className="folder-children">
+          {console.log('[FolderTreeItem] Rendering children area for', folder.title)}
           {!childrenLoaded ? (
             <div className="folder-loading" style={{ paddingLeft: `${(level + 1) * 20}px` }}>
               Loading...
             </div>
           ) : (
-            children.map((child) => (
-              <FolderTreeItem
-                key={child.id}
-                folder={child}
-                level={level + 1}
-                onSelectFolder={onSelectFolder}
-              />
-            ))
+            <>
+              {console.log('[FolderTreeItem] Mapping', children.length, 'children for', folder.title)}
+              {children.map((child) => (
+                <FolderTreeItem
+                  key={child.id}
+                  folder={child}
+                  level={level + 1}
+                  onSelectFolder={onSelectFolder}
+                />
+              ))}
+            </>
           )}
         </div>
       )}
