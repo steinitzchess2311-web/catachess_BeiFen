@@ -147,9 +147,9 @@ class MongoEngineCache:
         fen: str,
         depth: int,
         multipv: int,
-        engine_mode: str | None = None,
         lines: list[dict],
-        source: str
+        source: str,
+        engine_mode: str | None = None
     ) -> bool:
         """
         Store analysis result in cache
