@@ -189,22 +189,7 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
-}
-
-/* 浅色猫 - 只在 items-grid 区域显示（卡片下方的猫被冲淡） */
-.items-grid::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
-    background-size: contain;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0.8;
+    background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Grid Items */
