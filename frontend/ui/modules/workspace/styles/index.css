@@ -96,7 +96,7 @@
     overflow: hidden;
 }
 
-/* 浅色猫咪 - 全局底层 */
+/* 浅色猫咪 - 全局底层（默认被深色猫覆盖） */
 .workspace-main::after {
     content: '';
     position: absolute;
@@ -112,7 +112,7 @@
     opacity: 0.8;
 }
 
-/* 深色猫咪 - 全局顶层（会被有卡片的区域覆盖） */
+/* 深色猫咪 - 在空白区域显示（覆盖浅色猫） */
 .workspace-main::before {
     content: '';
     position: absolute;
@@ -123,7 +123,7 @@
     height: 80%;
     background: url('/assets/desktop/cat_mainpage.png') center center no-repeat;
     background-size: contain;
-    z-index: 5;
+    z-index: 2;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -205,10 +205,11 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
+    z-index: 3;
     isolation: isolate;
 }
 
-/* 浅色猫咪 - 在有卡片的区域显示（覆盖卡片背景） */
+/* 浅色猫咪 - 在有卡片的区域覆盖深色猫 */
 .items-grid::before {
     content: '';
     position: absolute;
@@ -219,7 +220,7 @@
     height: 80%;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
-    z-index: 15;
+    z-index: 5;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -236,7 +237,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     position: relative;
-    z-index: 10;
+    z-index: 1;
 }
 
 .grid-item:hover {
@@ -267,7 +268,7 @@
     color: var(--primary);
     margin-bottom: var(--space-sm);
     position: relative;
-    z-index: 20;
+    z-index: 10;
 }
 
 .item-info {
@@ -284,14 +285,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     position: relative;
-    z-index: 20;
+    z-index: 10;
 }
 
 .item-meta {
     font-size: var(--font-xs);
     color: var(--text-secondary);
     position: relative;
-    z-index: 20;
+    z-index: 10;
 }
 
 .item-title-input {
