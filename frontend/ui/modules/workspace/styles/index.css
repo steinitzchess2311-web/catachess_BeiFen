@@ -103,8 +103,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 80%;
+    height: 80%;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
     z-index: 1;
@@ -119,11 +119,11 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 80%;
+    height: 80%;
     background: url('/assets/desktop/cat_mainpage.png') center center no-repeat;
     background-size: contain;
-    z-index: 10;
+    z-index: 5;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -205,22 +205,21 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
-    z-index: 20;
     isolation: isolate;
 }
 
-/* 浅色猫咪 - 在有卡片的区域显示（覆盖深色猫咪） */
+/* 浅色猫咪 - 在有卡片的区域显示（覆盖卡片背景） */
 .items-grid::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 80%;
+    height: 80%;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
-    z-index: 30;
+    z-index: 15;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -237,7 +236,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     position: relative;
-    z-index: 100;
+    z-index: 10;
 }
 
 .grid-item:hover {
@@ -267,6 +266,8 @@
 .item-icon {
     color: var(--primary);
     margin-bottom: var(--space-sm);
+    position: relative;
+    z-index: 20;
 }
 
 .item-info {
@@ -283,14 +284,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     position: relative;
-    z-index: 101;
+    z-index: 20;
 }
 
 .item-meta {
     font-size: var(--font-xs);
     color: var(--text-secondary);
     position: relative;
-    z-index: 101;
+    z-index: 20;
 }
 
 .item-title-input {
