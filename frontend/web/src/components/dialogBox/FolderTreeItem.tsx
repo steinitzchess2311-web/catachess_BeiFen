@@ -27,35 +27,23 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 }) => {
   const [children, setChildren] = useState<FolderNode[]>([]);
   const [childrenLoaded, setChildrenLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const isExpanded = expandedFolders.has(folder.id);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    // If not loaded yet, load children first
-    if (!childrenLoaded) {
-      setIsLoading(true);
-      onToggleExpand(folder.id); // Expand immediately to show loading state
+    // Always toggle first
+    onToggleExpand(folder.id);
 
+    // Load children if not loaded yet and we're expanding
+    if (!childrenLoaded && !isExpanded) {
       try {
         const folders = await fetchFolders(folder.id, folder.path);
         setChildren(folders);
         setChildrenLoaded(true);
-
-        // If no children, collapse back
-        if (folders.length === 0) {
-          onToggleExpand(folder.id);
-        }
       } catch (error) {
         console.error('Failed to load folders:', error);
-        onToggleExpand(folder.id); // Collapse on error
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      // Already loaded, just toggle
-      onToggleExpand(folder.id);
     }
   };
 
@@ -64,7 +52,7 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
     onSelectFolder(folder);
   };
 
-  // Determine if we should show the expand icon
+  // Only show expand icon if not yet loaded or has children
   const showExpandIcon = !childrenLoaded || children.length > 0;
 
   return (
@@ -76,7 +64,7 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
         {/* Expand/collapse arrow */}
         {showExpandIcon && (
           <span className="expand-icon" onClick={handleToggle}>
-            {isLoading ? '⋯' : isExpanded ? '▼' : '▶'}
+            {isExpanded ? '▼' : '▶'}
           </span>
         )}
         {!showExpandIcon && <span className="expand-icon-placeholder" />}
@@ -93,21 +81,22 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       {/* Children */}
       {isExpanded && (
         <div className="folder-children">
-          {isLoading && (
+          {!childrenLoaded ? (
             <div className="folder-loading" style={{ paddingLeft: `${(level + 1) * 20}px` }}>
               Loading...
             </div>
+          ) : (
+            children.map((child) => (
+              <FolderTreeItem
+                key={child.id}
+                folder={child}
+                level={level + 1}
+                expandedFolders={expandedFolders}
+                onToggleExpand={onToggleExpand}
+                onSelectFolder={onSelectFolder}
+              />
+            ))
           )}
-          {!isLoading && childrenLoaded && children.map((child) => (
-            <FolderTreeItem
-              key={child.id}
-              folder={child}
-              level={level + 1}
-              expandedFolders={expandedFolders}
-              onToggleExpand={onToggleExpand}
-              onSelectFolder={onSelectFolder}
-            />
-          ))}
         </div>
       )}
     </div>
