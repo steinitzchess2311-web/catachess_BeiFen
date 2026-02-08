@@ -1,5 +1,8 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { api } from '../../../assets/api';
 import { makeDraggable } from '../../../core/drag';
+import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -710,6 +713,13 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         searchInput.value = '';
         window.location.reload();
     });
+
+    // Render LogoutButton React component
+    const logoutContainer = container.querySelector('#logout-button-container') as HTMLElement;
+    if (logoutContainer) {
+        const root = ReactDOM.createRoot(logoutContainer);
+        root.render(React.createElement(LogoutButton));
+    }
 
     // Initial load
     if (startParentId && startParentId !== 'root') {

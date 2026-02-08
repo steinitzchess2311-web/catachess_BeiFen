@@ -1,0 +1,114 @@
+/* Logout Button Wrapper */
+.logout-button-wrapper {
+  position: relative;
+  width: 200px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+/* Logout Button - Blue border, transparent background */
+.logout-button {
+  width: 200px;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-md);
+  border: 2px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+/* Hover state - turn red */
+.logout-button:hover {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.logout-button:active {
+  transform: scale(0.98);
+}
+
+/* Logout Dialog - positioned above button */
+.logout-dialog {
+  position: absolute;
+  bottom: calc(100% + 8px); /* 8px gap above button */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background-color: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-3);
+  padding: var(--space-md);
+  z-index: 1001;
+  animation: dialogSlideUp 0.2s ease-out;
+}
+
+@keyframes dialogSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Dialog Text */
+.logout-dialog-text {
+  margin: 0 0 var(--space-md) 0;
+  font-size: var(--font-sm);
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Dialog Buttons Container */
+.logout-dialog-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+/* Dialog Button Base */
+.logout-dialog-btn {
+  flex: 1;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid;
+}
+
+/* No Button - Blue border, blue text */
+.logout-btn-no {
+  border-color: var(--primary);
+  background: transparent;
+  color: var(--primary);
+}
+
+.logout-btn-no:hover {
+  background-color: var(--primary-bg);
+}
+
+/* Yes Button - Red border, red text */
+.logout-btn-yes {
+  border-color: var(--error);
+  background: transparent;
+  color: var(--error);
+}
+
+.logout-btn-yes:hover {
+  background-color: rgba(217, 48, 37, 0.08);
+}
+
+.logout-dialog-btn:active {
+  transform: scale(0.97);
+}
