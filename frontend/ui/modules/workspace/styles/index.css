@@ -96,23 +96,7 @@
     overflow: hidden;
 }
 
-/* 浅色猫咪 - 全局底层（默认被深色猫覆盖） */
-.workspace-main::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
-    background-size: contain;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-/* 深色猫咪 - 在空白区域显示（覆盖浅色猫） */
+/* 深色猫咪 - 全局背景 */
 .workspace-main::before {
     content: '';
     position: absolute;
@@ -123,7 +107,7 @@
     height: 600px;
     background: url('/assets/desktop/cat_mainpage.png') center center no-repeat;
     background-size: contain;
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
     opacity: 0.8;
 }
@@ -209,20 +193,17 @@
     isolation: isolate;
 }
 
-/* 浅色猫咪 - 在有卡片的区域覆盖深色猫 */
+/* 白色半透明蒙层 - 冲淡有卡片区域的猫咪颜色 */
 .items-grid::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
-    background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
-    background-size: contain;
-    z-index: 5;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    z-index: 2;
     pointer-events: none;
-    opacity: 0.8;
 }
 
 /* Grid Items */
