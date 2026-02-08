@@ -6,6 +6,7 @@ import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton'
 import CreateModal from '../../../../web/src/components/dialogBox/CreateModal';
 import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActionsModal';
 import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
+import RenameModal from '../../../../web/src/components/dialogBox/RenameModal';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -47,6 +48,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // Create move modal container and React root
     let moveModalContainer: HTMLDivElement | null = null;
     let moveModalRoot: ReactDOM.Root | null = null;
+
+    // Create rename modal container and React root
+    let renameModalContainer: HTMLDivElement | null = null;
+    let renameModalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
@@ -601,37 +606,35 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     const openRenameModal = (node: any) => {
-        const { overlay, close } = mountModal('rename-node-template');
-        const titleInput = overlay.querySelector('#rename-title') as HTMLInputElement;
-        const errorEl = overlay.querySelector('#rename-title-error') as HTMLElement;
-        const confirmBtn = overlay.querySelector('#confirm-rename') as HTMLButtonElement;
-        titleInput.value = node.title || '';
+        // Create rename modal container if not exists
+        if (!renameModalContainer) {
+            renameModalContainer = document.createElement('div');
+            renameModalContainer.id = 'rename-modal-root';
+            document.body.appendChild(renameModalContainer);
+            renameModalRoot = ReactDOM.createRoot(renameModalContainer);
+        }
 
-        const validate = () => {
-            if (titleInput.value.includes('/')) {
-                errorEl.textContent = 'No "/" in study or folder name';
-                confirmBtn.disabled = true;
-                return false;
-            }
-            errorEl.textContent = '';
-            confirmBtn.disabled = false;
-            return true;
-        };
-
-        titleInput.addEventListener('input', validate);
-
-        confirmBtn.addEventListener('click', async () => {
-            if (!validate()) return;
-            try {
-                const ok = await renameNode(node, titleInput.value);
-                if (!ok) return;
-                close();
-                refreshNodes(currentParentId);
-            } catch (error) {
-                console.error('Failed to rename node:', error);
-                alert('Rename failed');
-            }
-        });
+        // Render React RenameModal
+        renameModalRoot!.render(
+            React.createElement(RenameModal, {
+                node: node,
+                onClose: () => {
+                    // Unmount modal
+                    if (renameModalRoot) {
+                        renameModalRoot.render(null);
+                    }
+                },
+                onSuccess: () => {
+                    // Unmount modal
+                    if (renameModalRoot) {
+                        renameModalRoot.render(null);
+                    }
+                    // Refresh nodes
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                }
+            })
+        );
     };
 
     const openNodeActions = (node: any) => {

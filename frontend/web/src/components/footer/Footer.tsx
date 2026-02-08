@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
             <div className="brand-icon">♔</div>
             <div className="brand-text">
               <p className="brand-title">Developed by</p>
-              <p className="brand-names">CataDragon & SiciDeer</p>
+              <p className="brand-names">Quanhao Li & Jorlanda Chen</p>
             </div>
           </div>
         </div>
