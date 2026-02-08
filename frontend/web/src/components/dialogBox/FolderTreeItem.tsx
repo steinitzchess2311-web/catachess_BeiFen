@@ -81,28 +81,32 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
       </div>
 
       {/* Children */}
-      {isExpanded && (
-        <div className="folder-children">
-          {console.log('[FolderTreeItem] Rendering children area for', folder.title)}
-          {!childrenLoaded ? (
-            <div className="folder-loading" style={{ paddingLeft: `${(level + 1) * 20}px` }}>
-              Loading...
-            </div>
-          ) : (
-            <>
-              {console.log('[FolderTreeItem] Mapping', children.length, 'children for', folder.title)}
-              {children.map((child) => (
-                <FolderTreeItem
-                  key={child.id}
-                  folder={child}
-                  level={level + 1}
-                  onSelectFolder={onSelectFolder}
-                />
-              ))}
-            </>
-          )}
-        </div>
-      )}
+      {isExpanded && (() => {
+        console.log('[FolderTreeItem] Rendering children area for', folder.title);
+        return (
+          <div className="folder-children">
+            {!childrenLoaded ? (
+              <div className="folder-loading" style={{ paddingLeft: `${(level + 1) * 20}px` }}>
+                Loading...
+              </div>
+            ) : (
+              <>
+                {(() => {
+                  console.log('[FolderTreeItem] Mapping', children.length, 'children for', folder.title);
+                  return children.map((child) => (
+                    <FolderTreeItem
+                      key={child.id}
+                      folder={child}
+                      level={level + 1}
+                      onSelectFolder={onSelectFolder}
+                    />
+                  ));
+                })()}
+              </>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };
