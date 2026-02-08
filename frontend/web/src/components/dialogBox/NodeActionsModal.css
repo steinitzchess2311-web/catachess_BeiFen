@@ -46,7 +46,7 @@
 /* Header */
 .node-actions-header {
   position: relative;
-  padding: 50px var(--space-lg);
+  padding: 50px var(--space-lg) 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,7 +141,7 @@
 
 /* Actions Body */
 .node-actions-body {
-  padding: var(--space-lg);
+  padding: 15px var(--space-lg) var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
