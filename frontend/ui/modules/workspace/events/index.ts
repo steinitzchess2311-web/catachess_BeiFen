@@ -7,6 +7,7 @@ import CreateModal from '../../../../web/src/components/dialogBox/CreateModal';
 import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActionsModal';
 import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
 import RenameModal from '../../../../web/src/components/dialogBox/RenameModal';
+import DeleteModal from '../../../../web/src/components/dialogBox/DeleteModal';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -52,6 +53,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // Create rename modal container and React root
     let renameModalContainer: HTMLDivElement | null = null;
     let renameModalRoot: ReactDOM.Root | null = null;
+
+    // Create delete modal container and React root
+    let deleteModalContainer: HTMLDivElement | null = null;
+    let deleteModalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
@@ -530,19 +535,35 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     const openDeleteConfirm = (node: any) => {
-        const { overlay, close } = mountModal('delete-confirm-template');
-        const confirmBtn = overlay.querySelector('#confirm-delete') as HTMLButtonElement;
-        confirmBtn.addEventListener('click', async () => {
-            try {
-                await api.delete(`/api/v1/workspace/nodes/${node.id}/purge?version=${node.version}`);
-                close();
-                allNodesCache = null;
-                refreshNodes(currentParentId);
-            } catch (error) {
-                console.error('Failed to delete node:', error);
-                alert('Delete failed');
-            }
-        });
+        // Create delete modal container if not exists
+        if (!deleteModalContainer) {
+            deleteModalContainer = document.createElement('div');
+            deleteModalContainer.id = 'delete-modal-root';
+            document.body.appendChild(deleteModalContainer);
+            deleteModalRoot = ReactDOM.createRoot(deleteModalContainer);
+        }
+
+        // Render React DeleteModal
+        deleteModalRoot!.render(
+            React.createElement(DeleteModal, {
+                node: node,
+                onClose: () => {
+                    // Unmount modal
+                    if (deleteModalRoot) {
+                        deleteModalRoot.render(null);
+                    }
+                },
+                onSuccess: () => {
+                    // Unmount modal
+                    if (deleteModalRoot) {
+                        deleteModalRoot.render(null);
+                    }
+                    // Refresh nodes
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                }
+            })
+        );
     };
 
     const openMoveConfirm = (source: any, target: any) => {
