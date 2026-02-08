@@ -65,8 +65,8 @@ const FolderTreeItemComponent: React.FC<FolderTreeItemProps> = ({
     onSelectFolder(folder);
   };
 
-  // Only show expand icon if not yet loaded or has children
-  const showExpandIcon = !childrenLoaded || children.length > 0;
+  // Only show expand icon if folder has children (based on API response)
+  const showExpandIcon = folder.hasChildren;
 
   console.log('[FolderTreeItem] 🔄 RENDER:', folder.title, '| isExpanded:', isExpanded, '| childrenLoaded:', childrenLoaded, '| children.length:', children.length, '| showExpandIcon:', showExpandIcon);
 
