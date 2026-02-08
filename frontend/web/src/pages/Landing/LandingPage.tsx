@@ -1,6 +1,7 @@
 import React from "react";
 import MainPage from "./main_page";
 import SampleReport from "./sample_report";
+import OrganizeIntro from "./organize_intro";
 
 const LandingPage = () => {
   return (
@@ -16,6 +17,7 @@ const LandingPage = () => {
       <div style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
         <MainPage />
         <SampleReport />
+        <OrganizeIntro />
       </div>
     </div>
   );
