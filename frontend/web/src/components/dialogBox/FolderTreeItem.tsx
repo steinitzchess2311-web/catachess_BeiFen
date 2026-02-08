@@ -40,12 +40,14 @@ const FolderTreeItem: React.FC<FolderTreeItemProps> = ({
 
     // Load children if we're expanding for the first time
     if (!wasExpanded && !childrenLoaded) {
+      console.log('[FolderTree] Loading children for:', folder.title, folder.id);
       try {
         const folders = await fetchFolders(folder.id, folder.path);
+        console.log('[FolderTree] Loaded', folders.length, 'folders:', folders);
         setChildren(folders);
         setChildrenLoaded(true);
       } catch (error) {
-        console.error('Failed to load folders:', error);
+        console.error('[FolderTree] Failed to load folders:', error);
       }
     }
   };
