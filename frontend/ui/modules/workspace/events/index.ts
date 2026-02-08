@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { api } from '../../../assets/api';
 import { makeDraggable } from '../../../core/drag';
 import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
-import NewItemButtons from '../../../../web/src/components/dialogBox/NewItemButtons';
+import CreateModal from '../../../../web/src/components/dialogBox/CreateModal';
 
 type WorkspaceOptions = {
     onOpenStudy?: (studyId: string) => void;
@@ -21,6 +21,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     const itemsGrid = container.querySelector('#items-grid') as HTMLElement;
     const breadcrumb = container.querySelector('#breadcrumb') as HTMLElement;
     const folderTree = container.querySelector('#folder-tree') as HTMLElement;
+    const newFolderBtn = container.querySelector('#new-folder-btn') as HTMLButtonElement;
+    const newStudyBtn = container.querySelector('#new-study-btn') as HTMLButtonElement;
     const pathInput = container.querySelector('#path-input') as HTMLInputElement;
     const searchInput = container.querySelector('#workspace-search-input') as HTMLInputElement;
     const searchClearBtn = container.querySelector('#workspace-search-clear') as HTMLButtonElement;
@@ -31,23 +33,41 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
     let dragNode: any | null = null;
-    let newItemButtonsRoot: ReactDOM.Root | null = null;
+
+    // Create modal container and React root
+    let modalContainer: HTMLDivElement | null = null;
+    let modalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
-    // Render NewItemButtons React component
-    const renderNewItemButtons = () => {
-        const newItemContainer = container.querySelector('#new-item-buttons-container') as HTMLElement;
-        if (!newItemContainer) return;
-
-        if (!newItemButtonsRoot) {
-            newItemButtonsRoot = ReactDOM.createRoot(newItemContainer);
+    // Open React CreateModal
+    const openCreateModal = (type: 'folder' | 'study') => {
+        // Create modal container if not exists
+        if (!modalContainer) {
+            modalContainer = document.createElement('div');
+            modalContainer.id = 'create-modal-root';
+            document.body.appendChild(modalContainer);
+            modalRoot = ReactDOM.createRoot(modalContainer);
         }
 
-        newItemButtonsRoot.render(
-            React.createElement(NewItemButtons, {
+        // Render modal
+        modalRoot!.render(
+            React.createElement(CreateModal, {
+                isOpen: true,
+                type: type,
                 currentParentId: currentParentId,
+                onClose: () => {
+                    // Unmount modal
+                    if (modalRoot) {
+                        modalRoot.render(null);
+                    }
+                },
                 onSuccess: () => {
+                    // Unmount modal
+                    if (modalRoot) {
+                        modalRoot.render(null);
+                    }
+                    // Refresh nodes
                     allNodesCache = null;
                     refreshNodes(currentParentId);
                 }
@@ -241,7 +261,6 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
         renderBreadcrumb();
         await refreshNodes(id);
         updatePathInputDisplay();
-        renderNewItemButtons(); // Update React component with new currentParentId
     };
 
     const renderBreadcrumb = () => {
@@ -631,8 +650,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     // 4. Initial Bindings
-    // Render NewItemButtons React component
-    renderNewItemButtons();
+    newFolderBtn.addEventListener('click', () => openCreateModal('folder'));
+    newStudyBtn.addEventListener('click', () => openCreateModal('study'));
     pathInput?.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter') return;
         event.preventDefault();
