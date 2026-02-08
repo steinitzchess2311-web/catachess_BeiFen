@@ -29,6 +29,26 @@
     width: 200px;
     align-self: center;
     border-radius: var(--radius-sm);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-md);
+    font-weight: 500;
+    font-family: var(--font-family);
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(26, 115, 232, 0.2);
+}
+
+.sidebar-header .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+    background-color: var(--primary-hover);
+}
+
+.sidebar-header .btn-primary:active {
+    transform: scale(0.98);
 }
 
 .sidebar-header h2 {
