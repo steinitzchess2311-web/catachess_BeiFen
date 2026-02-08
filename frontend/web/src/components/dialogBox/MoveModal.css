@@ -161,7 +161,7 @@
 .folder-tree-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
   cursor: pointer;
