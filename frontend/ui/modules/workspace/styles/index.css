@@ -21,6 +21,8 @@
     align-items: center;
     margin-bottom: var(--space-lg);
     gap: var(--space-sm);
+    position: relative;
+    z-index: 101;
 }
 
 .sidebar-header .btn-primary {
@@ -97,7 +99,7 @@
 /* 浅色猫咪 - 全局底层 */
 .workspace-main::after {
     content: '';
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -113,7 +115,7 @@
 /* 深色猫咪 - 全局顶层（会被有卡片的区域覆盖） */
 .workspace-main::before {
     content: '';
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -134,7 +136,7 @@
     align-items: center;
     gap: var(--space-md);
     position: relative;
-    z-index: 10;
+    z-index: 100;
 }
 
 .breadcrumb {
@@ -142,6 +144,8 @@
     gap: var(--space-xs);
     font-size: var(--font-sm);
     color: var(--text-secondary);
+    position: relative;
+    z-index: 101;
 }
 
 .breadcrumb-item {
@@ -174,6 +178,8 @@
     border-radius: var(--radius-sm);
     font-size: var(--font-sm);
     font-family: var(--font-family);
+    position: relative;
+    z-index: 101;
 }
 
 #path-input:focus {
@@ -206,7 +212,7 @@
 /* 浅色猫咪 - 在有卡片的区域显示（覆盖深色猫咪） */
 .items-grid::before {
     content: '';
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -231,7 +237,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     position: relative;
-    z-index: 10;
+    z-index: 100;
 }
 
 .grid-item:hover {
@@ -276,11 +282,15 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    position: relative;
+    z-index: 101;
 }
 
 .item-meta {
     font-size: var(--font-xs);
     color: var(--text-secondary);
+    position: relative;
+    z-index: 101;
 }
 
 .item-title-input {
