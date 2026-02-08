@@ -105,7 +105,7 @@
     transform: translate(-50%, -50%);
     width: 600px;
     height: 600px;
-    background: url('/assets/desktop/cat_mainpage.png?v=2') center center no-repeat;
+    background: url('/assets/desktop/cat_mainpage.png?v=3') center center no-repeat;
     background-size: contain;
     z-index: 1;
     pointer-events: none;
