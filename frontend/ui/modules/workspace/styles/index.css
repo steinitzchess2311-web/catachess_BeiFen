@@ -91,20 +91,39 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
-/* Background image - dark version for empty areas */
+/* 浅色猫咪 - 全局底层 */
+.workspace-main::after {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 50%;
+    background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
+    background-size: contain;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* 深色猫咪 - 全局顶层（会被有卡片的区域覆盖） */
 .workspace-main::before {
     content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 50%;
     background: url('/assets/desktop/cat_mainpage.png') center center no-repeat;
     background-size: contain;
-    z-index: 0;
+    z-index: 10;
     pointer-events: none;
+    opacity: 0.8;
 }
 
 .main-header {
@@ -115,7 +134,7 @@
     align-items: center;
     gap: var(--space-md);
     position: relative;
-    z-index: 1;
+    z-index: 10;
 }
 
 .breadcrumb {
@@ -180,21 +199,24 @@
     gap: var(--space-lg);
     padding: var(--space-lg);
     position: relative;
-    z-index: 1;
+    z-index: 20;
+    isolation: isolate;
 }
 
-/* Background image - light version for areas with folders/studies */
+/* 浅色猫咪 - 在有卡片的区域显示（覆盖深色猫咪） */
 .items-grid::before {
     content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 50%;
     background: url('/assets/desktop/cat_mainpagelight.png') center center no-repeat;
     background-size: contain;
-    z-index: -1;
+    z-index: 30;
     pointer-events: none;
+    opacity: 0.8;
 }
 
 /* Grid Items */
@@ -209,7 +231,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     border: 1px solid transparent;
     position: relative;
-    z-index: 2;
+    z-index: 10;
 }
 
 .grid-item:hover {
