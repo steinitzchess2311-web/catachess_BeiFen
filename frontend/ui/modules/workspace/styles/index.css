@@ -412,3 +412,8 @@
     border-radius: var(--radius-md);
     cursor: pointer;
 }
+
+/* Logout button container - fixed at bottom */
+#logout-button-container {
+    margin-top: auto;
+}
