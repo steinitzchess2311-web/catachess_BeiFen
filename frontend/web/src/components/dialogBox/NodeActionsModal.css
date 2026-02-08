@@ -49,7 +49,7 @@
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-sm);
 }
 
@@ -58,7 +58,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  align-self: center;
 }
 
 .node-actions-eyebrow {
@@ -71,7 +70,7 @@
 }
 
 .node-actions-title {
-  margin: 0;
+  margin: auto 0;
   font-size: 18px;
   font-weight: 500;
   font-family: var(--font-family);
