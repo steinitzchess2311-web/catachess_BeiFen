@@ -111,7 +111,7 @@ const SolutionSection = () => {
             Clear PGN
           </h3>
           <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
-            CLEAR PGN parsing technology - import your games seamlessly.
+            CLEAR PGN parsing technology - import large PGN files seamlessly.
           </p>
         </div>
         <div
