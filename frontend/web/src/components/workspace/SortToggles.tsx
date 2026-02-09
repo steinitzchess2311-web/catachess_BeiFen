@@ -40,13 +40,16 @@ const SortToggles: React.FC<SortTogglesProps> = ({ sortKey, sortDir, onSortChang
 
   // Get tooltip text based on current sort state
   const getTooltipText = (key: 'created' | 'modified'): string => {
-    if (sortKey !== key) {
-      return ''; // No tooltip when not active
-    }
-
     const baseName = key === 'created' ? 'Creation time' : 'Last modified time';
-    const reverseText = sortDir === 'desc' ? ' (reverse)' : '';
-    return `Sorted by ${baseName}${reverseText}`;
+
+    if (sortKey === key) {
+      // Active button - show current state
+      const reverseText = sortDir === 'desc' ? ' (reverse)' : '';
+      return `Sorted by ${baseName}${reverseText}`;
+    } else {
+      // Inactive button - show what will happen if clicked
+      return `Sort by ${baseName}`;
+    }
   };
 
   return (
@@ -64,14 +67,12 @@ const SortToggles: React.FC<SortTogglesProps> = ({ sortKey, sortDir, onSortChang
               {sortKey === 'created' && <DirectionIcon className="sort-direction-icon" />}
             </Toggle.Root>
           </Tooltip.Trigger>
-          {sortKey === 'created' && (
-            <Tooltip.Portal>
-              <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
-                {getTooltipText('created')}
-                <Tooltip.Arrow className="sort-tooltip-arrow" />
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          )}
+          <Tooltip.Portal>
+            <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
+              {getTooltipText('created')}
+              <Tooltip.Arrow className="sort-tooltip-arrow" />
+            </Tooltip.Content>
+          </Tooltip.Portal>
         </Tooltip.Root>
 
         <Tooltip.Root>
@@ -86,14 +87,12 @@ const SortToggles: React.FC<SortTogglesProps> = ({ sortKey, sortDir, onSortChang
               {sortKey === 'modified' && <DirectionIcon className="sort-direction-icon" />}
             </Toggle.Root>
           </Tooltip.Trigger>
-          {sortKey === 'modified' && (
-            <Tooltip.Portal>
-              <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
-                {getTooltipText('modified')}
-                <Tooltip.Arrow className="sort-tooltip-arrow" />
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          )}
+          <Tooltip.Portal>
+            <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
+              {getTooltipText('modified')}
+              <Tooltip.Arrow className="sort-tooltip-arrow" />
+            </Tooltip.Content>
+          </Tooltip.Portal>
         </Tooltip.Root>
       </div>
     </Tooltip.Provider>
