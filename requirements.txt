@@ -41,6 +41,9 @@ resend>=0.8.0
 # ---- storage ----
 boto3>=1.34  # Cloudflare R2 / S3-compatible storage
 
+# ---- image processing ----
+Pillow>=10.0  # Image resizing and compression
+
 python-ulid>=2.7.0
 emoji>=2.0
 python-chess>=1.999
