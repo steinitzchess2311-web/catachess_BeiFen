@@ -42,8 +42,10 @@ const SolutionSection = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+          gridTemplateColumns: "repeat(2, 1fr)",
           gap: "20px",
+          maxWidth: "800px",
+          margin: "0 auto",
         }}
       >
         <div
@@ -110,6 +112,52 @@ const SolutionSection = () => {
           </h3>
           <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
             CLEAR PGN parsing technology - import your games seamlessly.
+          </p>
+        </div>
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.9)",
+            padding: "20px",
+            borderRadius: "10px",
+            boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              color: "#8b7355",
+              marginBottom: "10px",
+            }}
+          >
+            Comprehensive Database
+          </h3>
+          <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
+            Tired of deploying databases? We've got you covered! Complete{" "}
+            <a
+              href="https://theweekinchess.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#8b7355",
+                textDecoration: "underline",
+                fontWeight: 600,
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "#a0825f";
+                e.currentTarget.style.textDecorationThickness = "2px";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#8b7355";
+                e.currentTarget.style.textDecorationThickness = "1px";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              TWIC
+            </a>{" "}
+            database is fully integrated and ready to use online!
           </p>
         </div>
       </div>
