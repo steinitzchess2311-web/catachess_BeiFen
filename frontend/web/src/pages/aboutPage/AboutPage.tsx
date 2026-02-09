@@ -1,34 +1,35 @@
 import React from "react";
-import Intro from "./Intro";
-import Developer from "./Developer";
-import UserManual from "./userManual";
+import HeroSection from "../SponsorshipPage/HeroSection";
+import FoundersSection from "../SponsorshipPage/FoundersSection";
+import ProblemsSection from "../SponsorshipPage/ProblemsSection";
+import SolutionSection from "../SponsorshipPage/SolutionSection";
+import ImitatorSection from "../SponsorshipPage/ImitatorSection";
+import CTASection from "../SponsorshipPage/CTASection";
 
 const AboutPage = () => {
   return (
     <div
       style={{
-        padding: "28px 24px 40px",
+        padding: "40px 24px 70px",
         fontFamily: "'Roboto', sans-serif",
         background:
-          "radial-gradient(circle at top, rgba(250, 246, 242, 0.9) 0%, rgba(240, 230, 218, 0.9) 45%, rgba(233, 220, 207, 0.9) 100%)",
-        // Keep content scrollable beneath the fixed header.
-        maxHeight: "calc(100vh - 64px)",
+          "linear-gradient(135deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 242, 238, 0.95) 50%, rgba(242, 238, 233, 0.95) 100%)",
+        minHeight: "calc(100vh - 64px)",
         overflowY: "auto",
-        overflowX: "hidden",
       }}
     >
       <div
         style={{
-          maxWidth: "980px",
+          maxWidth: "1100px",
           margin: "0 auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: "24px",
         }}
       >
-        <Intro />
-        <Developer />
-        <UserManual />
+        <HeroSection />
+        <FoundersSection />
+        <ProblemsSection />
+        <SolutionSection />
+        <ImitatorSection />
+        <CTASection />
       </div>
     </div>
   );

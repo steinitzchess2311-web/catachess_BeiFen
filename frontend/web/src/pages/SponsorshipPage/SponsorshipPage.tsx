@@ -1,11 +1,5 @@
 import React from "react";
-import HeroSection from "./HeroSection";
-import FoundersSection from "./FoundersSection";
-import ProblemsSection from "./ProblemsSection";
-import SolutionSection from "./SolutionSection";
-import ImitatorSection from "./ImitatorSection";
 import FundingPlansSection from "./FundingPlansSection";
-import CTASection from "./CTASection";
 
 const SponsorshipPage = () => {
   return (
@@ -25,13 +19,7 @@ const SponsorshipPage = () => {
           margin: "0 auto",
         }}
       >
-        <HeroSection />
-        <FoundersSection />
-        <ProblemsSection />
-        <SolutionSection />
-        <ImitatorSection />
         <FundingPlansSection />
-        <CTASection />
       </div>
     </div>
   );
