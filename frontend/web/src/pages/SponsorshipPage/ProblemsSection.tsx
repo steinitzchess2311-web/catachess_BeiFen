@@ -32,15 +32,22 @@ const ProblemsSection = () => {
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
-          <img
-            src={chessbaseImg}
-            alt="ChessBase"
-            style={{
-              width: "100%",
-              borderRadius: "6px",
-              boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
-            }}
-          />
+          <a
+            href="https://shop.chessbase.com/en/products/chessbase_17_program_only"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={chessbaseImg}
+              alt="ChessBase"
+              style={{
+                width: "100%",
+                borderRadius: "6px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
+                cursor: "pointer",
+              }}
+            />
+          </a>
         </div>
         <div style={{ flex: "1" }}>
           <h3
@@ -83,15 +90,22 @@ const ProblemsSection = () => {
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
-          <img
-            src={lichessImg}
-            alt="Lichess Study"
-            style={{
-              width: "100%",
-              borderRadius: "6px",
-              boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
-            }}
-          />
+          <a
+            href="https://lichess.org/study"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={lichessImg}
+              alt="Lichess Study"
+              style={{
+                width: "100%",
+                borderRadius: "6px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
+                cursor: "pointer",
+              }}
+            />
+          </a>
         </div>
         <div style={{ flex: "1" }}>
           <h3
@@ -132,15 +146,22 @@ const ProblemsSection = () => {
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
-          <img
-            src={chesstempoImg}
-            alt="ChessTempo"
-            style={{
-              width: "100%",
-              borderRadius: "6px",
-              boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
-            }}
-          />
+          <a
+            href="https://chesstempo.com/opening-training/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={chesstempoImg}
+              alt="ChessTempo"
+              style={{
+                width: "100%",
+                borderRadius: "6px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
+                cursor: "pointer",
+              }}
+            />
+          </a>
         </div>
         <div style={{ flex: "1" }}>
           <h3
