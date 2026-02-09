@@ -52,7 +52,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
       }}
     >
       {/* Create Button - Only for Editor/Admin */}
-      {(userRole === 'editor' || userRole === 'admin') && <CreateButton />}
+      {(userRole === 'editor' || userRole === 'admin') && <CreateButton userRole={userRole} />}
       {/* Loading State */}
       {loading && <LoadingState />}
 

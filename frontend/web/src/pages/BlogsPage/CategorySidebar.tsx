@@ -53,10 +53,8 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   };
 
   const handleUserBlogsClick = () => {
-    setShowComingSoon(true);
-    setIsShaking(true);
-    setTimeout(() => setShowComingSoon(false), 2000);
-    setTimeout(() => setIsShaking(false), 500);
+    // Users' Blogs is now enabled - navigate to user category
+    handleCategoryClick('user');
   };
 
   // Handle category click
@@ -66,6 +64,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
       'about': 'about',
       'function': 'function',
       'allblogs': 'allblogs',
+      'user': 'user',  // Users' Blogs category
     };
 
     onCategoryChange(categoryMap[categoryId]);
@@ -252,36 +251,34 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
           <button
             onClick={handleUserBlogsClick}
             style={{
-              background: activeCategory === "users" ? "rgba(139, 115, 85, 0.1)" : "transparent",
+              background: activeCategory === "user" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
-              borderLeft: activeCategory === "users" ? "4px solid #8b7355" : "4px solid transparent",
+              borderLeft: activeCategory === "user" ? "4px solid #8b7355" : "4px solid transparent",
               padding: "14px 25px",
               textAlign: "left",
               cursor: "pointer",
               fontSize: "0.95rem",
-              fontWeight: activeCategory === "users" ? 600 : 500,
-              color: activeCategory === "users" ? "#2c2c2c" : "#5a5a5a",
+              fontWeight: activeCategory === "user" ? 600 : 500,
+              color: activeCategory === "user" ? "#2c2c2c" : "#5a5a5a",
               transition: "all 0.2s ease",
               display: "flex",
               alignItems: "center",
               gap: "10px",
               width: "100%",
-              animation: isShaking ? "shake 0.5s ease" : "none",
             }}
             onMouseEnter={(e) => {
-              if (activeCategory !== "users") {
+              if (activeCategory !== "user") {
                 e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
               }
             }}
             onMouseLeave={(e) => {
-              if (activeCategory !== "users") {
+              if (activeCategory !== "user") {
                 e.currentTarget.style.background = "transparent";
               }
             }}
           >
             <span style={{ fontSize: "1.2rem" }}>✍️</span>
             <span style={{ flex: 1 }}>Users' Blogs</span>
-            <ChevronRightIcon style={{ width: "18px", height: "18px", opacity: 0.5 }} />
           </button>
         </div>
 

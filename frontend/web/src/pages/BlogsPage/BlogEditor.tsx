@@ -16,6 +16,7 @@ interface BlogEditorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved?: (article: BlogArticle) => void;
+  userRole?: string | null;  // User's role to determine category options
 }
 
 /**
@@ -26,9 +27,11 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   article,
   open,
   onOpenChange,
-  onSaved
+  onSaved,
+  userRole
 }) => {
   const isEditMode = Boolean(article);
+  const isAdmin = userRole === 'admin';
 
   // Form state
   const [title, setTitle] = useState('');
@@ -37,7 +40,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [authorType, setAuthorType] = useState<'human' | 'ai'>('human');
-  const [category, setCategory] = useState('allblogs');
+  // Default category: admin can choose, others default to 'user'
+  const [category, setCategory] = useState(isAdmin ? 'allblogs' : 'user');
   const [tags, setTags] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [uploading, setUploading] = useState(false);
@@ -64,7 +68,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setCoverImageUrl('');
       setAuthorName('');
       setAuthorType('human');
-      setCategory('allblogs');
+      // Default category based on role
+      setCategory(isAdmin ? 'allblogs' : 'user');
       setTags('');
       setStatus('draft');
     }
@@ -276,45 +281,72 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 <Label.Root style={{ fontSize: '0.95rem', fontWeight: 600, color: '#2c2c2c', marginBottom: '8px', display: 'block' }}>
                   Category *
                 </Label.Root>
-                <Select.Root value={category} onValueChange={setCategory}>
-                  <Select.Trigger
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '1rem',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Select.Value />
-                    <Select.Icon>
-                      <ChevronDownIcon />
-                    </Select.Icon>
-                  </Select.Trigger>
-                  <Select.Portal>
-                    <Select.Content
+                {isAdmin ? (
+                  // Admin: Can choose between Official (About/Function/All Blogs) or User category
+                  <Select.Root value={category} onValueChange={setCategory}>
+                    <Select.Trigger
                       style={{
-                        backgroundColor: 'white',
+                        width: '100%',
+                        padding: '12px',
+                        fontSize: '1rem',
+                        border: '1px solid #e0e0e0',
                         borderRadius: '8px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                        padding: '8px',
-                        zIndex: 10000
+                        backgroundColor: 'white',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer'
                       }}
                     >
-                      <Select.Viewport>
-                        <SelectItem value="about">About Us</SelectItem>
-                        <SelectItem value="function">Function Intro</SelectItem>
-                        <SelectItem value="allblogs">All Blogs</SelectItem>
-                        <SelectItem value="user">User Content</SelectItem>
-                      </Select.Viewport>
-                    </Select.Content>
-                  </Select.Portal>
-                </Select.Root>
+                      <Select.Value />
+                      <Select.Icon>
+                        <ChevronDownIcon />
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content
+                        style={{
+                          backgroundColor: 'white',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                          padding: '8px',
+                          zIndex: 10000
+                        }}
+                      >
+                        <Select.Viewport>
+                          <Select.Group>
+                            <Select.Label style={{ padding: '8px 12px', fontSize: '0.8rem', color: '#8b7355', fontWeight: 700 }}>
+                              📖 ChessorTag Official
+                            </Select.Label>
+                            <SelectItem value="about">About Us</SelectItem>
+                            <SelectItem value="function">Function Intro</SelectItem>
+                            <SelectItem value="allblogs">All Blogs</SelectItem>
+                          </Select.Group>
+                          <Select.Separator style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '8px 0' }} />
+                          <Select.Group>
+                            <Select.Label style={{ padding: '8px 12px', fontSize: '0.8rem', color: '#8b7355', fontWeight: 700 }}>
+                              ✍️ Users' Blogs
+                            </Select.Label>
+                            <SelectItem value="user">User Content</SelectItem>
+                          </Select.Group>
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
+                ) : (
+                  // Non-admin: Fixed to User category
+                  <div style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    backgroundColor: '#f5f5f5',
+                    color: '#5a5a5a'
+                  }}>
+                    ✍️ Users' Blogs (User Content)
+                  </div>
+                )}
               </div>
 
               {/* Author Type */}

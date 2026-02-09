@@ -10,23 +10,26 @@ import { BlogArticle } from '../../types/blog';
 
 interface CreateButtonProps {
   onArticleCreated?: (article: BlogArticle) => void;
+  userRole?: string | null;  // Pass to BlogEditor
 }
 
 /**
  * Create article button positioned in top-right
  */
-const CreateButton: React.FC<CreateButtonProps> = ({ onArticleCreated }) => {
+const CreateButton: React.FC<CreateButtonProps> = ({ onArticleCreated, userRole }) => {
   const [editorOpen, setEditorOpen] = useState(false);
 
   const handleArticleSaved = (article: BlogArticle) => {
-    // Refresh the page or update the list
+    // Show success notification
+    alert(`Article "${article.title}" saved successfully! ${article.status === 'published' ? 'It will appear in the blog list.' : 'It\'s saved as a draft.'}`);
+
+    // Call callback
     onArticleCreated?.(article);
 
-    // Show success message
-    console.log('Article created successfully:', article);
-
-    // Optional: reload the page to show new article
-    window.location.reload();
+    // Reload to show new article (won't cause logout if done properly)
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return (
@@ -74,6 +77,7 @@ const CreateButton: React.FC<CreateButtonProps> = ({ onArticleCreated }) => {
         open={editorOpen}
         onOpenChange={setEditorOpen}
         onSaved={handleArticleSaved}
+        userRole={userRole}
       />
     </>
   );
