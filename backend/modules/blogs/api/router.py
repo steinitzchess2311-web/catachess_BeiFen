@@ -263,6 +263,54 @@ async def get_pinned_articles(
     return [ArticleListItem(**item) for item in result]
 
 
+# ==================== My Drafts (Editor/Admin) ====================
+
+@router.get("/articles/my-drafts", response_model=List[ArticleListItem])
+async def get_my_drafts(
+    current_user = Depends(require_editor),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Get current user's draft articles (Editor/Admin only)
+
+    **Requires:** editor or admin role
+
+    **Returns:** List of user's draft articles (status='draft')
+    """
+    # Query user's drafts
+    stmt = (
+        select(BlogArticle)
+        .where(and_(
+            BlogArticle.author_id == current_user.id,
+            BlogArticle.status == "draft"
+        ))
+        .order_by(BlogArticle.updated_at.desc())
+    )
+
+    drafts = db.execute(stmt).scalars().all()
+
+    # Convert to list
+    return [
+        ArticleListItem(
+            id=article.id,
+            title=article.title,
+            subtitle=article.subtitle,
+            cover_image_url=article.cover_image_url,
+            author_name=article.author_name,
+            author_type=article.author_type,
+            category=article.category,
+            tags=article.tags,
+            is_pinned=article.is_pinned,
+            view_count=article.view_count,
+            like_count=article.like_count,
+            comment_count=article.comment_count,
+            created_at=article.created_at,
+            published_at=article.published_at,
+        )
+        for article in drafts
+    ]
+
+
 # ==================== Article Detail ====================
 
 @router.get("/articles/{article_id}", response_model=ArticleResponse)
@@ -326,54 +374,6 @@ async def get_article(
     await cache.increment_view(str(article_id))
 
     return ArticleResponse(**result)
-
-
-# ==================== My Drafts (Editor/Admin) ====================
-
-@router.get("/articles/my-drafts", response_model=List[ArticleListItem])
-async def get_my_drafts(
-    current_user = Depends(require_editor),
-    db: Session = Depends(get_blog_db)
-):
-    """
-    Get current user's draft articles (Editor/Admin only)
-
-    **Requires:** editor or admin role
-
-    **Returns:** List of user's draft articles (status='draft')
-    """
-    # Query user's drafts
-    stmt = (
-        select(BlogArticle)
-        .where(and_(
-            BlogArticle.author_id == current_user.id,
-            BlogArticle.status == "draft"
-        ))
-        .order_by(BlogArticle.updated_at.desc())
-    )
-
-    drafts = db.execute(stmt).scalars().all()
-
-    # Convert to list
-    return [
-        ArticleListItem(
-            id=article.id,
-            title=article.title,
-            subtitle=article.subtitle,
-            cover_image_url=article.cover_image_url,
-            author_name=article.author_name,
-            author_type=article.author_type,
-            category=article.category,
-            tags=article.tags,
-            is_pinned=article.is_pinned,
-            view_count=article.view_count,
-            like_count=article.like_count,
-            comment_count=article.comment_count,
-            created_at=article.created_at,
-            published_at=article.published_at,
-        )
-        for article in drafts
-    ]
 
 
 # ==================== Cache Stats (Debug) ====================
