@@ -69,16 +69,16 @@ const ImitatorSection = () => {
         >
           <li style={{ marginBottom: "14px" }}>
             <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
+            Helps you to <strong>prepare against your opponent easily!</strong> You can have
+            clear focus on which opening variation to study deeper when preparing!
+          </li>
+          <li style={{ marginBottom: "14px" }}>
+            <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
             Allows LLMs to <strong>explain moves in the style of a target player</strong>{" "}
             (which is epoch-making). If you give an FEN to ChatGPT or Gemini etc, they
             generate wrong ideas. But with our system, <strong>LLMs can actively reflect what
             players are thinking</strong>. We are making TOP players from William Steinitz to
             Magnus Carlsen your <strong style={{ color: "#8b7355" }}>PERSONAL CHESS COACH!</strong>
-          </li>
-          <li style={{ marginBottom: "14px" }}>
-            <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
-            Helps you to <strong>prepare against your opponent easily!</strong> You can have
-            clear focus on which opening variation to study deeper when preparing!
           </li>
         </ul>
       </div>
