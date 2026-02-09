@@ -1,4 +1,5 @@
 import React from "react";
+import HeroSection from "./HeroSection";
 import FundingPlansSection from "./FundingPlansSection";
 
 const SponsorshipPage = () => {
@@ -19,6 +20,7 @@ const SponsorshipPage = () => {
           margin: "0 auto",
         }}
       >
+        <HeroSection />
         <FundingPlansSection />
       </div>
     </div>
