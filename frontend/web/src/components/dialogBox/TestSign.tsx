@@ -7,23 +7,23 @@ interface TestSignProps {
 
 const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [showToast, setShowToast] = useState(false);
+  // const [showToast, setShowToast] = useState(false);
 
-  const copyToClipboard = async () => {
-    const wechatId = 'Cata-Dragon';
+  // const copyToClipboard = async () => {
+  //   const wechatId = 'Cata-Dragon';
 
-    try {
-      await navigator.clipboard.writeText(wechatId);
-      setShowToast(true);
+  //   try {
+  //     await navigator.clipboard.writeText(wechatId);
+  //     setShowToast(true);
 
-      // Auto-hide toast after 2 seconds
-      setTimeout(() => {
-        setShowToast(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
+  //     // Auto-hide toast after 2 seconds
+  //     setTimeout(() => {
+  //       setShowToast(false);
+  //     }, 2000);
+  //   } catch (err) {
+  //     console.error('Failed to copy:', err);
+  //   }
+  // };
 
   if (!isVisible) return null;
 
@@ -45,11 +45,12 @@ const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
             <strong>Currently under renovation.</strong> Beta testers are welcomed to send your suggestions to{' '}
             <a href="mailto:info@steinitzchess.org" className="test-sign-link">
               info@steinitzchess.org
-            </a>{' '}
+            </a>
+            {/* {' '}
             or WeChat{' '}
             <span className="test-sign-wechat" onClick={copyToClipboard}>
               Cata-Dragon
-            </span>
+            </span> */}
           </div>
         </div>
         <button
@@ -61,12 +62,12 @@ const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
         </button>
       </div>
 
-      {showToast && (
+      {/* {showToast && (
         <div className="test-sign-toast">
           <span className="test-sign-toast-icon">✓</span>
           <span>Copied to clipboard</span>
         </div>
-      )}
+      )} */}
     </>
   );
 };
