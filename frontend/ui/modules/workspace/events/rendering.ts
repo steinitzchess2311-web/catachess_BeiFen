@@ -3,9 +3,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
-import SortToggles from '../../../../web/src/components/workspace/SortToggles';
 import TestSign from '../../../../web/src/components/dialogBox/TestSign';
-import { WorkspaceState, WorkspaceElements, WorkspaceOptions, SortKey, SortDir } from './types';
+import { WorkspaceState, WorkspaceElements, WorkspaceOptions } from './types';
 import { sortNodes, renameNode } from './nodeOperations';
 
 export function renderItems(
@@ -22,7 +21,7 @@ export function renderItems(
     const sortedNodes = sortNodes(state, nodes);
     state.currentNodes = sortedNodes;
     elements.itemsGrid.innerHTML = '';
-    const folderTpl = document.getElementById('folder-item-template') as HTMLTemplateTemplate;
+    const folderTpl = document.getElementById('folder-item-template') as HTMLTemplateElement;
     const studyTpl = document.getElementById('study-item-template') as HTMLTemplateElement;
 
     sortedNodes.forEach(node => {
@@ -166,9 +165,7 @@ export function renderItems(
 }
 
 export function renderReactComponents(
-    container: HTMLElement,
-    state: WorkspaceState,
-    onSortChange: (key: SortKey, dir: SortDir) => void
+    container: HTMLElement
 ) {
     // Render LogoutButton
     const logoutContainer = container.querySelector('#logout-button-container') as HTMLElement;

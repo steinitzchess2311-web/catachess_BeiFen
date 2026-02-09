@@ -45,15 +45,7 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     });
 
     // 7. Render static React components
-    renderReactComponents(
-        container,
-        state,
-        (key, dir) => {
-            setSortSettings(state, key, dir);
-            renderSortTogglesWrapper();
-            handlers.refreshNodes(state.currentParentId);
-        }
-    );
+    renderReactComponents(container);
 
     // 8. Initial render
     renderSortTogglesWrapper();
