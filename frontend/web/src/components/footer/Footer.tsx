@@ -28,7 +28,7 @@ const Footer: React.FC = () => {
           <div className="contact-item">
             <ChatBubbleIcon className="contact-icon" />
             <span className="contact-label">WeChat ID:</span>
-            <span className="contact-text">Wxib_l3c01kg3a10086</span>
+            <span className="contact-text">Cata-Dragon</span>
           </div>
           <div className="contact-item">
             <GlobeIcon className="contact-icon" />

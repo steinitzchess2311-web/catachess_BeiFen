@@ -48,7 +48,7 @@ const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
             </a>{' '}
             or WeChat{' '}
             <span className="test-sign-wechat" onClick={copyToClipboard}>
-              Wxib_l3c01kg3a10086
+              Cata-Dragon
             </span>
           </div>
         </div>
