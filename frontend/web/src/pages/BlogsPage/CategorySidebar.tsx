@@ -25,7 +25,8 @@ const CategorySidebar = () => {
         padding: "25px 0",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
         position: "sticky",
-        top: "100px",
+        top: "24px",
+        alignSelf: "flex-start",
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
