@@ -47,18 +47,6 @@ const Promises = () => {
         >
           Our Three NOs.
         </h2>
-        <p
-          style={{
-            fontSize: "1.1rem",
-            color: "#8b7355",
-            fontWeight: 500,
-            lineHeight: "1.6",
-            maxWidth: "700px",
-            margin: "0 auto",
-          }}
-        >
-          These promise last forever since we declare it in our high school time.
-        </p>
       </div>
 
       {/* Promise Cards */}
