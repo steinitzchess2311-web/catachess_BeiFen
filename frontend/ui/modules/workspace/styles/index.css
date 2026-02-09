@@ -1,7 +1,7 @@
 .workspace-container {
     display: grid;
     grid-template-columns: 280px 1fr;
-    min-height: calc(100vh - 100px);
+    min-height: calc(100vh - 200px);
     background-color: var(--bg-app);
     font-family: var(--font-family);
 }
