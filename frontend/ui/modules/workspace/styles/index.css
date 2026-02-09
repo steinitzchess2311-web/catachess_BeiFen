@@ -124,9 +124,9 @@
 /* 深色猫咪 - 全局背景 */
 .workspace-main::before {
     content: '';
-    position: fixed;
+    position: absolute;
     top: 50%;
-    left: calc(280px + 50%);
+    left: 50%;
     transform: translate(-50%, -50%);
     width: 600px;
     height: 600px;
