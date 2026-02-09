@@ -8,10 +8,11 @@ Public Endpoints:
 - GET /api/blogs/articles/:id - Get article detail
 
 Management Endpoints (Editor/Admin):
+- GET /api/blogs/articles/my-drafts - Get user's draft articles
 - POST /api/blogs/upload-image - Upload image
 - POST /api/blogs/articles - Create article
-- PUT /api/blogs/articles/:id - Update article
-- DELETE /api/blogs/articles/:id - Delete article (admin only)
+- PUT /api/blogs/articles/:id - Update article (author or admin)
+- DELETE /api/blogs/articles/:id - Delete article (author or admin)
 - POST /api/blogs/articles/:id/pin - Pin/unpin article (admin only)
 """
 import os
@@ -327,6 +328,54 @@ async def get_article(
     return ArticleResponse(**result)
 
 
+# ==================== My Drafts (Editor/Admin) ====================
+
+@router.get("/articles/my-drafts", response_model=List[ArticleListItem])
+async def get_my_drafts(
+    current_user = Depends(require_editor),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Get current user's draft articles (Editor/Admin only)
+
+    **Requires:** editor or admin role
+
+    **Returns:** List of user's draft articles (status='draft')
+    """
+    # Query user's drafts
+    stmt = (
+        select(BlogArticle)
+        .where(and_(
+            BlogArticle.author_id == current_user.id,
+            BlogArticle.status == "draft"
+        ))
+        .order_by(BlogArticle.updated_at.desc())
+    )
+
+    drafts = db.execute(stmt).scalars().all()
+
+    # Convert to list
+    return [
+        ArticleListItem(
+            id=article.id,
+            title=article.title,
+            subtitle=article.subtitle,
+            cover_image_url=article.cover_image_url,
+            author_name=article.author_name,
+            author_type=article.author_type,
+            category=article.category,
+            tags=article.tags,
+            is_pinned=article.is_pinned,
+            view_count=article.view_count,
+            like_count=article.like_count,
+            comment_count=article.comment_count,
+            created_at=article.created_at,
+            published_at=article.published_at,
+        )
+        for article in drafts
+    ]
+
+
 # ==================== Cache Stats (Debug) ====================
 
 @router.get("/cache/stats")
@@ -468,6 +517,10 @@ async def update_article(
     Update article (Editor/Admin only)
 
     **Requires:** editor or admin role
+
+    **Permission:**
+    - Users can only edit their own articles
+    - Admins can edit any article
     """
     # Find article
     stmt = select(BlogArticle).where(BlogArticle.id == article_id)
@@ -475,6 +528,13 @@ async def update_article(
 
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
+
+    # Permission check: only article author or admin can edit
+    if current_user.role != "admin" and article.author_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only edit your own articles"
+        )
 
     # Track if category or pin status changed
     old_category = article.category
@@ -513,19 +573,25 @@ async def delete_article(
     db: Session = Depends(get_blog_db)
 ):
     """
-    Delete article (Admin only)
+    Delete article (Editor/Admin)
 
-    **Requires:** admin role
+    **Permission:**
+    - Users can only delete their own articles
+    - Admins can delete any article
     """
-    from modules.blogs.auth import require_admin
-    await require_admin(current_user)
-
     # Find article
     stmt = select(BlogArticle).where(BlogArticle.id == article_id)
     article = db.execute(stmt).scalar_one_or_none()
 
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
+
+    # Permission check: only article author or admin can delete
+    if current_user.role != "admin" and article.author_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only delete your own articles"
+        )
 
     category = article.category
     is_pinned = article.is_pinned
