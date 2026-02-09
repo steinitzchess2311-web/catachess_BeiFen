@@ -1,4 +1,5 @@
 import React from "react";
+import TestSign from "../../components/dialogBox/TestSign";
 import MainPage from "./main_page";
 import SampleReport from "./sample_report";
 import OrganizeIntro from "./organize_intro";
@@ -10,14 +11,16 @@ const LandingPage = () => {
         // Allow vertical scrolling when content overflows.
         overflowY: "auto",
         overflowX: "hidden",
-        padding: "72px 60px",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
-        <MainPage />
-        <SampleReport />
-        <OrganizeIntro />
+      <TestSign />
+      <div style={{ padding: "72px 60px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
+          <MainPage />
+          <SampleReport />
+          <OrganizeIntro />
+        </div>
       </div>
     </div>
   );

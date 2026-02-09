@@ -26,6 +26,7 @@ import discussionLayout from "@ui/modules/discussion/layout/index.html?raw";
 import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
+import TestSign from "./components/dialogBox/TestSign";
 import AboutPage from "./pages/aboutPage/AboutPage";
 import SponsorshipPage from "./pages/SponsorshipPage/SponsorshipPage";
 import LandingPage from "./pages/Landing/LandingPage";
@@ -162,46 +163,49 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">Sign In</h1>
-        <form id="login-form" onSubmit={submit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              required
-              placeholder="Enter your email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
+    <>
+      <TestSign />
+      <div className="login-container">
+        <div className="login-card">
+          <h1 className="login-title">Sign In</h1>
+          <form id="login-form" onSubmit={submit}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                required
+                placeholder="Enter your email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                required
+                placeholder="Enter your password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </div>
+            <div id="login-error" className="error-message">
+              {error}
+            </div>
+            <button className="btn-primary" type="submit" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+          <div className="login-footer">
+            <p>
+              Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+            </p>
           </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              required
-              placeholder="Enter your password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </div>
-          <div id="login-error" className="error-message">
-            {error}
-          </div>
-          <button className="btn-primary" type="submit" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
-        <div className="login-footer">
-          <p>
-            Don&apos;t have an account? <Link to="/signup">Sign up</Link>
-          </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
