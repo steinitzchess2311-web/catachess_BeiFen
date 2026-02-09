@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import './TestSign.css';
 
-const TestSign: React.FC = () => {
+interface TestSignProps {
+  floating?: boolean;
+}
+
+const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [showToast, setShowToast] = useState(false);
 
@@ -25,7 +29,16 @@ const TestSign: React.FC = () => {
 
   return (
     <>
-      <div className="test-sign-banner">
+      <div
+        className="test-sign-banner"
+        style={floating ? {
+          position: 'fixed',
+          top: '100px',
+          left: 0,
+          right: 0,
+          zIndex: 999,
+        } : undefined}
+      >
         <div className="test-sign-content">
           <div className="test-sign-icon">🚧</div>
           <div className="test-sign-text">

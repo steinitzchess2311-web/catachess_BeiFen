@@ -164,7 +164,7 @@ function LoginPage() {
 
   return (
     <>
-      <TestSign />
+      <TestSign floating={true} />
       <div className="login-container">
         <div className="login-card">
           <h1 className="login-title">Sign In</h1>

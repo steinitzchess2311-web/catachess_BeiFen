@@ -14,7 +14,7 @@ const LandingPage = () => {
         boxSizing: "border-box",
       }}
     >
-      <TestSign />
+      <TestSign floating={true} />
       <div style={{ padding: "72px 60px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
           <MainPage />
