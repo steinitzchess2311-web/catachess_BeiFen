@@ -32,15 +32,14 @@ const AboutPage = () => {
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          display: "flex",
-          gap: "40px",
+          paddingLeft: "260px",
         }}
       >
         {/* Left Sidebar Navigation */}
         <SideNav items={navItems} />
 
         {/* Main Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ width: "100%" }}>
           <div id="hero">
             <HeroSection />
           </div>

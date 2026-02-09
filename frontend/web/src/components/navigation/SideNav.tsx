@@ -45,15 +45,16 @@ const SideNav: React.FC<SideNavProps> = ({ items }) => {
   return (
     <nav
       style={{
-        position: "sticky",
+        position: "fixed",
         top: "140px",
+        left: "max(24px, calc((100vw - 1400px) / 2))",
         width: "220px",
         background: "rgba(255, 255, 255, 0.85)",
         borderRadius: "12px",
         padding: "24px 0",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
         backdropFilter: "blur(10px)",
-        alignSelf: "flex-start",
+        zIndex: 100,
       }}
     >
       <ul
