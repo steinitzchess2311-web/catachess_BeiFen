@@ -1,9 +1,73 @@
-import React from "react";
+/**
+ * BlogsPage - Main blog listing page
+ * Manages URL-based state for category filtering, search, and pagination
+ */
+
+import { useSearchParams } from "react-router-dom";
 import PageTransition from "../../components/animation/PageTransition";
 import CategorySidebar from "./CategorySidebar";
 import ContentArea from "./ContentArea";
 
+/**
+ * Main blog page with sidebar navigation and article grid
+ * Uses URL search params for state management (category, search, page)
+ */
 const BlogsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Extract current state from URL params
+  const category = searchParams.get('category') || undefined;
+  const search = searchParams.get('search') || undefined;
+  const page = parseInt(searchParams.get('page') || '1', 10);
+
+  /**
+   * Handle category filter change
+   * Resets to page 1 when category changes
+   */
+  const handleCategoryChange = (newCategory: string | undefined) => {
+    const params = new URLSearchParams();
+
+    if (newCategory) {
+      params.set('category', newCategory);
+    }
+
+    if (search) {
+      params.set('search', search);
+    }
+
+    params.set('page', '1');  // Reset to first page
+    setSearchParams(params);
+  };
+
+  /**
+   * Handle search query change
+   * Resets to page 1 when search changes
+   */
+  const handleSearchChange = (newSearch: string) => {
+    const params = new URLSearchParams();
+
+    if (category) {
+      params.set('category', category);
+    }
+
+    if (newSearch) {
+      params.set('search', newSearch);
+    }
+
+    params.set('page', '1');  // Reset to first page
+    setSearchParams(params);
+  };
+
+  /**
+   * Handle page number change
+   * Preserves current category and search filters
+   */
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', String(newPage));
+    setSearchParams(params);
+  };
+
   return (
     <PageTransition>
       <div
@@ -30,8 +94,18 @@ const BlogsPage = () => {
               alignItems: "flex-start",
             }}
           >
-            <CategorySidebar />
-            <ContentArea />
+            <CategorySidebar
+              activeCategory={category}
+              searchQuery={search}
+              onCategoryChange={handleCategoryChange}
+              onSearchChange={handleSearchChange}
+            />
+            <ContentArea
+              category={category}
+              search={search}
+              page={page}
+              onPageChange={handlePageChange}
+            />
           </div>
         </div>
       </div>

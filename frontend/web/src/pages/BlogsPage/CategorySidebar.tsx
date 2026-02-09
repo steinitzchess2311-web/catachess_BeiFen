@@ -1,14 +1,47 @@
-import React, { useState } from "react";
+/**
+ * CategorySidebar component - Blog navigation and search
+ * Provides category filtering and search functionality
+ */
+
+import React, { useState, useEffect } from "react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import pureLogo from "../../assets/chessortag_pure_logo.png";
 
-const CategorySidebar = () => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
+interface CategorySidebarProps {
+  activeCategory?: string;  // Currently active category filter
+  searchQuery?: string;      // Current search query
+  onCategoryChange: (category: string | undefined) => void;  // Callback when category changes
+  onSearchChange: (search: string) => void;  // Callback when search changes
+}
+
+/**
+ * Sidebar for blog navigation with category filtering and search
+ */
+const CategorySidebar: React.FC<CategorySidebarProps> = ({
+  activeCategory,
+  searchQuery: externalSearchQuery = "",
+  onCategoryChange,
+  onSearchChange,
+}) => {
+  const [searchQuery, setSearchQuery] = useState<string>(externalSearchQuery);
   const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
   const [showComingSoon, setShowComingSoon] = useState<boolean>(false);
-  const [activeItem, setActiveItem] = useState<string>("");
   const [isShaking, setIsShaking] = useState<boolean>(false);
+
+  // Sync internal search state with external prop
+  useEffect(() => {
+    setSearchQuery(externalSearchQuery);
+  }, [externalSearchQuery]);
+
+  // Debounced search handler
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      onSearchChange(searchQuery);
+    }, 500);  // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, onSearchChange]);
 
   const handleSearchClear = () => {
     setSearchQuery("");
@@ -24,6 +57,18 @@ const CategorySidebar = () => {
     setIsShaking(true);
     setTimeout(() => setShowComingSoon(false), 2000);
     setTimeout(() => setIsShaking(false), 500);
+  };
+
+  // Handle category click
+  const handleCategoryClick = (categoryId: string) => {
+    // Map UI category IDs to API category values
+    const categoryMap: { [key: string]: string | undefined } = {
+      'about': 'about',
+      'function': 'function',
+      'allblogs': 'allblogs',
+    };
+
+    onCategoryChange(categoryMap[categoryId]);
   };
 
   const officialSubItems = [
@@ -75,27 +120,27 @@ const CategorySidebar = () => {
           <button
             onClick={handleComingSoonClick}
             style={{
-              background: activeItem === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
+              background: activeCategory === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
-              borderLeft: activeItem === "pinned" ? "4px solid #8b7355" : "4px solid transparent",
+              borderLeft: activeCategory === "pinned" ? "4px solid #8b7355" : "4px solid transparent",
               padding: "14px 25px",
               textAlign: "left",
               cursor: "pointer",
               fontSize: "0.95rem",
-              fontWeight: activeItem === "pinned" ? 600 : 500,
-              color: activeItem === "pinned" ? "#2c2c2c" : "#5a5a5a",
+              fontWeight: activeCategory === "pinned" ? 600 : 500,
+              color: activeCategory === "pinned" ? "#2c2c2c" : "#5a5a5a",
               transition: "all 0.2s ease",
               display: "flex",
               alignItems: "center",
               gap: "10px",
             }}
             onMouseEnter={(e) => {
-              if (activeItem !== "pinned") {
+              if (activeCategory !== "pinned") {
                 e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
               }
             }}
             onMouseLeave={(e) => {
-              if (activeItem !== "pinned") {
+              if (activeCategory !== "pinned") {
                 e.currentTarget.style.background = "transparent";
               }
             }}
@@ -169,16 +214,16 @@ const CategorySidebar = () => {
                 {officialSubItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveItem(item.id)}
+                    onClick={() => handleCategoryClick(item.id)}
                     style={{
-                      background: activeItem === item.id ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                      background: activeCategory === item.id ? "rgba(139, 115, 85, 0.08)" : "transparent",
                       border: "none",
                       padding: "10px 25px 10px 20px",
                       textAlign: "left",
                       cursor: "pointer",
                       fontSize: "0.9rem",
-                      fontWeight: activeItem === item.id ? 600 : 400,
-                      color: activeItem === item.id ? "#8b7355" : "#6a6a6a",
+                      fontWeight: activeCategory === item.id ? 600 : 400,
+                      color: activeCategory === item.id ? "#8b7355" : "#6a6a6a",
                       transition: "all 0.15s ease",
                       display: "block",
                       width: "100%",
@@ -190,7 +235,7 @@ const CategorySidebar = () => {
                       e.currentTarget.style.color = "#8b7355";
                     }}
                     onMouseLeave={(e) => {
-                      if (activeItem !== item.id) {
+                      if (activeCategory !== item.id) {
                         e.currentTarget.style.background = "transparent";
                         e.currentTarget.style.color = "#6a6a6a";
                       }
@@ -207,15 +252,15 @@ const CategorySidebar = () => {
           <button
             onClick={handleUserBlogsClick}
             style={{
-              background: activeItem === "users" ? "rgba(139, 115, 85, 0.1)" : "transparent",
+              background: activeCategory === "users" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
-              borderLeft: activeItem === "users" ? "4px solid #8b7355" : "4px solid transparent",
+              borderLeft: activeCategory === "users" ? "4px solid #8b7355" : "4px solid transparent",
               padding: "14px 25px",
               textAlign: "left",
               cursor: "pointer",
               fontSize: "0.95rem",
-              fontWeight: activeItem === "users" ? 600 : 500,
-              color: activeItem === "users" ? "#2c2c2c" : "#5a5a5a",
+              fontWeight: activeCategory === "users" ? 600 : 500,
+              color: activeCategory === "users" ? "#2c2c2c" : "#5a5a5a",
               transition: "all 0.2s ease",
               display: "flex",
               alignItems: "center",
@@ -224,12 +269,12 @@ const CategorySidebar = () => {
               animation: isShaking ? "shake 0.5s ease" : "none",
             }}
             onMouseEnter={(e) => {
-              if (activeItem !== "users") {
+              if (activeCategory !== "users") {
                 e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
               }
             }}
             onMouseLeave={(e) => {
-              if (activeItem !== "users") {
+              if (activeCategory !== "users") {
                 e.currentTarget.style.background = "transparent";
               }
             }}

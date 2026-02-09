@@ -1,6 +1,41 @@
-import React from "react";
+/**
+ * ContentArea component - Main blog article list display
+ * Fetches and displays paginated blog articles with loading/error/empty states
+ */
 
-const ContentArea = () => {
+import React from "react";
+import { useBlogArticles } from "../../hooks/useBlogArticles";
+import ArticleCard from "./ArticleCard";
+import LoadingState from "./components/LoadingState";
+import EmptyState from "./components/EmptyState";
+import ErrorState from "./components/ErrorState";
+import Pagination from "./components/Pagination";
+
+interface ContentAreaProps {
+  category?: string;  // Category filter (about, function, allblogs)
+  search?: string;    // Search query
+  page?: number;      // Current page number
+  onPageChange: (page: number) => void;  // Callback for page changes
+}
+
+/**
+ * Main content area that displays blog articles in a grid
+ * Handles all data fetching and state management via useBlogArticles hook
+ */
+const ContentArea: React.FC<ContentAreaProps> = ({
+  category,
+  search,
+  page = 1,
+  onPageChange,
+}) => {
+  // Fetch articles with current filters
+  const { articles, loading, error, pagination } = useBlogArticles({
+    category,
+    search,
+    page,
+    page_size: 10,
+  });
+
   return (
     <div
       style={{
@@ -12,75 +47,37 @@ const ContentArea = () => {
         minHeight: "600px",
       }}
     >
-      {/* Placeholder Content */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "500px",
-          textAlign: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "4rem",
-            marginBottom: "20px",
-            opacity: 0.3,
-          }}
-        >
-          📝
-        </div>
-        <h2
-          style={{
-            fontSize: "1.8rem",
-            fontWeight: 700,
-            color: "#2c2c2c",
-            marginBottom: "12px",
-          }}
-        >
-          Coming Soon
-        </h2>
-        <p
-          style={{
-            fontSize: "1.1rem",
-            color: "#5a5a5a",
-            maxWidth: "500px",
-            lineHeight: "1.6",
-          }}
-        >
-          We're working hard to bring you insightful articles about chess
-          strategies, platform features, and community stories. Stay tuned!
-        </p>
+      {/* Loading State */}
+      {loading && <LoadingState />}
 
-        {/* Decorative Elements */}
-        <div
-          style={{
-            marginTop: "40px",
-            display: "flex",
-            gap: "20px",
-          }}
-        >
-          {["Opening Analysis", "Platform Tips", "Player Stories"].map(
-            (topic, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: "10px 20px",
-                  background: "rgba(139, 115, 85, 0.1)",
-                  borderRadius: "20px",
-                  fontSize: "0.9rem",
-                  color: "#8b7355",
-                  fontWeight: 600,
-                }}
-              >
-                {topic}
-              </div>
-            )
+      {/* Error State */}
+      {!loading && error && <ErrorState message={error.message} />}
+
+      {/* Empty State */}
+      {!loading && !error && articles.length === 0 && <EmptyState />}
+
+      {/* Articles Grid */}
+      {!loading && !error && articles.length > 0 && (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gap: "24px",
+              marginBottom: "20px",
+            }}
+          >
+            {articles.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {pagination.total_pages > 1 && (
+            <Pagination pagination={pagination} onPageChange={onPageChange} />
           )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };
