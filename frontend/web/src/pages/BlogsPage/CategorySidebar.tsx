@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const CategorySidebar = () => {
   const [activeCategory, setActiveCategory] = useState<string>("pinned");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const categories = [
     { id: "pinned", label: "📌 Pinned Articles", icon: "📌" },
@@ -9,6 +10,10 @@ const CategorySidebar = () => {
     { id: "function", label: "⚡ Function Intro", icon: "⚡" },
     { id: "chess", label: "♟️ Chess Topic", icon: "♟️" },
   ];
+
+  const handleSearchClear = () => {
+    setSearchQuery("");
+  };
 
   return (
     <div
@@ -23,20 +28,6 @@ const CategorySidebar = () => {
         top: "100px",
       }}
     >
-      <h3
-        style={{
-          fontSize: "1.1rem",
-          fontWeight: 700,
-          color: "#2c2c2c",
-          marginBottom: "20px",
-          paddingLeft: "25px",
-          paddingRight: "25px",
-          letterSpacing: "0.5px",
-        }}
-      >
-        CATEGORIES
-      </h3>
-
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {categories.map((category) => (
           <button
@@ -81,7 +72,7 @@ const CategorySidebar = () => {
         ))}
       </div>
 
-      {/* Stats Section */}
+      {/* Search Section */}
       <div
         style={{
           marginTop: "30px",
@@ -93,29 +84,68 @@ const CategorySidebar = () => {
       >
         <div
           style={{
-            fontSize: "0.85rem",
-            color: "#8b7355",
-            fontWeight: 600,
-            marginBottom: "10px",
+            position: "relative",
+            width: "100%",
           }}
         >
-          BLOG STATS
-        </div>
-        <div
-          style={{
-            fontSize: "0.9rem",
-            color: "#5a5a5a",
-            lineHeight: "1.8",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Total Articles:</span>
-            <strong style={{ color: "#8b7355" }}>0</strong>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>This Month:</span>
-            <strong style={{ color: "#8b7355" }}>0</strong>
-          </div>
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "8px 32px 8px 12px",
+              border: "1px solid rgba(139, 115, 85, 0.3)",
+              borderRadius: "6px",
+              fontSize: "0.9rem",
+              color: "#2c2c2c",
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              boxSizing: "border-box",
+              transition: "all 0.2s ease",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#8b7355";
+              e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 115, 85, 0.1)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={handleSearchClear}
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "8px",
+                transform: "translateY(-50%)",
+                width: "20px",
+                height: "20px",
+                border: "none",
+                background: "rgba(139, 115, 85, 0.2)",
+                borderRadius: "50%",
+                fontSize: "14px",
+                lineHeight: "1",
+                color: "#5a5a5a",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+              }}
+            >
+              ×
+            </button>
+          )}
         </div>
       </div>
     </div>
