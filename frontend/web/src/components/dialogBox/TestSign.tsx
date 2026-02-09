@@ -10,7 +10,7 @@ const TestSign: React.FC<TestSignProps> = ({ floating = false }) => {
   const [showToast, setShowToast] = useState(false);
 
   const copyToClipboard = async () => {
-    const wechatId = 'Wxib_l3c01kg3a10086';
+    const wechatId = 'Cata-Dragon';
 
     try {
       await navigator.clipboard.writeText(wechatId);
