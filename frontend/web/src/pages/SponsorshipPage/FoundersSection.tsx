@@ -41,7 +41,7 @@ const FoundersSection = () => {
       <div style={{ flex: "1" }}>
         <p
           style={{
-            fontSize: "1.05rem",
+            fontSize: "1.25rem",
             lineHeight: "1.9",
             color: "#4a4a4a",
             marginBottom: "0",
