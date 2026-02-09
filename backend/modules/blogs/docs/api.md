@@ -1,364 +1,628 @@
-# Blog API 端点说明
+# Blog API 接口文档
 
-## 📖 文章查询接口
+## 📋 API 端点总览
 
-### 1. GET `/api/blogs/articles`
-**用途：** 获取文章列表（主接口）
+### 公开接口（无需认证）
 
-**逻辑：**
-1. 接收查询参数：分类、搜索关键词、分页
-2. 查询数据库，筛选已发布文章
-3. 如果有 `category` 参数，按分类筛选
-4. 如果有 `search` 参数，全文搜索标题+内容
-5. 按发布时间倒序排序
-6. 分页返回结果（默认每页 12 篇）
+| 方法 | 端点 | 功能 | 缓存 | 状态 |
+|------|------|------|------|------|
+| GET | `/api/blogs/categories` | 获取分类列表 | 1小时 | ✅ 已实现 |
+| GET | `/api/blogs/articles` | 获取文章列表（分页+搜索+筛选） | 5分钟 | ✅ 已实现 |
+| GET | `/api/blogs/articles/pinned` | 获取置顶文章 | 5分钟 | ✅ 已实现 |
+| GET | `/api/blogs/articles/{id}` | 获取文章详情 | 10分钟 | ✅ 已实现 |
+| GET | `/api/blogs/cache/stats` | 查看缓存统计 | - | ✅ 已实现 |
 
-**返回：** 文章列表 + 分页信息
+### 管理接口（需要认证）
 
----
-
-### 2. GET `/api/blogs/articles/pinned`
-**用途：** 获取置顶文章
-
-**逻辑：**
-1. 查询 `is_pinned = true` 的文章
-2. 按 `pin_order` 倒序排序（数字大的在前）
-3. 最多返回 5 篇
-
-**返回：** 置顶文章列表
+| 方法 | 端点 | 功能 | 权限要求 | 状态 |
+|------|------|------|---------|------|
+| GET | `/api/blogs/articles/my-drafts` | 获取我的草稿 | Editor/Admin | ✅ 已实现 |
+| POST | `/api/blogs/upload-image` | 上传图片到R2 | Editor/Admin | ✅ 已实现 |
+| POST | `/api/blogs/articles` | 创建文章 | Editor/Admin | ✅ 已实现 |
+| PUT | `/api/blogs/articles/{id}` | 更新文章 | 作者/Admin | ✅ 已实现 |
+| DELETE | `/api/blogs/articles/{id}` | 删除文章 | 作者/Admin | ✅ 已实现 |
+| POST | `/api/blogs/articles/{id}/pin` | 置顶/取消置顶 | Admin | ✅ 已实现 |
 
 ---
 
-### 3. GET `/api/blogs/articles/:id`
-**用途：** 获取文章详情
+## 📖 公开接口详解
 
-**逻辑：**
-1. 根据 `id` 查询文章
-2. 检查文章是否存在且已发布
-3. 自动增加浏览计数 `view_count + 1`
-4. 返回完整文章内容（包括 HTML/Markdown）
-
-**返回：** 完整文章数据
-
----
-
-### 4. GET `/api/blogs/categories`
-**用途：** 获取所有分类
-
-**逻辑：**
-1. 查询 `blog_categories` 表
-2. 统计每个分类下的文章数量
-3. 按 `order_index` 排序
-
-**返回：** 分类列表 + 文章数量
-
----
-
-### 5. GET `/api/blogs/search`
-**用途：** 搜索文章
-
-**逻辑：**
-1. 接收搜索关键词 `q`
-2. 使用 PostgreSQL 全文搜索：
-   - 搜索字段：`title`, `subtitle`, `content`
-   - 按相关度排序
-3. 分页返回结果
-
-**返回：** 搜索结果列表
-
----
-
-## ✏️ 文章管理接口（管理员）
-
-### 6. POST `/api/blogs/articles`
-**用途：** 创建新文章
-
-**权限：** 管理员/编辑
-
-**逻辑：**
-1. 验证用户权限（需要管理员）
-2. 验证必填字段：`title`, `content`, `category`
-3. 生成 UUID 作为文章 ID
-4. 如果有封面图，上传到 Cloudflare R2
-5. 插入数据库，状态默认为 `draft`
-6. 如果 `status = 'published'`，设置 `published_at`
-
-**返回：** 创建的文章信息
-
----
-
-### 7. PUT `/api/blogs/articles/:id`
-**用途：** 更新文章
-
-**权限：** 管理员/编辑/文章作者
-
-**逻辑：**
-1. 验证用户权限
-2. 根据 `id` 查找文章
-3. 检查权限：管理员可编辑所有，作者只能编辑自己的
-4. 更新字段，自动更新 `updated_at`
-5. 如果状态从 `draft` 改为 `published`，设置 `published_at`
-
-**返回：** 更新后的文章信息
-
----
-
-### 8. DELETE `/api/blogs/articles/:id`
-**用途：** 删除文章
-
-**权限：** 管理员
-
-**逻辑：**
-1. 验证管理员权限
-2. 根据 `id` 查找文章
-3. 软删除（设置 `status = 'archived'`）或硬删除
-4. 如果硬删除，同时删除封面图片和相关评论
-
-**返回：** 删除成功确认
-
----
-
-### 9. POST `/api/blogs/articles/:id/pin`
-**用途：** 置顶/取消置顶文章
-
-**权限：** 管理员
-
-**逻辑：**
-1. 验证管理员权限
-2. 接收参数：`is_pinned` (true/false), `pin_order` (数字)
-3. 更新文章的 `is_pinned` 和 `pin_order`
-4. 如果置顶，自动排序：
-   - 如果没指定 `pin_order`，取当前最大值 + 1
-   - 其他置顶文章的顺序不变
-
-**返回：** 更新后的文章信息
-
----
-
-## 🖼️ 资源接口
-
-### 10. POST `/api/blogs/upload-cover`
-**用途：** 上传封面图片
-
-**权限：** 管理员/编辑
-
-**逻辑：**
-1. 验证用户权限
-2. 检查文件类型（jpg, png, webp）和大小（< 5MB）
-3. 生成唯一文件名：`{year}/{month}/{uuid}.{ext}`
-4. 上传到 Cloudflare R2
-5. 生成缩略图（200x200, 400x400）
-6. 返回图片 URL
-
-**返回：** 图片 URL 列表（原图 + 缩略图）
-
----
-
-## 📊 统计接口
-
-### 11. GET `/api/blogs/stats`
-**用途：** 获取博客统计数据
-
-**权限：** 公开
-
-**逻辑：**
-1. 查询数据库，统计：
-   - 总文章数
-   - 各分类文章数
-   - 总浏览量
-   - 本周新增文章数
-2. 从 Redis 缓存读取（1 小时过期）
-
-**返回：** 统计数据对象
-
----
-
-## 👥 用户博客接口（第二阶段）
-
-### 12. POST `/api/blogs/user-articles`
-**用途：** 用户发布博客
-
-**权限：** 登录用户
-
-**逻辑：**
-1. 验证用户登录
-2. 检查发布限制（10 篇/天）
-3. 创建文章，`author_type = 'user'`, `status = 'pending'`
-4. 进入审核队列，等待管理员审核
-
-**返回：** 文章信息 + 审核状态
-
----
-
-### 13. GET `/api/blogs/user-articles/my`
-**用途：** 获取我的博客列表
-
-**权限：** 登录用户
-
-**逻辑：**
-1. 验证用户登录
-2. 查询当前用户的所有文章
-3. 包括所有状态：`draft`, `pending`, `published`, `archived`
-4. 按创建时间倒序
-
-**返回：** 用户的文章列表
-
----
-
-## 💬 互动接口（第三阶段）
-
-### 14. POST `/api/blogs/articles/:id/like`
-**用途：** 点赞文章
-
-**权限：** 登录用户
-
-**逻辑：**
-1. 验证用户登录
-2. 检查是否已点赞（`blog_likes` 表）
-3. 如果未点赞：
-   - 插入点赞记录
-   - `like_count + 1`
-4. 如果已点赞，返回提示
-
-**返回：** 点赞成功 + 最新点赞数
-
----
-
-### 15. DELETE `/api/blogs/articles/:id/like`
-**用途：** 取消点赞
-
-**权限：** 登录用户
-
-**逻辑：**
-1. 验证用户登录
-2. 删除点赞记录
-3. `like_count - 1`
-
-**返回：** 取消成功 + 最新点赞数
-
----
-
-### 16. POST `/api/blogs/articles/:id/comments`
-**用途：** 发表评论
-
-**权限：** 登录用户
-
-**逻辑：**
-1. 验证用户登录
-2. 接收评论内容和父评论 ID（支持回复）
-3. HTML 清洗（防止 XSS）
-4. 插入 `blog_comments` 表
-5. `comment_count + 1`
-6. 如果是回复，通知被回复者
-
-**返回：** 评论信息
-
----
-
-### 17. GET `/api/blogs/articles/:id/comments`
-**用途：** 获取文章评论列表
-
-**权限：** 公开
-
-**逻辑：**
-1. 查询文章的所有评论
-2. 构建评论树（父评论 → 子评论）
-3. 按时间倒序排序
-4. 分页返回（每页 20 条）
-
-**返回：** 评论列表（树形结构）
-
----
-
-## 🔍 数据流程示例
-
-### 前端请求文章列表：
+### 1. 获取分类列表
 ```
-用户访问 BlogsPage
-  ↓
-前端调用: GET /api/blogs/articles?category=about&page=1
-  ↓
-后端逻辑:
-  1. 查询 WHERE category='about' AND status='published'
-  2. ORDER BY published_at DESC
-  3. LIMIT 12 OFFSET 0
-  ↓
-返回: { articles: [...], pagination: {...} }
-  ↓
-前端渲染 ArticleModal 卡片
+GET /api/blogs/categories
 ```
 
-### 用户点击文章：
-```
-用户点击文章卡片
-  ↓
-前端调用: GET /api/blogs/articles/{id}
-  ↓
-后端逻辑:
-  1. SELECT * FROM blog_articles WHERE id={id}
-  2. UPDATE view_count = view_count + 1
-  ↓
-返回: { id, title, content, ... }
-  ↓
-前端渲染文章详情页
+**功能：** 返回所有活跃分类及其元数据
+
+**参数：** 无
+
+**返回示例：**
+```json
+[
+  {
+    "id": "uuid",
+    "name": "about",
+    "display_name": "About Us",
+    "description": "Learn about Chessortag platform",
+    "icon": "📖",
+    "order_index": 1,
+    "is_active": true,
+    "created_at": "2026-02-09T19:58:46.490453"
+  }
+]
 ```
 
-### 管理员置顶文章：
+**缓存策略：** Redis 1小时
+
+---
+
+### 2. 获取文章列表
 ```
-管理员点击置顶按钮
-  ↓
-前端调用: POST /api/blogs/articles/{id}/pin
-  Body: { is_pinned: true, pin_order: 10 }
-  ↓
-后端逻辑:
-  1. 验证管理员权限
-  2. UPDATE is_pinned=true, pin_order=10
-  ↓
-返回: { success: true }
-  ↓
-前端刷新列表，文章出现在置顶区域
+GET /api/blogs/articles
+```
+
+**功能：** 分页获取已发布文章，支持分类筛选和全文搜索
+
+**查询参数：**
+- `category` (可选): 分类筛选 (about/function/allblogs/user)
+- `search` (可选): 全文搜索关键词（搜索标题+内容）
+- `page` (默认1): 页码，从1开始
+- `page_size` (默认10): 每页数量，最大50
+
+**排序规则：**
+1. 置顶文章优先（is_pinned=true）
+2. 按pin_order倒序（置顶文章之间）
+3. 按published_at倒序（发布时间）
+
+**返回示例：**
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "title": "文章标题",
+      "subtitle": "副标题",
+      "cover_image_url": "https://cdn.example.com/image.jpg",
+      "author_name": "作者名",
+      "author_type": "human",
+      "category": "function",
+      "tags": ["教程", "新手"],
+      "is_pinned": false,
+      "view_count": 1234,
+      "like_count": 56,
+      "comment_count": 12,
+      "created_at": "2026-02-09T10:00:00Z",
+      "published_at": "2026-02-09T10:00:00Z"
+    }
+  ],
+  "total": 25,
+  "page": 1,
+  "page_size": 10,
+  "total_pages": 3,
+  "has_next": true,
+  "has_prev": false
+}
+```
+
+**缓存策略：**
+- 有search参数：不缓存（实时查询）
+- 无search参数：Redis 5分钟
+
+**示例请求：**
+```bash
+# 获取所有文章，第1页
+GET /api/blogs/articles?page=1&page_size=10
+
+# 按分类筛选
+GET /api/blogs/articles?category=function&page=1
+
+# 搜索文章
+GET /api/blogs/articles?search=国际象棋&page=1
 ```
 
 ---
 
-## 📝 备注
+### 3. 获取置顶文章
+```
+GET /api/blogs/articles/pinned
+```
 
-### 缓存策略：
-- 文章列表：Redis 缓存 5 分钟
-- 文章详情：Redis 缓存 10 分钟
-- 分类列表：Redis 缓存 1 小时
-- 统计数据：Redis 缓存 1 小时
+**功能：** 返回所有置顶文章
 
-### 速率限制：
-- 文章查询：100 次/分钟/IP
-- 文章创建：10 次/小时/用户
-- 用户博客：10 篇/天/用户
-- 评论发布：20 次/小时/用户
+**参数：** 无
 
-### 权限级别：
-- `公开` - 任何人可访问
-- `登录用户` - 需要有效 JWT token
-- `编辑` - role = 'editor' 或 'admin'
-- `管理员` - role = 'admin'
+**排序规则：**
+1. 按pin_order倒序（数字大的在前）
+2. 按published_at倒序
+
+**返回：** 文章列表（格式同上，不含content字段）
+
+**缓存策略：** Redis 5分钟
 
 ---
 
-## 🚀 MVP 优先级
+### 4. 获取文章详情
+```
+GET /api/blogs/articles/{id}
+```
 
-**第一阶段（1 周）：**
-- ✅ 端点 1, 2, 3, 4（文章查询）
-- ✅ 端点 6, 7, 8（文章管理）
-- ✅ 端点 10（图片上传）
+**功能：** 获取单篇文章的完整内容
 
-**第二阶段（1 周）：**
-- ✅ 端点 5（搜索）
-- ✅ 端点 9（置顶）
-- ✅ 端点 11（统计）
+**路径参数：**
+- `id`: 文章UUID
 
-**第三阶段（2 周）：**
-- ✅ 端点 12, 13（用户博客）
-- ✅ 端点 14, 15, 16, 17（互动功能）
+**副作用：**
+- 自动增加浏览计数（view_count + 1）
+- 浏览计数异步更新，不影响响应速度
+
+**返回示例：**
+```json
+{
+  "id": "uuid",
+  "title": "文章标题",
+  "subtitle": "副标题",
+  "content": "# Markdown内容\n\n这是文章正文...",
+  "cover_image_url": "https://cdn.example.com/cover.jpg",
+  "author_id": "uuid",
+  "author_name": "作者名",
+  "author_type": "human",
+  "category": "function",
+  "sub_category": "tutorial",
+  "tags": ["教程", "新手"],
+  "status": "published",
+  "is_pinned": false,
+  "pin_order": 0,
+  "view_count": 1235,
+  "like_count": 56,
+  "comment_count": 12,
+  "created_at": "2026-02-09T10:00:00Z",
+  "updated_at": "2026-02-09T11:00:00Z",
+  "published_at": "2026-02-09T10:00:00Z"
+}
+```
+
+**错误响应：**
+- 404: 文章不存在或未发布
+
+**缓存策略：** Redis 10分钟
 
 ---
 
-**总计：** 17 个端点，分 3 个阶段实施
+### 5. 查看缓存统计（调试用）
+```
+GET /api/blogs/cache/stats
+```
+
+**功能：** 查看Redis缓存命中率和统计信息
+
+**返回示例：**
+```json
+{
+  "connected": true,
+  "hit_rate": 54.55,
+  "total_hits": 120,
+  "total_misses": 100,
+  "keys_count": 25
+}
+```
+
+---
+
+## ✏️ 管理接口详解
+
+### 6. 获取我的草稿
+```
+GET /api/blogs/articles/my-drafts
+```
+
+**功能：** 获取当前用户的所有草稿文章
+
+**认证：** 需要Editor或Admin角色
+
+**权限：** 只能查看自己创建的草稿
+
+**排序：** 按updated_at倒序（最近编辑的在前）
+
+**返回：** 文章列表（格式同"获取文章列表"，不含content字段）
+
+**缓存策略：** 不缓存（实时查询）
+
+---
+
+### 7. 上传图片
+```
+POST /api/blogs/upload-image
+```
+
+**功能：** 上传图片到Cloudflare R2存储
+
+**认证：** 需要Editor或Admin角色
+
+**请求格式：** multipart/form-data
+
+**参数：**
+- `file` (必需): 图片文件，最大5MB
+- `resize_mode` (默认adaptive_width): 处理模式
+  - `original`: 保持原始尺寸，轻度压缩（90%质量）
+  - `adaptive_width`: 自适应宽度，最大1920px，WebP格式（85%质量）
+- `image_type` (默认content): 图片类型
+  - `cover`: 封面图
+  - `content`: 内容图
+
+**支持格式：** JPEG, PNG, GIF, WEBP
+
+**处理逻辑：**
+1. 验证文件大小和格式
+2. 根据resize_mode处理图片
+3. 上传到R2存储（路径：`blog/年/月/唯一ID_文件名`）
+4. 保存元数据到PostgreSQL（blog_images表）
+
+**返回示例：**
+```json
+{
+  "id": "uuid",
+  "url": "https://cdn.example.com/blog/2026/02/abc123_image.webp",
+  "filename": "image.webp",
+  "size_bytes": 245678,
+  "width": 1920,
+  "height": 1080,
+  "resize_mode": "adaptive_width",
+  "image_type": "content"
+}
+```
+
+**错误响应：**
+- 400: 文件大小超限或格式不支持
+- 500: 上传失败
+
+---
+
+### 8. 创建文章
+```
+POST /api/blogs/articles
+```
+
+**功能：** 创建新文章（草稿或直接发布）
+
+**认证：** 需要Editor或Admin角色
+
+**请求体示例：**
+```json
+{
+  "title": "文章标题",
+  "subtitle": "副标题（可选）",
+  "content": "# Markdown内容\n\n文章正文...",
+  "cover_image_url": "https://cdn.example.com/cover.jpg",
+  "author_name": "作者名",
+  "author_type": "human",
+  "category": "function",
+  "sub_category": "tutorial",
+  "tags": ["教程", "新手"],
+  "status": "draft",
+  "is_pinned": false,
+  "pin_order": 0
+}
+```
+
+**字段说明：**
+- `title` (必需): 标题
+- `content` (必需): Markdown格式内容
+- `category` (必需): 分类名（about/function/allblogs/user）
+- `status` (默认draft): 状态
+  - `draft`: 草稿（不公开）
+  - `published`: 发布（公开）
+  - `archived`: 归档（不公开）
+- `author_type`: human（人类）或 ai（AI生成）
+- 其他字段可选
+
+**自动处理：**
+- 自动设置author_id为当前用户
+- status=published时，自动设置published_at
+- 初始化计数器（view_count、like_count等）为0
+
+**返回：** 完整文章对象
+
+**缓存失效：** 自动清除相关分类和总列表缓存
+
+---
+
+### 9. 更新文章
+```
+PUT /api/blogs/articles/{id}
+```
+
+**功能：** 更新现有文章
+
+**认证：** 需要Editor或Admin角色
+
+**权限检查：**
+- ✅ 用户可以编辑**自己的**文章
+- ✅ Admin可以编辑**任何**文章
+- ❌ 用户不能编辑他人的文章
+
+**路径参数：**
+- `id`: 文章UUID
+
+**请求体：** 部分更新（只需提供要修改的字段）
+```json
+{
+  "title": "新标题",
+  "content": "更新后的内容",
+  "status": "published"
+}
+```
+
+**自动处理：**
+- 自动更新updated_at时间戳
+- status从draft改为published时，自动设置published_at
+
+**返回：** 更新后的完整文章对象
+
+**错误响应：**
+- 403: 权限不足（不能编辑他人文章）
+- 404: 文章不存在
+
+**缓存失效：** 自动清除文章详情、相关分类和总列表缓存
+
+---
+
+### 10. 删除文章
+```
+DELETE /api/blogs/articles/{id}
+```
+
+**功能：** 删除文章（硬删除）
+
+**认证：** 需要Editor或Admin角色
+
+**权限检查：**
+- ✅ 用户可以删除**自己的**文章
+- ✅ Admin可以删除**任何**文章
+- ❌ 用户不能删除他人的文章
+
+**路径参数：**
+- `id`: 文章UUID
+
+**删除行为：**
+- 硬删除（从数据库中永久删除）
+- 相关图片的article_id设置为NULL（图片不删除）
+
+**返回示例：**
+```json
+{
+  "success": true,
+  "message": "Article deleted successfully"
+}
+```
+
+**错误响应：**
+- 403: 权限不足（不能删除他人文章）
+- 404: 文章不存在
+
+**缓存失效：** 自动清除文章详情、相关分类和总列表缓存
+
+---
+
+### 11. 置顶/取消置顶文章
+```
+POST /api/blogs/articles/{id}/pin
+```
+
+**功能：** 设置文章置顶优先级
+
+**认证：** 需要Admin角色（仅管理员可操作）
+
+**路径参数：**
+- `id`: 文章UUID
+
+**查询参数：**
+- `pin_order` (默认0): 置顶优先级
+  - 0: 取消置顶
+  - >0: 设置置顶，数字越大优先级越高
+
+**示例：**
+```bash
+# 置顶文章，优先级10
+POST /api/blogs/articles/{id}/pin?pin_order=10
+
+# 取消置顶
+POST /api/blogs/articles/{id}/pin?pin_order=0
+```
+
+**返回示例：**
+```json
+{
+  "success": true,
+  "message": "Article pinned with order 10",
+  "is_pinned": true,
+  "pin_order": 10
+}
+```
+
+**错误响应：**
+- 403: 权限不足（需要Admin角色）
+- 404: 文章不存在
+
+**缓存失效：** 自动清除文章详情、相关分类、总列表和置顶列表缓存
+
+---
+
+## 🔐 认证与权限
+
+### 认证方式
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### 权限级别
+
+| 角色 | 权限说明 |
+|------|---------|
+| **游客（未登录）** | 查看已发布文章、分类 |
+| **Editor（编辑）** | 创建/编辑/删除**自己的**文章、上传图片、查看自己的草稿 |
+| **Admin（管理员）** | 所有Editor权限 + 编辑/删除**任何**文章 + 置顶文章 |
+
+### 开发模式
+设置环境变量 `BLOG_DEV_MODE=true` 可绕过认证（仅用于开发测试）
+
+---
+
+## 💾 数据库与缓存
+
+### 数据表
+
+| 表名 | 用途 |
+|------|------|
+| `blog_articles` | 文章主表 |
+| `blog_categories` | 分类表 |
+| `blog_images` | 图片元数据 |
+
+### 缓存策略
+
+| 数据类型 | TTL | 键格式 |
+|---------|-----|--------|
+| 分类列表 | 1小时 | `blog:categories` |
+| 文章列表 | 5分钟 | `blog:articles:{category}:{page}` |
+| 置顶文章 | 5分钟 | `blog:pinned` |
+| 文章详情 | 10分钟 | `blog:article:{id}` |
+| 浏览计数 | 实时 | `blog:views:{id}` |
+
+### 缓存失效规则
+
+| 操作 | 失效范围 |
+|------|---------|
+| 创建文章 | 相关分类列表、总列表、分类统计 |
+| 更新文章 | 文章详情、相关分类列表、总列表 |
+| 删除文章 | 文章详情、相关分类列表、总列表 |
+| 置顶文章 | 文章详情、相关分类列表、总列表、置顶列表 |
+
+---
+
+## 🚀 草稿管理工作流
+
+### 完整流程示例
+
+```bash
+# 1. 创建草稿
+POST /api/blogs/articles
+{
+  "title": "我的新文章",
+  "content": "草稿内容...",
+  "status": "draft",
+  "category": "function"
+}
+# 返回: { "id": "article-uuid", ... }
+
+# 2. 查看我的草稿列表
+GET /api/blogs/articles/my-drafts
+# 返回: [{ "id": "article-uuid", "title": "我的新文章", ... }]
+
+# 3. 编辑草稿
+PUT /api/blogs/articles/{article-uuid}
+{
+  "title": "更新后的标题",
+  "content": "更新后的内容"
+}
+
+# 4. 发布草稿
+PUT /api/blogs/articles/{article-uuid}
+{
+  "status": "published"
+}
+
+# 5. （可选）删除文章
+DELETE /api/blogs/articles/{article-uuid}
+```
+
+### 前端集成建议
+
+**混合存储策略：**
+1. **localStorage自动保存**：每30秒保存到浏览器本地（防意外关闭）
+2. **手动保存到服务器**：用户点击"保存草稿"按钮时保存到数据库
+3. **冲突检测**：页面加载时，比较localStorage和服务器时间戳，提示用户选择
+
+详细前端集成代码请参考：`DRAFT_API.md`
+
+---
+
+## 📊 性能指标
+
+### 响应时间（90th percentile）
+
+| 端点类型 | 缓存命中 | 缓存未命中 |
+|---------|---------|-----------|
+| 文章列表 | <50ms | <200ms |
+| 文章详情 | <30ms | <150ms |
+| 分类列表 | <20ms | <100ms |
+| 图片上传 | - | <2000ms |
+
+### 容量规划
+
+- **并发请求**：支持1000+ QPS（4 worker进程）
+- **数据库连接池**：60连接（每worker 15连接）
+- **Redis连接**：每worker 1个异步连接
+- **文件上传**：最大5MB/请求
+
+---
+
+## 🔄 错误码说明
+
+| 状态码 | 说明 | 常见原因 |
+|--------|------|---------|
+| 200 | 成功 | - |
+| 400 | 请求错误 | 参数验证失败、文件格式不支持 |
+| 401 | 未认证 | 缺少Authorization头或token无效 |
+| 403 | 权限不足 | 尝试编辑他人文章、非Admin尝试置顶 |
+| 404 | 资源不存在 | 文章不存在或未发布 |
+| 422 | 参数验证失败 | 字段类型错误、UUID格式错误 |
+| 500 | 服务器错误 | 数据库连接失败、R2上传失败 |
+
+---
+
+## 📝 状态字段说明
+
+### article.status
+
+| 值 | 说明 | 公开可见 |
+|----|------|---------|
+| `draft` | 草稿 | ❌ 仅作者和Admin可见 |
+| `published` | 已发布 | ✅ 所有人可见 |
+| `archived` | 已归档 | ❌ 仅作者和Admin可见 |
+
+### article.author_type
+
+| 值 | 说明 |
+|----|------|
+| `human` | 人类作者 |
+| `ai` | AI生成内容 |
+
+---
+
+## 🎯 MVP实施状态
+
+### ✅ 第一阶段（已完成）
+- [x] 数据库表设计与迁移
+- [x] Redis缓存服务
+- [x] 文章查询接口（列表、详情、分类）
+- [x] 图片上传到R2
+- [x] 文章管理接口（创建、编辑、删除）
+
+### ✅ 第二阶段（已完成）
+- [x] 置顶文章功能
+- [x] 全文搜索（title + content ILIKE）
+- [x] 草稿管理系统
+- [x] 作者权限控制
+
+### 🔜 第三阶段（规划中）
+- [ ] 用户发布博客
+- [ ] 点赞功能
+- [ ] 评论系统
+- [ ] PostgreSQL全文搜索（GIN索引）
+
+---
+
+**Base URL:** `https://api.catachess.com`
+
+**文档版本:** v1.0.0
+
+**最后更新:** 2026-02-09
