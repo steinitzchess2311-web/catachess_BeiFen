@@ -47,8 +47,8 @@ const SortToggles: React.FC<SortTogglesProps> = ({ sortKey, sortDir, onSortChang
       const reverseText = sortDir === 'desc' ? ' (reverse)' : '';
       return `Sorted by ${baseName}${reverseText}`;
     } else {
-      // Inactive button - show what will happen if clicked
-      return `Sort by ${baseName}`;
+      // Inactive button - show what it would be
+      return `Sorted by ${baseName}`;
     }
   };
 
