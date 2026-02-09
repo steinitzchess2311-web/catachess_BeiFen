@@ -10,27 +10,35 @@ const SolutionSection = () => {
         marginBottom: "60px",
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: "28px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "20px",
+          marginBottom: "28px",
+        }}
+      >
         <img
           src={logo}
           alt="ChessorTag Logo"
           style={{
-            width: "120px",
-            marginBottom: "20px",
+            width: "80px",
+            height: "80px",
+            objectFit: "contain",
           }}
         />
+        <h2
+          style={{
+            fontSize: "2.1rem",
+            fontWeight: 700,
+            color: "#8b7355",
+            margin: 0,
+          }}
+        >
+          How does ChessorTag solve that?
+        </h2>
       </div>
-      <h2
-        style={{
-          fontSize: "2.1rem",
-          fontWeight: 700,
-          color: "#8b7355",
-          marginBottom: "28px",
-          textAlign: "center",
-        }}
-      >
-        How does ChessorTag solve that?
-      </h2>
       <div
         style={{
           display: "grid",
