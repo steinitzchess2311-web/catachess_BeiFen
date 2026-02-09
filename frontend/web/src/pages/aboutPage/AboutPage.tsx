@@ -29,7 +29,6 @@ const AboutPage = () => {
           background:
             "linear-gradient(135deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 242, 238, 0.95) 50%, rgba(242, 238, 233, 0.95) 100%)",
           minHeight: "calc(100vh - 64px)",
-          overflowY: "auto",
         }}
       >
         <div
