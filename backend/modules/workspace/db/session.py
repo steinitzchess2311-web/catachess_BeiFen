@@ -40,6 +40,21 @@ class DatabaseConfig:
         engine_kwargs: dict[str, Any] = {"echo": echo}
         if is_sqlite:
             engine_kwargs["poolclass"] = StaticPool
+        else:
+            # PostgreSQL connection pool optimization (use same config as sync engine)
+            try:
+                from core.config import settings
+                engine_kwargs["pool_size"] = settings.DB_POOL_SIZE
+                engine_kwargs["max_overflow"] = settings.DB_MAX_OVERFLOW
+                engine_kwargs["pool_recycle"] = settings.DB_POOL_RECYCLE
+                engine_kwargs["pool_timeout"] = settings.DB_POOL_TIMEOUT
+            except Exception:
+                # Fallback to hardcoded values if settings not available
+                engine_kwargs["pool_size"] = 20
+                engine_kwargs["max_overflow"] = 40
+                engine_kwargs["pool_recycle"] = 3600
+                engine_kwargs["pool_timeout"] = 30
+            engine_kwargs["pool_pre_ping"] = True
         if connect_args:
             engine_kwargs["connect_args"] = connect_args
 

@@ -258,6 +258,63 @@ def health_check():
     }
 
 
+@app.get("/api/metrics")
+async def performance_metrics():
+    """
+    Performance metrics endpoint for monitoring system health
+
+    Returns:
+        - Database connection pool stats
+        - Engine queue statistics
+        - MongoDB cache statistics
+    """
+    metrics = {
+        "service": "Catachess API",
+        "timestamp": __import__("time").time(),
+    }
+
+    # Database pool metrics
+    try:
+        from core.db.db_engine import db_engine
+        metrics["database"] = {
+            "pool_size": db_engine.pool.size(),
+            "checked_out_connections": db_engine.pool.checkedout(),
+            "overflow_connections": db_engine.pool.overflow(),
+            "pool_status": "healthy" if db_engine.pool.checkedout() < db_engine.pool.size() else "high_usage",
+        }
+    except Exception as e:
+        metrics["database"] = {"error": str(e)}
+
+    # Engine queue metrics
+    try:
+        from core.chess_engine.queue import get_engine_queue
+        engine_queue = get_engine_queue()
+        stats = engine_queue.get_stats()
+        metrics["engine_queue"] = {
+            "queue_size": stats.queue_size,
+            "active_workers": stats.active_workers,
+            "total_requests": stats.total_requests,
+            "total_completed": stats.total_completed,
+            "total_failed": stats.total_failed,
+            "avg_wait_time_ms": round(stats.avg_wait_time_ms, 1),
+            "avg_processing_time_ms": round(stats.avg_processing_time_ms, 1),
+            "status": "healthy" if stats.queue_size < 10 else "high_queue",
+        }
+    except Exception as e:
+        metrics["engine_queue"] = {"error": str(e)}
+
+    # MongoDB cache metrics
+    try:
+        from core.cache import get_mongo_cache
+        mongo_cache = await get_mongo_cache()
+        cache_stats = await mongo_cache.get_stats()
+        metrics["mongodb_cache"] = cache_stats
+    except Exception as e:
+        metrics["mongodb_cache"] = {"error": str(e)}
+
+    return metrics
+
+
 if __name__ == "__main__":
     import uvicorn
 

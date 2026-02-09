@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     # Tagger-specific database (separate from workspace DB)
     TAGGER_DATABASE_URL: str = ""
 
+    # Database connection pool configuration
+    DB_POOL_SIZE: int = 20              # Base connection pool size
+    DB_MAX_OVERFLOW: int = 40           # Additional connections when pool is exhausted
+    DB_POOL_RECYCLE: int = 3600         # Recycle connections after seconds (1 hour)
+    DB_POOL_TIMEOUT: int = 30           # Connection acquisition timeout in seconds
+
     # ===== MongoDB (Engine Cache) =====
     # Railway provides both MONGO_URL (internal) and MONGO_PUBLIC_URL (public)
     # Use MONGO_URL for Railway deployments (faster, internal network)

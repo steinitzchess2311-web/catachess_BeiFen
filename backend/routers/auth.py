@@ -14,7 +14,7 @@ This is the HTTP boundary - it only glues components together:
     - Handles HTTP request/response format
     - Logs API operations
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -112,6 +112,7 @@ class UserResponse(BaseModel):
 )
 async def register(
     request: RegisterRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     """
@@ -152,13 +153,10 @@ async def register(
 
         logger.info(f"User registered successfully: {user.username} (id={user.id})")
 
-        # Initialize default workspace content for new user
-        try:
-            await _initialize_default_workspace(str(user.id))
-            logger.info(f"Default workspace initialized for user {user.id}")
-        except Exception as e:
-            logger.error(f"Failed to initialize workspace for user {user.id}: {e}", exc_info=True)
-            # Don't fail registration if workspace init fails
+        # Initialize default workspace content in background (non-blocking)
+        # This prevents registration from being slow when multiple users register simultaneously
+        background_tasks.add_task(_initialize_default_workspace, str(user.id))
+        logger.info(f"Workspace initialization queued for user {user.id}")
 
         # Send verification code email (only for email users)
         verification_sent = False

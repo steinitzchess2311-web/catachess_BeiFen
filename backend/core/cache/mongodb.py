@@ -41,7 +41,16 @@ class MongoEngineCache:
 
         try:
             logger.info(f"[MONGODB CACHE] Connecting to MongoDB...")
-            self.client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+            self.client = AsyncIOMotorClient(
+                mongo_url,
+                serverSelectionTimeoutMS=5000,
+                maxPoolSize=50,              # Maximum connections in pool (increased from default 100)
+                minPoolSize=10,              # Minimum connections to maintain
+                maxIdleTimeMS=45000,         # Close idle connections after 45 seconds
+                connectTimeoutMS=10000,      # Connection timeout: 10 seconds
+                socketTimeoutMS=20000,       # Socket timeout: 20 seconds
+                waitQueueTimeoutMS=5000,     # Wait queue timeout: 5 seconds
+            )
 
             # Test connection
             await self.client.admin.command('ping')
