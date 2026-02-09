@@ -1,25 +1,40 @@
 """
 Blog API Router
 
-Endpoints:
+Public Endpoints:
 - GET /api/blogs/categories - Get all categories
 - GET /api/blogs/articles - Get article list with pagination
 - GET /api/blogs/articles/pinned - Get pinned articles
 - GET /api/blogs/articles/:id - Get article detail
-- POST /api/blogs/articles - Create article (admin/editor only)
-- PUT /api/blogs/articles/:id - Update article (admin/editor only)
+
+Management Endpoints (Editor/Admin):
+- POST /api/blogs/upload-image - Upload image
+- POST /api/blogs/articles - Create article
+- PUT /api/blogs/articles/:id - Update article
 - DELETE /api/blogs/articles/:id - Delete article (admin only)
+- POST /api/blogs/articles/:id/pin - Pin/unpin article (admin only)
 """
 import os
 from typing import List, Optional
-from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Query
+from uuid import UUID, uuid4
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, Form
 from sqlalchemy import create_engine, select, func, and_, or_, text
 from sqlalchemy.orm import Session
 
 from modules.blogs.db.models import BlogArticle, BlogCategory
-from modules.blogs.schemas import CategoryResponse, ArticleListResponse, ArticleResponse, ArticleListItem
+from modules.blogs.db.image_models import BlogImage
+from modules.blogs.schemas import (
+    CategoryResponse,
+    ArticleListResponse,
+    ArticleResponse,
+    ArticleListItem,
+    ArticleCreate,
+    ArticleUpdate
+)
 from modules.blogs.services.cache_service import get_blog_cache, BlogCacheService
+from modules.blogs.services.image_service import get_image_service
+from modules.blogs.auth import require_editor, require_admin
 
 router = APIRouter(prefix="/api/blogs", tags=["Blogs"])
 
@@ -318,3 +333,265 @@ async def get_article(
 async def get_cache_stats(cache: BlogCacheService = Depends(get_blog_cache)):
     """Get cache statistics (for monitoring)"""
     return await cache.get_cache_stats()
+
+
+# ==================== Image Upload (Editor/Admin) ====================
+
+@router.post("/upload-image")
+async def upload_image(
+    file: UploadFile = File(...),
+    resize_mode: str = Form("adaptive_width", pattern="^(original|adaptive_width)$"),
+    image_type: str = Form("content", pattern="^(cover|content)$"),
+    current_user = Depends(require_editor),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Upload image for blog article (Editor/Admin only)
+
+    **Parameters:**
+    - file: Image file (max 5MB)
+    - resize_mode: "original" or "adaptive_width"
+    - image_type: "cover" or "content"
+
+    **Returns:**
+    - Image metadata with CDN URL
+    """
+    try:
+        # Read file data
+        file_data = await file.read()
+
+        # Process and upload
+        image_service = get_image_service()
+        result = image_service.process_and_upload(
+            file_data,
+            file.filename,
+            resize_mode
+        )
+
+        # Save metadata to database
+        blog_image = BlogImage(
+            id=uuid4(),
+            filename=result["filename"],
+            storage_path=result["storage_path"],
+            url=result["url"],
+            content_type=result["content_type"],
+            size_bytes=result["size_bytes"],
+            width=result["width"],
+            height=result["height"],
+            resize_mode=result["resize_mode"],
+            image_type=image_type,
+            uploaded_by=current_user.id if current_user else None,
+            created_at=datetime.utcnow()
+        )
+        db.add(blog_image)
+        db.commit()
+
+        return {
+            "id": str(blog_image.id),
+            "url": blog_image.url,
+            "filename": blog_image.filename,
+            "size_bytes": blog_image.size_bytes,
+            "width": blog_image.width,
+            "height": blog_image.height,
+            "resize_mode": blog_image.resize_mode,
+            "image_type": blog_image.image_type
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+# ==================== Article Management (Editor/Admin) ====================
+
+@router.post("/articles", response_model=ArticleResponse)
+async def create_article(
+    article: ArticleCreate,
+    current_user = Depends(require_editor),
+    cache: BlogCacheService = Depends(get_blog_cache),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Create new article (Editor/Admin only)
+
+    **Requires:** editor or admin role
+    """
+    # Create article
+    new_article = BlogArticle(
+        id=uuid4(),
+        title=article.title,
+        subtitle=article.subtitle,
+        content=article.content,
+        cover_image_url=article.cover_image_url,
+        author_id=current_user.id if current_user else None,
+        author_name=article.author_name,
+        author_type=article.author_type,
+        category=article.category,
+        sub_category=article.sub_category,
+        tags=article.tags,
+        status=article.status,
+        is_pinned=article.is_pinned,
+        pin_order=article.pin_order,
+        view_count=0,
+        like_count=0,
+        comment_count=0,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
+        published_at=datetime.utcnow() if article.status == "published" else None
+    )
+
+    db.add(new_article)
+    db.commit()
+    db.refresh(new_article)
+
+    # Invalidate caches
+    await cache.invalidate_article_list(article.category)
+    await cache.invalidate_article_list("all")
+    if article.is_pinned:
+        await cache.invalidate_pinned_articles()
+    await cache.invalidate_categories()
+
+    # Return response
+    return ArticleResponse.model_validate(new_article)
+
+
+@router.put("/articles/{article_id}", response_model=ArticleResponse)
+async def update_article(
+    article_id: UUID,
+    updates: ArticleUpdate,
+    current_user = Depends(require_editor),
+    cache: BlogCacheService = Depends(get_blog_cache),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Update article (Editor/Admin only)
+
+    **Requires:** editor or admin role
+    """
+    # Find article
+    stmt = select(BlogArticle).where(BlogArticle.id == article_id)
+    article = db.execute(stmt).scalar_one_or_none()
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    # Track if category or pin status changed
+    old_category = article.category
+    old_is_pinned = article.is_pinned
+
+    # Update fields
+    update_data = updates.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(article, field, value)
+
+    # Update timestamps
+    article.updated_at = datetime.utcnow()
+    if updates.status == "published" and not article.published_at:
+        article.published_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(article)
+
+    # Invalidate caches
+    await cache.invalidate_article(str(article_id))
+    await cache.invalidate_article_list(old_category)
+    if updates.category and updates.category != old_category:
+        await cache.invalidate_article_list(updates.category)
+    await cache.invalidate_article_list("all")
+    if old_is_pinned or article.is_pinned:
+        await cache.invalidate_pinned_articles()
+
+    return ArticleResponse.model_validate(article)
+
+
+@router.delete("/articles/{article_id}")
+async def delete_article(
+    article_id: UUID,
+    current_user = Depends(require_editor),
+    cache: BlogCacheService = Depends(get_blog_cache),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Delete article (Admin only)
+
+    **Requires:** admin role
+    """
+    from modules.blogs.auth import require_admin
+    await require_admin(current_user)
+
+    # Find article
+    stmt = select(BlogArticle).where(BlogArticle.id == article_id)
+    article = db.execute(stmt).scalar_one_or_none()
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    category = article.category
+    is_pinned = article.is_pinned
+
+    # Delete article
+    db.delete(article)
+    db.commit()
+
+    # Invalidate caches
+    await cache.invalidate_article(str(article_id))
+    await cache.invalidate_article_list(category)
+    await cache.invalidate_article_list("all")
+    if is_pinned:
+        await cache.invalidate_pinned_articles()
+
+    return {"success": True, "message": "Article deleted successfully"}
+
+
+@router.post("/articles/{article_id}/pin")
+async def toggle_pin_article(
+    article_id: UUID,
+    pin_order: int = 0,
+    current_user = Depends(require_editor),
+    cache: BlogCacheService = Depends(get_blog_cache),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Pin or unpin article (Admin only)
+
+    **Requires:** admin role
+
+    **Parameters:**
+    - pin_order: Order for pinned article (higher = appears first). Set to 0 to unpin.
+    """
+    from modules.blogs.auth import require_admin
+    await require_admin(current_user)
+
+    # Find article
+    stmt = select(BlogArticle).where(BlogArticle.id == article_id)
+    article = db.execute(stmt).scalar_one_or_none()
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    # Toggle pin
+    if pin_order > 0:
+        article.is_pinned = True
+        article.pin_order = pin_order
+        message = f"Article pinned with order {pin_order}"
+    else:
+        article.is_pinned = False
+        article.pin_order = 0
+        message = "Article unpinned"
+
+    article.updated_at = datetime.utcnow()
+    db.commit()
+
+    # Invalidate caches
+    await cache.invalidate_article(str(article_id))
+    await cache.invalidate_article_list(article.category)
+    await cache.invalidate_article_list("all")
+    await cache.invalidate_pinned_articles()
+
+    return {
+        "success": True,
+        "message": message,
+        "is_pinned": article.is_pinned,
+        "pin_order": article.pin_order
+    }
