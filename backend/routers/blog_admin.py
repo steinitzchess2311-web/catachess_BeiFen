@@ -107,3 +107,64 @@ async def check_blog_tables():
 
     except Exception as e:
         return {"error": str(e)}
+
+
+@router.post("/setup-permissions")
+async def setup_user_permissions():
+    """
+    Setup user permissions for blog management - ONE TIME USE
+    1. Modify users table to allow 'editor' and 'admin' roles
+    2. Set specified users as admin
+    """
+    try:
+        db_url = os.getenv("BLOG_DATABASE_URL")
+        if not db_url:
+            raise HTTPException(status_code=500, detail="BLOG_DATABASE_URL not configured")
+
+        engine = create_engine(db_url)
+
+        with engine.connect() as conn:
+            # Step 1: Drop old constraint if exists
+            conn.execute(text("""
+                ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check
+            """))
+            conn.commit()
+
+            # Step 2: Add new constraint with editor and admin roles
+            conn.execute(text("""
+                ALTER TABLE users ADD CONSTRAINT users_role_check
+                CHECK (role IN ('student', 'teacher', 'editor', 'admin'))
+            """))
+            conn.commit()
+
+            # Step 3: Set specified users as admin
+            admin_ids = [
+                'b8693aa4-ddaa-4ed0-ab33-2f5f459e5415',
+                'b171f398-ead9-4599-b4ef-0c0158d325c3'
+            ]
+
+            for user_id in admin_ids:
+                conn.execute(
+                    text("UPDATE users SET role = 'admin' WHERE id = :user_id"),
+                    {"user_id": user_id}
+                )
+            conn.commit()
+
+            # Step 4: Verify changes
+            result = conn.execute(text("""
+                SELECT id, identifier, role
+                FROM users
+                WHERE id IN ('b8693aa4-ddaa-4ed0-ab33-2f5f459e5415', 'b171f398-ead9-4599-b4ef-0c0158d325c3')
+            """))
+            admins = [{"id": row[0], "identifier": row[1], "role": row[2]} for row in result]
+
+        return {
+            "success": True,
+            "message": "User permissions setup successfully",
+            "constraint_updated": True,
+            "allowed_roles": ["student", "teacher", "editor", "admin"],
+            "admins_set": admins
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Permission setup failed: {str(e)}")
