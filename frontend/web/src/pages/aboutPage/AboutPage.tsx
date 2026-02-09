@@ -1,4 +1,5 @@
 import React from "react";
+import SideNav from "../../components/navigation/SideNav";
 import HeroSection from "./HeroSection";
 import FoundersSection from "./FoundersSection";
 import ProblemsSection from "./ProblemsSection";
@@ -7,6 +8,15 @@ import ImitatorSection from "./ImitatorSection";
 import Promises from "./Promises";
 
 const AboutPage = () => {
+  const navItems = [
+    { id: "hero", label: "Why We're Great", icon: "📍" },
+    { id: "founders", label: "Meet the Founders", icon: "👥" },
+    { id: "problems", label: "The Problem", icon: "⚠️" },
+    { id: "solution", label: "Our Solution", icon: "✨" },
+    { id: "imitator", label: "ChessorTag Imitator", icon: "🤖" },
+    { id: "promises", label: "Our Promises", icon: "🤝" },
+  ];
+
   return (
     <div
       style={{
@@ -20,16 +30,36 @@ const AboutPage = () => {
     >
       <div
         style={{
-          maxWidth: "1100px",
+          maxWidth: "1400px",
           margin: "0 auto",
+          display: "flex",
+          gap: "40px",
         }}
       >
-        <HeroSection />
-        <FoundersSection />
-        <ProblemsSection />
-        <SolutionSection />
-        <ImitatorSection />
-        <Promises />
+        {/* Left Sidebar Navigation */}
+        <SideNav items={navItems} />
+
+        {/* Main Content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div id="hero">
+            <HeroSection />
+          </div>
+          <div id="founders">
+            <FoundersSection />
+          </div>
+          <div id="problems">
+            <ProblemsSection />
+          </div>
+          <div id="solution">
+            <SolutionSection />
+          </div>
+          <div id="imitator">
+            <ImitatorSection />
+          </div>
+          <div id="promises">
+            <Promises />
+          </div>
+        </div>
       </div>
     </div>
   );
