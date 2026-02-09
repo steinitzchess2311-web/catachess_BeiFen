@@ -48,8 +48,8 @@ const FoundersSection = () => {
           }}
         >
           This website is actually started and <strong>FULLY developed</strong> by 2 high
-          school students: <strong style={{ color: "#8b7355" }}>Quanhao Li (Left)</strong>,{" "}
-          <strong style={{ color: "#8b7355" }}>Jorlanda Chen (Right)</strong>. They are young dreamers,
+          school students: <strong style={{ color: "#8b7355" }}>Quanhao Li </strong>and{" "}
+          <strong style={{ color: "#8b7355" }}>Jorlanda Chen </strong>. They are young dreamers,
           PRO chess players, and are trying to easier chess players' lives:
         </p>
       </div>
