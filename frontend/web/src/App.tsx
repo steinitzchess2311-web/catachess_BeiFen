@@ -27,6 +27,7 @@ import signupLayout from "@ui/modules/auth/signup/layout/index.html?raw";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 import AboutPage from "./pages/aboutPage/AboutPage";
+import SponsorshipPage from "./pages/SponsorshipPage/SponsorshipPage";
 import LandingPage from "./pages/Landing/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
 import PlayerDetail from "@patch/modules/tagger/pages/PlayerDetail";
@@ -337,6 +338,7 @@ function Layout() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/sponsorship" element={<SponsorshipPage />} />
           <Route
             path="/players"
             element={
