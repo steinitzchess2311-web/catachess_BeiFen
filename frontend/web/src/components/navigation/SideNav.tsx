@@ -10,11 +10,16 @@ interface NavItem {
 
 interface SideNavProps {
   items: NavItem[];
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const SideNav: React.FC<SideNavProps> = ({ items }) => {
+const SideNav: React.FC<SideNavProps> = ({ items, isOpen: controlledIsOpen, onOpenChange }) => {
   const [activeSection, setActiveSection] = useState<string>(items[0]?.id || "");
-  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const [internalIsOpen, setInternalIsOpen] = useState<boolean>(true);
+
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
 
   useEffect(() => {
     const handleScroll = () => {

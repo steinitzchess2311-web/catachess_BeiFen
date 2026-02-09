@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import SideNav from "../../components/navigation/SideNav";
 import HeroSection from "./HeroSection";
 import FoundersSection from "./FoundersSection";
@@ -8,6 +8,8 @@ import ImitatorSection from "./ImitatorSection";
 import Promises from "./Promises";
 
 const AboutPage = () => {
+  const [isSideNavOpen, setIsSideNavOpen] = useState(true);
+
   const navItems = [
     { id: "hero", label: "Why We're Great", icon: "📍" },
     { id: "founders", label: "Meet the Founders", icon: "👥" },
@@ -30,13 +32,14 @@ const AboutPage = () => {
     >
       <div
         style={{
-          maxWidth: "1400px",
+          maxWidth: isSideNavOpen ? "1400px" : "1100px",
           margin: "0 auto",
-          paddingLeft: "260px",
+          paddingLeft: isSideNavOpen ? "260px" : "100px",
+          transition: "max-width 0.3s ease, padding-left 0.3s ease",
         }}
       >
         {/* Left Sidebar Navigation */}
-        <SideNav items={navItems} />
+        <SideNav items={navItems} isOpen={isSideNavOpen} onOpenChange={setIsSideNavOpen} />
 
         {/* Main Content */}
         <div style={{ width: "100%" }}>
