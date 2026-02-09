@@ -4,6 +4,7 @@ import FoundersSection from "./FoundersSection";
 import ProblemsSection from "./ProblemsSection";
 import SolutionSection from "./SolutionSection";
 import ImitatorSection from "./ImitatorSection";
+import Promises from "./Promises";
 import CTASection from "./CTASection";
 
 const AboutPage = () => {
@@ -29,6 +30,7 @@ const AboutPage = () => {
         <ProblemsSection />
         <SolutionSection />
         <ImitatorSection />
+        <Promises />
         <CTASection />
       </div>
     </div>
