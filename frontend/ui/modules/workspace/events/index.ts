@@ -8,6 +8,7 @@ import NodeActionsModal from '../../../../web/src/components/dialogBox/NodeActio
 import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
 import RenameModal from '../../../../web/src/components/dialogBox/RenameModal';
 import DeleteModal from '../../../../web/src/components/dialogBox/DeleteModal';
+import DragMoveModal from '../../../../web/src/components/dialogBox/DragMoveModal';
 import SortToggles from '../../../../web/src/components/workspace/SortToggles';
 
 type WorkspaceOptions = {
@@ -63,6 +64,10 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     // Create delete modal container and React root
     let deleteModalContainer: HTMLDivElement | null = null;
     let deleteModalRoot: ReactDOM.Root | null = null;
+
+    // Create drag move modal container and React root
+    let dragMoveModalContainer: HTMLDivElement | null = null;
+    let dragMoveModalRoot: ReactDOM.Root | null = null;
 
     // 3. Helper Functions
 
@@ -598,25 +603,36 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     const openMoveConfirm = (source: any, target: any) => {
-        const { overlay, close } = mountModal('move-confirm-template');
-        const textEl = overlay.querySelector('#move-confirm-text') as HTMLElement;
-        const confirmBtn = overlay.querySelector('#confirm-move-modal') as HTMLButtonElement;
-        textEl.textContent = `Are you sure you want to move\n${source.title} to\n${target.title}?`;
+        // Create drag move modal container if not exists
+        if (!dragMoveModalContainer) {
+            dragMoveModalContainer = document.createElement('div');
+            dragMoveModalContainer.id = 'drag-move-modal-root';
+            document.body.appendChild(dragMoveModalContainer);
+            dragMoveModalRoot = ReactDOM.createRoot(dragMoveModalContainer);
+        }
 
-        confirmBtn.addEventListener('click', async () => {
-            try {
-                await api.post(`/api/v1/workspace/nodes/${source.id}/move`, {
-                    new_parent_id: target.id,
-                    version: source.version,
-                });
-                close();
-                allNodesCache = null;
-                refreshNodes(currentParentId);
-            } catch (error) {
-                console.error('Failed to move node:', error);
-                alert('Move failed');
-            }
-        });
+        // Render DragMoveModal React component
+        dragMoveModalRoot!.render(
+            React.createElement(DragMoveModal, {
+                sourceNode: source,
+                targetNode: target,
+                onClose: () => {
+                    // Unmount modal
+                    if (dragMoveModalRoot) {
+                        dragMoveModalRoot.render(null);
+                    }
+                },
+                onSuccess: () => {
+                    // Unmount modal
+                    if (dragMoveModalRoot) {
+                        dragMoveModalRoot.render(null);
+                    }
+                    // Refresh nodes
+                    allNodesCache = null;
+                    refreshNodes(currentParentId);
+                }
+            })
+        );
     };
 
     const renameNode = async (node: any, title: string) => {
