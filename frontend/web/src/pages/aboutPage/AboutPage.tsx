@@ -1,10 +1,10 @@
 import React from "react";
-import HeroSection from "../SponsorshipPage/HeroSection";
-import FoundersSection from "../SponsorshipPage/FoundersSection";
-import ProblemsSection from "../SponsorshipPage/ProblemsSection";
-import SolutionSection from "../SponsorshipPage/SolutionSection";
-import ImitatorSection from "../SponsorshipPage/ImitatorSection";
-import CTASection from "../SponsorshipPage/CTASection";
+import HeroSection from "./HeroSection";
+import FoundersSection from "./FoundersSection";
+import ProblemsSection from "./ProblemsSection";
+import SolutionSection from "./SolutionSection";
+import ImitatorSection from "./ImitatorSection";
+import CTASection from "./CTASection";
 
 const AboutPage = () => {
   return (
