@@ -1,29 +1,32 @@
 import React from "react";
+import PageTransition from "../../components/animation/PageTransition";
 import HeroSection from "./HeroSection";
 import FundingPlansSection from "./FundingPlansSection";
 
 const SponsorshipPage = () => {
   return (
-    <div
-      style={{
-        padding: "40px 24px 70px",
-        fontFamily: "'Roboto', sans-serif",
-        background:
-          "linear-gradient(135deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 242, 238, 0.95) 50%, rgba(242, 238, 233, 0.95) 100%)",
-        minHeight: "calc(100vh - 64px)",
-        overflowY: "auto",
-      }}
-    >
+    <PageTransition>
       <div
         style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
+          padding: "40px 24px 70px",
+          fontFamily: "'Roboto', sans-serif",
+          background:
+            "linear-gradient(135deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 242, 238, 0.95) 50%, rgba(242, 238, 233, 0.95) 100%)",
+          minHeight: "calc(100vh - 64px)",
+          overflowY: "auto",
         }}
       >
-        <HeroSection />
-        <FundingPlansSection />
+        <div
+          style={{
+            maxWidth: "1100px",
+            margin: "0 auto",
+          }}
+        >
+          <HeroSection />
+          <FundingPlansSection />
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 
