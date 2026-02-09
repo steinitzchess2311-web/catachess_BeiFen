@@ -29,6 +29,8 @@ const ProblemsSection = () => {
           borderRadius: "10px",
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
+          width: "50%",
+          margin: "0 auto 32px auto",
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
@@ -95,6 +97,8 @@ const ProblemsSection = () => {
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
           flexDirection: "row-reverse",
+          width: "50%",
+          margin: "0 auto 32px auto",
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
@@ -159,6 +163,8 @@ const ProblemsSection = () => {
           borderRadius: "10px",
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
+          width: "50%",
+          margin: "0 auto 32px auto",
         }}
       >
         <div style={{ flex: "0 0 9.5%" }}>
