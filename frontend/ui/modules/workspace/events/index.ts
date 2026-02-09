@@ -9,6 +9,7 @@ import MoveModal from '../../../../web/src/components/dialogBox/MoveModal';
 import RenameModal from '../../../../web/src/components/dialogBox/RenameModal';
 import DeleteModal from '../../../../web/src/components/dialogBox/DeleteModal';
 import DragMoveModal from '../../../../web/src/components/dialogBox/DragMoveModal';
+import TestSign from '../../../../web/src/components/dialogBox/TestSign';
 import SortToggles from '../../../../web/src/components/workspace/SortToggles';
 
 type WorkspaceOptions = {
@@ -824,6 +825,13 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     };
 
     renderSortToggles();
+
+    // Render TestSign React component
+    const testSignContainer = container.querySelector('#test-sign-container') as HTMLElement;
+    if (testSignContainer) {
+        const testSignRoot = ReactDOM.createRoot(testSignContainer);
+        testSignRoot.render(React.createElement(TestSign));
+    }
 
     // Initial load
     if (startParentId && startParentId !== 'root') {
