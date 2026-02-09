@@ -5,7 +5,6 @@ import ProblemsSection from "./ProblemsSection";
 import SolutionSection from "./SolutionSection";
 import ImitatorSection from "./ImitatorSection";
 import Promises from "./Promises";
-import CTASection from "./CTASection";
 
 const AboutPage = () => {
   return (
@@ -31,7 +30,6 @@ const AboutPage = () => {
         <SolutionSection />
         <ImitatorSection />
         <Promises />
-        <CTASection />
       </div>
     </div>
   );
