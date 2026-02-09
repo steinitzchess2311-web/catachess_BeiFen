@@ -67,7 +67,7 @@ const SolutionSection = () => {
             FREE!
           </h3>
           <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
-            FREE for all users! No premium tiers, no hidden costs.
+            FREE for all users! No premium tiers, no hidden costs. Ads only shows on footer and blogs. Never affect users' experience!
           </p>
         </div>
         <div
