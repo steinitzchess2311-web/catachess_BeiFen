@@ -68,7 +68,10 @@ export function setupEventHandlers(
     elements.searchInput?.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter') return;
         event.preventDefault();
-        runSearch(state, elements.searchInput.value, handlers.renderItems, handlers.refreshNodes).catch(() => {});
+        console.log('[Search] Running search for:', elements.searchInput.value);
+        runSearch(state, elements.searchInput.value, handlers.renderItems, handlers.refreshNodes).catch((err) => {
+            console.error('[Search] Search failed:', err);
+        });
     });
 
     // Search clear button

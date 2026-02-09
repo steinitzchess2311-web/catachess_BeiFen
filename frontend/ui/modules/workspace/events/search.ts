@@ -67,20 +67,27 @@ export async function fetchAllNodes(state: WorkspaceState) {
 }
 
 export async function runSearch(state: WorkspaceState, raw: string, renderItems: (nodes: any[]) => void, refreshNodes: (parentId: string) => Promise<void>) {
+    console.log('[runSearch] Starting search with query:', raw);
     const parsed = parseSearch(raw);
+    console.log('[runSearch] Parsed:', parsed);
     if (!parsed) {
+        console.log('[runSearch] No parsed query, refreshing current folder');
         await refreshNodes(state.currentParentId);
         return;
     }
     if (!parsed.query) {
+        console.log('[runSearch] Empty query, refreshing current folder');
         await refreshNodes(state.currentParentId);
         return;
     }
+    console.log('[runSearch] Fetching all nodes...');
     const nodes = await fetchAllNodes(state);
+    console.log('[runSearch] Found', nodes.length, 'total nodes');
     const filtered = nodes.filter((node) => {
         if (parsed.type && node.node_type !== parsed.type) return false;
         return true;
     });
+    console.log('[runSearch] Filtered to', filtered.length, 'nodes');
     const ranked = filtered
         .map((node) => ({
             node,
@@ -88,5 +95,7 @@ export async function runSearch(state: WorkspaceState, raw: string, renderItems:
         }))
         .sort((a, b) => a.score - b.score)
         .map((entry) => entry.node);
+    console.log('[runSearch] Ranked', ranked.length, 'results, rendering...');
     renderItems(ranked);
+    console.log('[runSearch] ✓ Search complete');
 }

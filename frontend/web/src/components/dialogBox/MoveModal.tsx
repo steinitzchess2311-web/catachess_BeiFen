@@ -89,9 +89,11 @@ const MoveModal: React.FC<MoveModalProps> = ({ node, onClose, onSuccess }) => {
   };
 
   const handleSelectFolder = useCallback((folder: FolderNode) => {
+    console.log('[MoveModal] Folder selected:', folder.title, 'path:', folder.path);
     setInputValue(folder.path);
     setIsDropdownOpen(false);
     inputRef.current?.blur();
+    console.log('[MoveModal] Input value set to:', folder.path);
   }, []);
 
   const handleMove = async () => {
