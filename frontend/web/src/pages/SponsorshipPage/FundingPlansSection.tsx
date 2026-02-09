@@ -112,7 +112,7 @@ const FundingPlansSection = () => {
             4
           </span>
           <span style={{ textDecoration: "line-through" }}>
-            Buy bubble tea and Clash Royale boarding pass
+            Buy Cat Food and Clash Royale boarding pass
           </span>
         </li>
       </ul>
