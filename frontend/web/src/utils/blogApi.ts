@@ -63,5 +63,102 @@ export const blogApi = {
   async getCategories(): Promise<BlogCategory[]> {
     const response = await api.get(`${BASE_PATH}/categories`);
     return response;
+  },
+
+  /**
+   * Get user's draft articles
+   * Requires Editor or Admin role
+   * @returns Array of draft articles
+   */
+  async getMyDrafts(): Promise<BlogArticle[]> {
+    const response = await api.get(`${BASE_PATH}/articles/my-drafts`);
+    return response;
+  },
+
+  /**
+   * Create new article (draft or published)
+   * Requires Editor or Admin role
+   * @param articleData - Article data
+   * @returns Created article
+   */
+  async createArticle(articleData: {
+    title: string;
+    subtitle?: string;
+    content: string;
+    cover_image_url?: string;
+    author_name?: string;
+    author_type?: 'human' | 'ai';
+    category: string;
+    sub_category?: string;
+    tags?: string[];
+    status?: 'draft' | 'published' | 'archived';
+    is_pinned?: boolean;
+    pin_order?: number;
+  }): Promise<BlogArticle> {
+    const response = await api.post(`${BASE_PATH}/articles`, articleData);
+    return response;
+  },
+
+  /**
+   * Update existing article
+   * Requires ownership or Admin role
+   * @param id - Article ID
+   * @param articleData - Updated article data
+   * @returns Updated article
+   */
+  async updateArticle(id: string, articleData: Partial<{
+    title: string;
+    subtitle: string;
+    content: string;
+    cover_image_url: string;
+    author_name: string;
+    author_type: 'human' | 'ai';
+    category: string;
+    sub_category: string;
+    tags: string[];
+    status: 'draft' | 'published' | 'archived';
+    is_pinned: boolean;
+    pin_order: number;
+  }>): Promise<BlogArticle> {
+    const response = await api.put(`${BASE_PATH}/articles/${id}`, articleData);
+    return response;
+  },
+
+  /**
+   * Delete article
+   * Requires ownership or Admin role
+   * @param id - Article ID
+   */
+  async deleteArticle(id: string): Promise<void> {
+    await api.delete(`${BASE_PATH}/articles/${id}`);
+  },
+
+  /**
+   * Upload image to R2 storage
+   * Requires Editor or Admin role
+   * @param file - Image file
+   * @returns Image URL
+   */
+  async uploadImage(file: File): Promise<{ url: string; filename: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`${BASE_PATH}/upload-image`, formData);
+    return response;
+  },
+
+  /**
+   * Pin or unpin article
+   * Requires Admin role
+   * @param id - Article ID
+   * @param pinOrder - Pin priority (0 to unpin, >0 to pin)
+   */
+  async pinArticle(id: string, pinOrder: number): Promise<{
+    success: boolean;
+    message: string;
+    is_pinned: boolean;
+    pin_order: number;
+  }> {
+    const response = await api.post(`${BASE_PATH}/articles/${id}/pin?pin_order=${pinOrder}`);
+    return response;
   }
 };
