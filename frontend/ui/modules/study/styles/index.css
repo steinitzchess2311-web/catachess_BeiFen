@@ -11,6 +11,7 @@
         var(--study-right-width);
     background-color: var(--bg-app);
     font-family: var(--font-family);
+    margin-bottom: 60px;
 }
 
 /* Panels */
