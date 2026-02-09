@@ -96,6 +96,14 @@ export async function runSearch(state: WorkspaceState, raw: string, renderItems:
         .sort((a, b) => a.score - b.score)
         .map((entry) => entry.node);
     console.log('[runSearch] Ranked', ranked.length, 'results, rendering...');
+
+    // Temporarily disable sorting to preserve relevance ranking
+    const originalSortKey = state.sortKey;
+    console.log('[runSearch] Temporarily setting sortKey to null to preserve ranking');
+    state.sortKey = null;
     renderItems(ranked);
+    state.sortKey = originalSortKey;
+    console.log('[runSearch] Restored sortKey to:', originalSortKey);
+
     console.log('[runSearch] ✓ Search complete');
 }
