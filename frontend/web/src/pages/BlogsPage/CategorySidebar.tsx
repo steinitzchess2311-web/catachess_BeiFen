@@ -16,6 +16,11 @@ const CategorySidebar = () => {
 
   const handleComingSoonClick = () => {
     setShowComingSoon(true);
+    setTimeout(() => setShowComingSoon(false), 2000);
+  };
+
+  const handleUserBlogsClick = () => {
+    setShowComingSoon(true);
     setIsShaking(true);
     setTimeout(() => setShowComingSoon(false), 2000);
     setTimeout(() => setIsShaking(false), 500);
@@ -200,7 +205,7 @@ const CategorySidebar = () => {
 
           {/* Users' Blogs */}
           <button
-            onClick={handleComingSoonClick}
+            onClick={handleUserBlogsClick}
             style={{
               background: activeItem === "users" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
