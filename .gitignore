@@ -50,6 +50,9 @@ patch/tsconfig.json
 .env.*.local
 *.env
 
+# Blog module - contains sensitive database credentials
+backend/modules/blogs/docs/PLAN.md
+
 # Database
 *.db
 *.sqlite
