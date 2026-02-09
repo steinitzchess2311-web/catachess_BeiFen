@@ -8,6 +8,7 @@ const CategorySidebar = () => {
   const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
   const [showComingSoon, setShowComingSoon] = useState<boolean>(false);
   const [activeItem, setActiveItem] = useState<string>("");
+  const [isShaking, setIsShaking] = useState<boolean>(false);
 
   const handleSearchClear = () => {
     setSearchQuery("");
@@ -15,7 +16,9 @@ const CategorySidebar = () => {
 
   const handleComingSoonClick = () => {
     setShowComingSoon(true);
+    setIsShaking(true);
     setTimeout(() => setShowComingSoon(false), 2000);
+    setTimeout(() => setIsShaking(false), 500);
   };
 
   const officialSubItems = [
@@ -31,18 +34,18 @@ const CategorySidebar = () => {
         <div
           style={{
             position: "fixed",
-            top: "50%",
+            top: "80px",
             left: "50%",
-            transform: "translate(-50%, -50%)",
+            transform: "translateX(-50%)",
             background: "rgba(44, 44, 44, 0.95)",
             color: "white",
-            padding: "20px 40px",
-            borderRadius: "12px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+            padding: "12px 32px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.25)",
             zIndex: 9999,
-            fontSize: "1.2rem",
+            fontSize: "1.3rem",
             fontWeight: 600,
-            animation: "fadeIn 0.2s ease",
+            animation: "slideDown 0.3s ease",
           }}
         >
           Coming Soon ✨
@@ -212,6 +215,8 @@ const CategorySidebar = () => {
               display: "flex",
               alignItems: "center",
               gap: "10px",
+              width: "100%",
+              animation: isShaking ? "shake 0.5s ease" : "none",
             }}
             onMouseEnter={(e) => {
               if (activeItem !== "users") {
@@ -225,7 +230,8 @@ const CategorySidebar = () => {
             }}
           >
             <span style={{ fontSize: "1.2rem" }}>✍️</span>
-            <span>Users' Blogs</span>
+            <span style={{ flex: 1 }}>Users' Blogs</span>
+            <ChevronRightIcon style={{ width: "18px", height: "18px", opacity: 0.5 }} />
           </button>
         </div>
 
@@ -309,14 +315,26 @@ const CategorySidebar = () => {
 
       <style>
         {`
-          @keyframes fadeIn {
+          @keyframes slideDown {
             from {
               opacity: 0;
-              transform: translate(-50%, -60%);
+              transform: translateX(-50%) translateY(-10px);
             }
             to {
               opacity: 1;
-              transform: translate(-50%, -50%);
+              transform: translateX(-50%) translateY(0);
+            }
+          }
+
+          @keyframes shake {
+            0%, 100% {
+              transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+              transform: translateX(-4px);
+            }
+            20%, 40%, 60%, 80% {
+              transform: translateX(4px);
             }
           }
         `}
