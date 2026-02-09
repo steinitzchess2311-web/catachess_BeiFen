@@ -29,7 +29,7 @@ const ProblemsSection = () => {
           borderRadius: "10px",
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
-          width: "50%",
+          width: "70%",
           margin: "0 auto 32px auto",
         }}
       >
@@ -97,7 +97,7 @@ const ProblemsSection = () => {
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
           flexDirection: "row-reverse",
-          width: "50%",
+          width: "70%",
           margin: "0 auto 32px auto",
         }}
       >
@@ -163,7 +163,7 @@ const ProblemsSection = () => {
           borderRadius: "10px",
           padding: "24px",
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
-          width: "50%",
+          width: "70%",
           margin: "0 auto 32px auto",
         }}
       >
