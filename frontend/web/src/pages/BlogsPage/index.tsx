@@ -22,36 +22,6 @@ const BlogsPage = () => {
             margin: "0 auto",
           }}
         >
-          {/* Header */}
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: "50px",
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "2.8rem",
-                fontWeight: 800,
-                color: "#2c2c2c",
-                marginBottom: "12px",
-                letterSpacing: "1px",
-              }}
-            >
-              BLOGS
-            </h1>
-            <p
-              style={{
-                fontSize: "1.4rem",
-                fontWeight: 600,
-                color: "#8b7355",
-                marginBottom: "0",
-              }}
-            >
-              Insights, Tutorials & Chess Knowledge
-            </p>
-          </div>
-
           {/* Main Layout: Sidebar + Content */}
           <div
             style={{
