@@ -6,14 +6,12 @@ import { openCreateModal, openMoveModal, openDeleteConfirm, openMoveConfirm, ope
 import { refreshNodes as doRefreshNodes } from './nodeOperations';
 import { navigateToFolder as doNavigateToFolder } from './navigation';
 import { renderItems as doRenderItems } from './rendering';
-import { toggleItemSelection as doToggleItemSelection, exitBatchMode as doExitBatchMode, openBatchActions as doOpenBatchActions } from './batchOperations';
 
 export function createHandlerWrappers(
     state: WorkspaceState,
     elements: WorkspaceElements,
     options: WorkspaceOptions,
-    modalRoots: ModalRoots,
-    renderBatchUI: () => void
+    modalRoots: ModalRoots
 ) {
     // Forward declarations for mutual dependencies
     let refreshNodes: (parentId: string) => Promise<void>;
@@ -31,8 +29,7 @@ export function createHandlerWrappers(
         doRenderItems(state, elements, nodes, options, {
             navigateToFolder,
             openNodeActions: openNodeActionsWrapper,
-            openMoveConfirm: openMoveConfirmWrapper,
-            toggleItemSelection: toggleItemSelectionWrapper
+            openMoveConfirm: openMoveConfirmWrapper
         });
     };
 
@@ -88,19 +85,6 @@ export function createHandlerWrappers(
         );
     };
 
-    // Batch operation wrappers
-    const toggleItemSelectionWrapper = (itemId: string) => {
-        doToggleItemSelection(state, itemId, renderBatchUI, () => refreshNodes(state.currentParentId));
-    };
-
-    const exitBatchModeWrapper = () => {
-        doExitBatchMode(state, renderBatchUI, () => refreshNodes(state.currentParentId));
-    };
-
-    const openBatchActionsWrapper = () => {
-        doOpenBatchActions(state, openNodeActionsWrapper);
-    };
-
     return {
         refreshNodes,
         renderItems,
@@ -110,9 +94,6 @@ export function createHandlerWrappers(
         openDeleteConfirmWrapper,
         openMoveConfirmWrapper,
         openRenameModalWrapper,
-        openNodeActionsWrapper,
-        toggleItemSelectionWrapper,
-        exitBatchModeWrapper,
-        openBatchActionsWrapper
+        openNodeActionsWrapper
     };
 }
