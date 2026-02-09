@@ -4,9 +4,13 @@
  */
 
 import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import PageTransition from "../../components/animation/PageTransition";
 import CategorySidebar from "./CategorySidebar";
 import ContentArea from "./ContentArea";
+import CreateButton from "./CreateButton";
+import UserRoleDebug from "./UserRoleDebug";
+import { api } from '@ui/assets/api';
 
 /**
  * Main blog page with sidebar navigation and article grid
@@ -14,11 +18,38 @@ import ContentArea from "./ContentArea";
  */
 const BlogsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Extract current state from URL params
   const category = searchParams.get('category') || undefined;
   const search = searchParams.get('search') || undefined;
   const page = parseInt(searchParams.get('page') || '1', 10);
+
+  // Check user role on mount
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const token = localStorage.getItem('catachess_token') || sessionStorage.getItem('catachess_token');
+        if (!token) {
+          setUserRole(null);
+          return;
+        }
+
+        const response = await api.request("/user/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUserRole(response.role || null);
+      } catch (error) {
+        console.error("Failed to fetch user role:", error);
+        setUserRole(null);
+      }
+    };
+
+    checkUserRole();
+  }, []);
 
   /**
    * Handle category filter change
@@ -108,6 +139,12 @@ const BlogsPage = () => {
             />
           </div>
         </div>
+
+        {/* Create Button - Only for Editor/Admin */}
+        {(userRole === 'editor' || userRole === 'admin') && <CreateButton />}
+
+        {/* Debug: Show current user role (remove in production) */}
+        <UserRoleDebug />
       </div>
     </PageTransition>
   );
