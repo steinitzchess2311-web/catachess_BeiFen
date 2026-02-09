@@ -28,6 +28,7 @@ import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 import TestSign from "./components/dialogBox/TestSign";
 import AboutPage from "./pages/aboutPage/AboutPage";
+import BlogsPage from "./pages/BlogsPage";
 import SponsorshipPage from "./pages/SponsorshipPage/SponsorshipPage";
 import LandingPage from "./pages/Landing/LandingPage";
 import PlayersIndex from "@patch/modules/tagger/pages/PlayersIndex";
@@ -342,6 +343,7 @@ function Layout() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/blogs" element={<BlogsPage />} />
           <Route path="/sponsorship" element={<SponsorshipPage />} />
           <Route
             path="/players"
