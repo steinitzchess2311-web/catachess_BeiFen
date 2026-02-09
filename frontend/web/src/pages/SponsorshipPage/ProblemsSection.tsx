@@ -31,7 +31,7 @@ const ProblemsSection = () => {
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
         }}
       >
-        <div style={{ flex: "0 0 38%" }}>
+        <div style={{ flex: "0 0 9.5%" }}>
           <img
             src={chessbaseImg}
             alt="ChessBase"
@@ -82,7 +82,7 @@ const ProblemsSection = () => {
           flexDirection: "row-reverse",
         }}
       >
-        <div style={{ flex: "0 0 38%" }}>
+        <div style={{ flex: "0 0 9.5%" }}>
           <img
             src={lichessImg}
             alt="Lichess Study"
@@ -131,7 +131,7 @@ const ProblemsSection = () => {
           boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
         }}
       >
-        <div style={{ flex: "0 0 38%" }}>
+        <div style={{ flex: "0 0 9.5%" }}>
           <img
             src={chesstempoImg}
             alt="ChessTempo"
