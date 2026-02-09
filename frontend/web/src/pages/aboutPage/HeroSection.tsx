@@ -17,7 +17,7 @@ const HeroSection = () => {
           letterSpacing: "1px",
         }}
       >
-        SPONSORSHIP
+        ABOUT
       </h1>
       <p
         style={{
@@ -27,7 +27,7 @@ const HeroSection = () => {
           marginBottom: "0",
         }}
       >
-        AKA Your Help Matters!!!
+        AKA Why are we SOOOO Great!
       </p>
     </div>
   );
