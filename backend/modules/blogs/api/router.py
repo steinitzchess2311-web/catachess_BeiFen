@@ -614,7 +614,7 @@ async def delete_article(
 async def toggle_pin_article(
     article_id: UUID,
     pin_order: int = 0,
-    current_user = Depends(require_editor),
+    current_user = Depends(require_admin),
     cache: BlogCacheService = Depends(get_blog_cache),
     db: Session = Depends(get_blog_db)
 ):
@@ -626,8 +626,6 @@ async def toggle_pin_article(
     **Parameters:**
     - pin_order: Order for pinned article (higher = appears first). Set to 0 to unpin.
     """
-    from modules.blogs.auth import require_admin
-    await require_admin(current_user)
 
     # Find article
     stmt = select(BlogArticle).where(BlogArticle.id == article_id)
