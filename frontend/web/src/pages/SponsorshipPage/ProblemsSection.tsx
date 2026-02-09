@@ -36,6 +36,7 @@ const ProblemsSection = () => {
             href="https://shop.chessbase.com/en/products/chessbase_17_program_only"
             target="_blank"
             rel="noopener noreferrer"
+            style={{ display: "block" }}
           >
             <img
               src={chessbaseImg}
@@ -45,6 +46,13 @@ const ProblemsSection = () => {
                 borderRadius: "6px",
                 boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 cursor: "pointer",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
               }}
             />
           </a>
@@ -94,6 +102,7 @@ const ProblemsSection = () => {
             href="https://lichess.org/study"
             target="_blank"
             rel="noopener noreferrer"
+            style={{ display: "block" }}
           >
             <img
               src={lichessImg}
@@ -103,6 +112,13 @@ const ProblemsSection = () => {
                 borderRadius: "6px",
                 boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 cursor: "pointer",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
               }}
             />
           </a>
@@ -150,6 +166,7 @@ const ProblemsSection = () => {
             href="https://chesstempo.com/opening-training/"
             target="_blank"
             rel="noopener noreferrer"
+            style={{ display: "block" }}
           >
             <img
               src={chesstempoImg}
@@ -159,6 +176,13 @@ const ProblemsSection = () => {
                 borderRadius: "6px",
                 boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 cursor: "pointer",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
               }}
             />
           </a>

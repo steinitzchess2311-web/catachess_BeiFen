@@ -1,8 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 
 const FoundersSection = () => {
+  const [shakeLeft, setShakeLeft] = useState(false);
+  const [shakeRight, setShakeRight] = useState(false);
+
+  const handleLeftClick = () => {
+    setShakeLeft(true);
+    setTimeout(() => setShakeLeft(false), 500);
+  };
+
+  const handleRightClick = () => {
+    setShakeRight(true);
+    setTimeout(() => setShakeRight(false), 500);
+  };
+
   return (
-    <div
+    <>
+      <style>
+        {`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+          }
+        `}
+      </style>
+      <div
       style={{
         background: "rgba(255, 255, 255, 0.85)",
         borderRadius: "12px",
@@ -48,12 +71,15 @@ const FoundersSection = () => {
           <img
             src="/assets/developers/CataDragon.png"
             alt="Quanhao Li (CataDragon)"
+            onClick={handleLeftClick}
             style={{
               width: "120px",
               height: "120px",
               objectFit: "cover",
               borderRadius: "8px",
               boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
+              cursor: "pointer",
+              animation: shakeLeft ? "shake 0.5s ease-in-out" : "none",
             }}
           />
           <div
@@ -78,12 +104,15 @@ const FoundersSection = () => {
           <img
             src="/assets/developers/ChessNut.jpg"
             alt="Jorlanda Chen (ChessNut)"
+            onClick={handleRightClick}
             style={{
               width: "120px",
               height: "120px",
               objectFit: "cover",
               borderRadius: "8px",
               boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
+              cursor: "pointer",
+              animation: shakeRight ? "shake 0.5s ease-in-out" : "none",
             }}
           />
           <div
@@ -99,6 +128,7 @@ const FoundersSection = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
