@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { FolderNode, fetchFolders } from '../../utils/folderTree';
 
 interface FolderTreeItemProps {
@@ -84,8 +85,17 @@ const FolderTreeItemComponent: React.FC<FolderTreeItemProps> = ({
               e.preventDefault(); // Prevent input from losing focus
               handleToggle(e);
             }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            {isExpanded ? '▼' : '▶'}
+            {isExpanded ? (
+              <ChevronDownIcon style={{ width: '16px', height: '16px' }} />
+            ) : (
+              <ChevronRightIcon style={{ width: '16px', height: '16px' }} />
+            )}
           </span>
         )}
         {!showExpandIcon && <span className="expand-icon-placeholder" />}
