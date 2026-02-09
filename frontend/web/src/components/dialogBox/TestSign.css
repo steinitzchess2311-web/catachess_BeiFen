@@ -47,7 +47,7 @@
 
 .test-sign-text {
   flex: 1;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   color: #0d47a1;
   font-family: var(--font-family);
@@ -78,7 +78,19 @@
   border-radius: 4px;
   font-weight: 500;
   color: #01579b;
-  font-size: 13px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.test-sign-wechat:hover {
+  background-color: rgba(25, 118, 210, 0.2);
+  transform: scale(1.05);
+}
+
+.test-sign-wechat:active {
+  transform: scale(0.98);
 }
 
 .test-sign-close {
@@ -109,4 +121,56 @@
 
 .test-sign-close:active {
   transform: rotate(90deg) scale(0.9);
+}
+
+/* Toast notification */
+.test-sign-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2e2e2e;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-family: var(--font-family);
+  z-index: 10000;
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+.test-sign-toast.fade-out {
+  animation: toastFadeOut 0.3s ease-out forwards;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+.test-sign-toast-icon {
+  color: #4caf50;
+  font-size: 18px;
+  font-weight: bold;
 }

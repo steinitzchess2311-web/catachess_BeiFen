@@ -3,30 +3,58 @@ import './TestSign.css';
 
 const TestSign: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+
+  const copyToClipboard = async () => {
+    const wechatId = 'Wxib_l3c01kg3a10086';
+
+    try {
+      await navigator.clipboard.writeText(wechatId);
+      setShowToast(true);
+
+      // Auto-hide toast after 2 seconds
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   if (!isVisible) return null;
 
   return (
-    <div className="test-sign-banner">
-      <div className="test-sign-content">
-        <div className="test-sign-icon">🚧</div>
-        <div className="test-sign-text">
-          <strong>Currently under renovation.</strong> Beta testers are welcomed to send your suggestions to{' '}
-          <a href="mailto:info@steinitzchess.org" className="test-sign-link">
-            info@steinitzchess.org
-          </a>{' '}
-          or WeChat{' '}
-          <span className="test-sign-wechat">Wxib_l3c01kg3a10086</span>
+    <>
+      <div className="test-sign-banner">
+        <div className="test-sign-content">
+          <div className="test-sign-icon">🚧</div>
+          <div className="test-sign-text">
+            <strong>Currently under renovation.</strong> Beta testers are welcomed to send your suggestions to{' '}
+            <a href="mailto:info@steinitzchess.org" className="test-sign-link">
+              info@steinitzchess.org
+            </a>{' '}
+            or WeChat{' '}
+            <span className="test-sign-wechat" onClick={copyToClipboard}>
+              Wxib_l3c01kg3a10086
+            </span>
+          </div>
         </div>
+        <button
+          className="test-sign-close"
+          onClick={() => setIsVisible(false)}
+          aria-label="Close notification"
+        >
+          ×
+        </button>
       </div>
-      <button
-        className="test-sign-close"
-        onClick={() => setIsVisible(false)}
-        aria-label="Close notification"
-      >
-        ×
-      </button>
-    </div>
+
+      {showToast && (
+        <div className="test-sign-toast">
+          <span className="test-sign-toast-icon">✓</span>
+          <span>Copied to clipboard</span>
+        </div>
+      )}
+    </>
   );
 };
 
