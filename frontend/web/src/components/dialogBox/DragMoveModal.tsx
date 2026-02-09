@@ -101,7 +101,7 @@ const DragMoveModal: React.FC<DragMoveModalProps> = ({ sourceNode, targetNode, o
             </p>
             <div className="drag-move-modal-node-info">
               {targetIcon} <strong>{targetNode.title}</strong>
-            </p>
+            </div>
           </div>
           {error && (
             <div className="drag-move-modal-error">
