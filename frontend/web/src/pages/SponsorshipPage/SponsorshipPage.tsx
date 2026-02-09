@@ -7,10 +7,10 @@ const SponsorshipPage = () => {
   return (
     <div
       style={{
-        padding: "48px 24px 80px",
+        padding: "40px 24px 70px",
         fontFamily: "'Roboto', sans-serif",
         background:
-          "linear-gradient(135deg, rgba(255, 250, 245, 0.95) 0%, rgba(255, 245, 235, 0.95) 50%, rgba(255, 240, 230, 0.95) 100%)",
+          "linear-gradient(135deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 242, 238, 0.95) 50%, rgba(242, 238, 233, 0.95) 100%)",
         minHeight: "calc(100vh - 64px)",
         overflowY: "auto",
       }}
@@ -25,27 +25,25 @@ const SponsorshipPage = () => {
         <div
           style={{
             textAlign: "center",
-            marginBottom: "60px",
+            marginBottom: "50px",
           }}
         >
           <h1
             style={{
-              fontSize: "3.5rem",
+              fontSize: "2.8rem",
               fontWeight: 800,
-              background: "linear-gradient(135deg, #ff8c00 0%, #ff6b35 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              marginBottom: "16px",
-              letterSpacing: "2px",
+              color: "#2c2c2c",
+              marginBottom: "12px",
+              letterSpacing: "1px",
             }}
           >
             SPONSORSHIP
           </h1>
           <p
             style={{
-              fontSize: "1.8rem",
+              fontSize: "1.4rem",
               fontWeight: 600,
-              color: "#ff6b35",
+              color: "#8b7355",
               marginBottom: "0",
             }}
           >
@@ -56,37 +54,37 @@ const SponsorshipPage = () => {
         {/* Founders Section */}
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "16px",
-            padding: "40px",
-            marginBottom: "50px",
-            boxShadow: "0 8px 32px rgba(255, 140, 0, 0.15)",
-            border: "2px solid rgba(255, 140, 0, 0.1)",
+            background: "rgba(255, 255, 255, 0.85)",
+            borderRadius: "12px",
+            padding: "32px",
+            marginBottom: "45px",
+            boxShadow: "0 4px 20px rgba(139, 115, 85, 0.08)",
+            border: "1px solid rgba(139, 115, 85, 0.15)",
           }}
         >
           <p
             style={{
-              fontSize: "1.2rem",
-              lineHeight: "2",
-              color: "#333",
-              marginBottom: "1.5rem",
+              fontSize: "1.05rem",
+              lineHeight: "1.9",
+              color: "#4a4a4a",
+              marginBottom: "0",
             }}
           >
             This website is actually started and <strong>FULLY developed</strong> by 2 high
-            school students: <strong style={{ color: "#ff8c00" }}>Quanhao Li (CataDragon)</strong> and{" "}
-            <strong style={{ color: "#ff8c00" }}>Jorlanda Chen</strong>? They are young dreamers,
+            school students: <strong style={{ color: "#8b7355" }}>Quanhao Li (CataDragon)</strong> and{" "}
+            <strong style={{ color: "#8b7355" }}>Jorlanda Chen</strong>? They are young dreamers,
             PRO chess players, and are trying to easier chess players' lives:
           </p>
         </div>
 
         {/* Problems Section - Alternating Layout */}
-        <div style={{ marginBottom: "50px" }}>
+        <div style={{ marginBottom: "45px" }}>
           <h2
             style={{
-              fontSize: "2.2rem",
+              fontSize: "1.9rem",
               fontWeight: 700,
-              color: "#333",
-              marginBottom: "40px",
+              color: "#2c2c2c",
+              marginBottom: "35px",
               textAlign: "center",
             }}
           >
@@ -97,42 +95,42 @@ const SponsorshipPage = () => {
           <div
             style={{
               display: "flex",
-              gap: "40px",
-              marginBottom: "40px",
+              gap: "32px",
+              marginBottom: "32px",
               alignItems: "center",
-              background: "rgba(255, 255, 255, 0.8)",
-              borderRadius: "12px",
-              padding: "30px",
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+              background: "rgba(255, 255, 255, 0.75)",
+              borderRadius: "10px",
+              padding: "24px",
+              boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
             }}
           >
-            <div style={{ flex: "0 0 45%" }}>
+            <div style={{ flex: "0 0 38%" }}>
               <img
                 src={chessbaseImg}
                 alt="ChessBase"
                 style={{
                   width: "100%",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  borderRadius: "6px",
+                  boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 }}
               />
             </div>
             <div style={{ flex: "1" }}>
               <h3
                 style={{
-                  fontSize: "1.6rem",
+                  fontSize: "1.35rem",
                   fontWeight: 600,
-                  color: "#ff8c00",
-                  marginBottom: "16px",
+                  color: "#8b7355",
+                  marginBottom: "12px",
                 }}
               >
                 ChessBase
               </h3>
               <p
                 style={{
-                  fontSize: "1.1rem",
-                  lineHeight: "1.8",
-                  color: "#555",
+                  fontSize: "0.98rem",
+                  lineHeight: "1.7",
+                  color: "#5a5a5a",
                 }}
               >
                 Pro players are all using ChessBase to keep their chess repertoires and materials
@@ -147,43 +145,43 @@ const SponsorshipPage = () => {
           <div
             style={{
               display: "flex",
-              gap: "40px",
-              marginBottom: "40px",
+              gap: "32px",
+              marginBottom: "32px",
               alignItems: "center",
-              background: "rgba(255, 255, 255, 0.8)",
-              borderRadius: "12px",
-              padding: "30px",
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+              background: "rgba(255, 255, 255, 0.75)",
+              borderRadius: "10px",
+              padding: "24px",
+              boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
               flexDirection: "row-reverse",
             }}
           >
-            <div style={{ flex: "0 0 45%" }}>
+            <div style={{ flex: "0 0 38%" }}>
               <img
                 src={lichessImg}
                 alt="Lichess Study"
                 style={{
                   width: "100%",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  borderRadius: "6px",
+                  boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 }}
               />
             </div>
             <div style={{ flex: "1" }}>
               <h3
                 style={{
-                  fontSize: "1.6rem",
+                  fontSize: "1.35rem",
                   fontWeight: 600,
-                  color: "#ff8c00",
-                  marginBottom: "16px",
+                  color: "#8b7355",
+                  marginBottom: "12px",
                 }}
               >
                 Lichess Study
               </h3>
               <p
                 style={{
-                  fontSize: "1.1rem",
-                  lineHeight: "1.8",
-                  color: "#555",
+                  fontSize: "0.98rem",
+                  lineHeight: "1.7",
+                  color: "#5a5a5a",
                 }}
               >
                 Lichess study is good! However, you <strong>cannot intuitively organize</strong>{" "}
@@ -197,42 +195,42 @@ const SponsorshipPage = () => {
           <div
             style={{
               display: "flex",
-              gap: "40px",
-              marginBottom: "40px",
+              gap: "32px",
+              marginBottom: "32px",
               alignItems: "center",
-              background: "rgba(255, 255, 255, 0.8)",
-              borderRadius: "12px",
-              padding: "30px",
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.08)",
+              background: "rgba(255, 255, 255, 0.75)",
+              borderRadius: "10px",
+              padding: "24px",
+              boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
             }}
           >
-            <div style={{ flex: "0 0 45%" }}>
+            <div style={{ flex: "0 0 38%" }}>
               <img
                 src={chesstempoImg}
                 alt="ChessTempo"
                 style={{
                   width: "100%",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  borderRadius: "6px",
+                  boxShadow: "0 3px 10px rgba(0, 0, 0, 0.12)",
                 }}
               />
             </div>
             <div style={{ flex: "1" }}>
               <h3
                 style={{
-                  fontSize: "1.6rem",
+                  fontSize: "1.35rem",
                   fontWeight: 600,
-                  color: "#ff8c00",
-                  marginBottom: "16px",
+                  color: "#8b7355",
+                  marginBottom: "12px",
                 }}
               >
                 ChessTempo Opening
               </h3>
               <p
                 style={{
-                  fontSize: "1.1rem",
-                  lineHeight: "1.8",
-                  color: "#555",
+                  fontSize: "0.98rem",
+                  lineHeight: "1.7",
+                  color: "#5a5a5a",
                 }}
               >
                 ChessTempo opening is also good! But there are{" "}
@@ -246,19 +244,19 @@ const SponsorshipPage = () => {
         {/* Solution Section */}
         <div
           style={{
-            background: "linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%)",
-            borderRadius: "16px",
-            padding: "40px",
-            marginBottom: "50px",
-            border: "3px solid rgba(255, 140, 0, 0.3)",
+            background: "linear-gradient(135deg, rgba(139, 115, 85, 0.08) 0%, rgba(160, 130, 95, 0.08) 100%)",
+            borderRadius: "12px",
+            padding: "35px",
+            marginBottom: "45px",
+            border: "2px solid rgba(139, 115, 85, 0.2)",
           }}
         >
           <h2
             style={{
-              fontSize: "2.5rem",
+              fontSize: "2.1rem",
               fontWeight: 700,
-              color: "#ff6b35",
-              marginBottom: "30px",
+              color: "#8b7355",
+              marginBottom: "28px",
               textAlign: "center",
             }}
           >
@@ -267,111 +265,108 @@ const SponsorshipPage = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "24px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: "20px",
             }}
           >
             <div
               style={{
                 background: "rgba(255, 255, 255, 0.9)",
-                padding: "24px",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                padding: "20px",
+                borderRadius: "10px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
               }}
             >
               <h3
                 style={{
-                  fontSize: "1.8rem",
+                  fontSize: "1.5rem",
                   fontWeight: 700,
-                  color: "#ff8c00",
-                  marginBottom: "12px",
+                  color: "#8b7355",
+                  marginBottom: "10px",
                 }}
               >
                 FREE!
               </h3>
-              <p style={{ fontSize: "1.1rem", color: "#555", lineHeight: "1.6" }}>
+              <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
                 FREE for all users! No premium tiers, no hidden costs.
               </p>
             </div>
             <div
               style={{
                 background: "rgba(255, 255, 255, 0.9)",
-                padding: "24px",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                padding: "20px",
+                borderRadius: "10px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
               }}
             >
               <h3
                 style={{
-                  fontSize: "1.8rem",
+                  fontSize: "1.5rem",
                   fontWeight: 700,
-                  color: "#ff8c00",
-                  marginBottom: "12px",
+                  color: "#8b7355",
+                  marginBottom: "10px",
                 }}
               >
                 Organized
               </h3>
-              <p style={{ fontSize: "1.1rem", color: "#555", lineHeight: "1.6" }}>
+              <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
                 Easily create folder and subfolder systems to keep everything neat.
               </p>
             </div>
             <div
               style={{
                 background: "rgba(255, 255, 255, 0.9)",
-                padding: "24px",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                padding: "20px",
+                borderRadius: "10px",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.08)",
               }}
             >
               <h3
                 style={{
-                  fontSize: "1.8rem",
+                  fontSize: "1.5rem",
                   fontWeight: 700,
-                  color: "#ff8c00",
-                  marginBottom: "12px",
+                  color: "#8b7355",
+                  marginBottom: "10px",
                 }}
               >
                 Clear PGN
               </h3>
-              <p style={{ fontSize: "1.1rem", color: "#555", lineHeight: "1.6" }}>
+              <p style={{ fontSize: "0.98rem", color: "#5a5a5a", lineHeight: "1.6" }}>
                 CLEAR PGN parsing technology - import your games seamlessly.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Imitator Section */}
+        {/* Imitator Section - NO BORDER */}
         <div
           style={{
-            background: "linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 140, 0, 0.2) 100%)",
-            borderRadius: "20px",
-            padding: "50px",
-            marginBottom: "50px",
-            border: "4px solid #ff8c00",
-            boxShadow: "0 12px 40px rgba(255, 140, 0, 0.25)",
+            background: "rgba(255, 255, 255, 0.85)",
+            borderRadius: "12px",
+            padding: "40px",
+            marginBottom: "45px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
           }}
         >
-          <div style={{ textAlign: "center", marginBottom: "30px" }}>
+          <div style={{ textAlign: "center", marginBottom: "25px" }}>
             <h2
               style={{
-                fontSize: "3rem",
+                fontSize: "2.3rem",
                 fontWeight: 800,
-                color: "#ff6b35",
-                marginBottom: "16px",
+                color: "#2c2c2c",
+                marginBottom: "12px",
                 textTransform: "uppercase",
-                letterSpacing: "1px",
+                letterSpacing: "0.5px",
               }}
             >
               And......we got our OWN, NEW thing:
             </h2>
             <h3
               style={{
-                fontSize: "2.5rem",
+                fontSize: "2rem",
                 fontWeight: 700,
-                background: "linear-gradient(135deg, #ff8c00 0%, #ff6b35 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                marginBottom: "24px",
+                color: "#8b7355",
+                marginBottom: "20px",
               }}
             >
               ChessorTag Imitator!!!!!
@@ -379,46 +374,46 @@ const SponsorshipPage = () => {
           </div>
           <div
             style={{
-              background: "rgba(255, 255, 255, 0.95)",
-              borderRadius: "12px",
-              padding: "32px",
-              marginBottom: "24px",
+              background: "rgba(245, 242, 238, 0.5)",
+              borderRadius: "10px",
+              padding: "28px",
+              marginBottom: "20px",
             }}
           >
             <p
               style={{
-                fontSize: "1.2rem",
-                lineHeight: "2",
-                color: "#333",
-                marginBottom: "1.5rem",
+                fontSize: "1.05rem",
+                lineHeight: "1.9",
+                color: "#4a4a4a",
+                marginBottom: "1.3rem",
               }}
             >
               ChessorTag imitator is our core inventive algorithm that <strong>does not use neural
               network imitation</strong>, but ranks the top 8 Stockfish moves by the{" "}
-              <strong style={{ color: "#ff8c00" }}>
+              <strong style={{ color: "#8b7355" }}>
                 probability that a specific player would choose them
               </strong>
               . This......
             </p>
             <ul
               style={{
-                fontSize: "1.1rem",
-                lineHeight: "2",
-                color: "#555",
-                paddingLeft: "2rem",
+                fontSize: "0.98rem",
+                lineHeight: "1.9",
+                color: "#5a5a5a",
+                paddingLeft: "1.8rem",
                 listStyleType: "none",
               }}
             >
-              <li style={{ marginBottom: "16px" }}>
-                <span style={{ color: "#ff8c00", fontWeight: 700, marginRight: "8px" }}>✓</span>
+              <li style={{ marginBottom: "14px" }}>
+                <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
                 Allows LLMs to <strong>explain moves in the style of a target player</strong>{" "}
                 (which is epoch-making). If you give an FEN to ChatGPT or Gemini etc, they
                 generate wrong ideas. But with our system, <strong>LLMs can actively reflect what
                 players are thinking</strong>. We are making TOP players from William Steinitz to
-                Magnus Carlsen your <strong style={{ color: "#ff6b35" }}>PERSONAL CHESS COACH!</strong>
+                Magnus Carlsen your <strong style={{ color: "#8b7355" }}>PERSONAL CHESS COACH!</strong>
               </li>
-              <li style={{ marginBottom: "16px" }}>
-                <span style={{ color: "#ff8c00", fontWeight: 700, marginRight: "8px" }}>✓</span>
+              <li style={{ marginBottom: "14px" }}>
+                <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
                 Helps you to <strong>prepare against your opponent easily!</strong> You can have
                 clear focus on which opening variation to study deeper when preparing!
               </li>
@@ -429,19 +424,19 @@ const SponsorshipPage = () => {
         {/* Funding Plans */}
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.9)",
-            borderRadius: "16px",
-            padding: "40px",
-            marginBottom: "50px",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
+            background: "rgba(255, 255, 255, 0.85)",
+            borderRadius: "12px",
+            padding: "35px",
+            marginBottom: "45px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
           }}
         >
           <h2
             style={{
-              fontSize: "2.2rem",
+              fontSize: "1.9rem",
               fontWeight: 700,
-              color: "#333",
-              marginBottom: "30px",
+              color: "#2c2c2c",
+              marginBottom: "28px",
               textAlign: "center",
             }}
           >
@@ -449,45 +444,47 @@ const SponsorshipPage = () => {
           </h2>
           <ul
             style={{
-              fontSize: "1.2rem",
-              lineHeight: "2.2",
-              color: "#555",
-              paddingLeft: "2rem",
+              fontSize: "1.05rem",
+              lineHeight: "2",
+              color: "#5a5a5a",
+              paddingLeft: "1.8rem",
               listStyleType: "none",
             }}
           >
-            <li style={{ marginBottom: "20px" }}>
+            <li style={{ marginBottom: "18px" }}>
               <span
                 style={{
                   display: "inline-block",
-                  width: "32px",
-                  height: "32px",
-                  background: "#ff8c00",
+                  width: "28px",
+                  height: "28px",
+                  background: "#8b7355",
                   color: "white",
                   borderRadius: "50%",
                   textAlign: "center",
-                  lineHeight: "32px",
-                  marginRight: "12px",
+                  lineHeight: "28px",
+                  marginRight: "10px",
                   fontWeight: 700,
+                  fontSize: "0.9rem",
                 }}
               >
                 1
               </span>
               Improve ChessorTag imitator's logic, so it better imitates players' styles
             </li>
-            <li style={{ marginBottom: "20px" }}>
+            <li style={{ marginBottom: "18px" }}>
               <span
                 style={{
                   display: "inline-block",
-                  width: "32px",
-                  height: "32px",
-                  background: "#ff8c00",
+                  width: "28px",
+                  height: "28px",
+                  background: "#8b7355",
                   color: "white",
                   borderRadius: "50%",
                   textAlign: "center",
-                  lineHeight: "32px",
-                  marginRight: "12px",
+                  lineHeight: "28px",
+                  marginRight: "10px",
                   fontWeight: 700,
+                  fontSize: "0.9rem",
                 }}
               >
                 2
@@ -495,19 +492,20 @@ const SponsorshipPage = () => {
               Hold <strong>HIGH FUNDS TOURNAMENTS</strong> (see steinitzchess.org). Encourage
               up-and-coming players to improve
             </li>
-            <li style={{ marginBottom: "20px" }}>
+            <li style={{ marginBottom: "18px" }}>
               <span
                 style={{
                   display: "inline-block",
-                  width: "32px",
-                  height: "32px",
-                  background: "#ff8c00",
+                  width: "28px",
+                  height: "28px",
+                  background: "#8b7355",
                   color: "white",
                   borderRadius: "50%",
                   textAlign: "center",
-                  lineHeight: "32px",
-                  marginRight: "12px",
+                  lineHeight: "28px",
+                  marginRight: "10px",
                   fontWeight: 700,
+                  fontSize: "0.9rem",
                 }}
               >
                 3
@@ -515,24 +513,27 @@ const SponsorshipPage = () => {
               <strong>Advertising!</strong> Ask PRO players to use and comment on our product, so
               more people can know this
             </li>
-            <li style={{ marginBottom: "20px" }}>
+            <li style={{ marginBottom: "18px" }}>
               <span
                 style={{
                   display: "inline-block",
-                  width: "32px",
-                  height: "32px",
-                  background: "#ff8c00",
+                  width: "28px",
+                  height: "28px",
+                  background: "#8b7355",
                   color: "white",
                   borderRadius: "50%",
                   textAlign: "center",
-                  lineHeight: "32px",
-                  marginRight: "12px",
+                  lineHeight: "28px",
+                  marginRight: "10px",
                   fontWeight: 700,
+                  fontSize: "0.9rem",
                 }}
               >
                 4
               </span>
-              Buy bubble tea and Clash Royale boarding pass 🧋
+              <span style={{ textDecoration: "line-through" }}>
+                Buy bubble tea and Clash Royale boarding pass
+              </span>
             </li>
           </ul>
         </div>
@@ -540,31 +541,31 @@ const SponsorshipPage = () => {
         {/* CTA Section */}
         <div
           style={{
-            background: "linear-gradient(135deg, #ff8c00 0%, #ff6b35 100%)",
-            borderRadius: "20px",
-            padding: "50px",
+            background: "linear-gradient(135deg, #8b7355 0%, #a0825f 100%)",
+            borderRadius: "16px",
+            padding: "45px",
             textAlign: "center",
-            boxShadow: "0 12px 48px rgba(255, 107, 53, 0.4)",
+            boxShadow: "0 8px 32px rgba(139, 115, 85, 0.3)",
           }}
         >
           <h2
             style={{
-              fontSize: "2.8rem",
+              fontSize: "2.3rem",
               fontWeight: 800,
               color: "white",
-              marginBottom: "24px",
+              marginBottom: "20px",
               textTransform: "uppercase",
-              letterSpacing: "2px",
+              letterSpacing: "1px",
             }}
           >
             YOUR HELP IS EXTREMELY CRUCIAL TO US!
           </h2>
           <p
             style={{
-              fontSize: "1.3rem",
+              fontSize: "1.15rem",
               color: "rgba(255, 255, 255, 0.95)",
-              marginBottom: "32px",
-              lineHeight: "1.8",
+              marginBottom: "28px",
+              lineHeight: "1.7",
             }}
           >
             Contact us at <strong>info@steinitzchess.org</strong> for sponsorship inquiries
@@ -574,17 +575,17 @@ const SponsorshipPage = () => {
             style={{
               display: "inline-block",
               background: "white",
-              color: "#ff6b35",
-              padding: "16px 48px",
+              color: "#8b7355",
+              padding: "14px 42px",
               borderRadius: "50px",
-              fontSize: "1.2rem",
+              fontSize: "1.05rem",
               fontWeight: 700,
               textDecoration: "none",
-              boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+              boxShadow: "0 6px 20px rgba(0, 0, 0, 0.15)",
               transition: "transform 0.2s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.transform = "translateY(-2px)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
