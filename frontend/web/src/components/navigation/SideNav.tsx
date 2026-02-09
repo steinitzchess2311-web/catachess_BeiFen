@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 
 interface NavItem {
   id: string;
@@ -12,6 +14,7 @@ interface SideNavProps {
 
 const SideNav: React.FC<SideNavProps> = ({ items }) => {
   const [activeSection, setActiveSection] = useState<string>(items[0]?.id || "");
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,71 +46,158 @@ const SideNav: React.FC<SideNavProps> = ({ items }) => {
   };
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        top: "140px",
-        left: "max(24px, calc((100vw - 1400px) / 2))",
-        width: "220px",
-        background: "rgba(255, 255, 255, 0.85)",
-        borderRadius: "12px",
-        padding: "24px 0",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-        backdropFilter: "blur(10px)",
-        zIndex: 100,
-      }}
-    >
-      <ul
+    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
+      <nav
         style={{
-          listStyle: "none",
-          margin: 0,
-          padding: 0,
+          position: "fixed",
+          top: "140px",
+          left: "max(24px, calc((100vw - 1400px) / 2))",
+          width: isOpen ? "220px" : "60px",
+          background: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "12px",
+          padding: isOpen ? "24px 0" : "16px 0",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          backdropFilter: "blur(10px)",
+          zIndex: 100,
+          transition: "width 0.3s ease, padding 0.3s ease",
         }}
       >
-        {items.map((item) => {
-          const isActive = activeSection === item.id;
-          return (
-            <li key={item.id} style={{ marginBottom: "4px" }}>
-              <button
-                onClick={() => scrollToSection(item.id)}
-                style={{
-                  width: "100%",
-                  padding: "12px 20px",
-                  border: "none",
-                  background: "transparent",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  fontSize: "0.95rem",
-                  color: isActive ? "#8b7355" : "#5a5a5a",
-                  fontWeight: isActive ? 600 : 400,
-                  transition: "all 0.3s ease",
-                  position: "relative",
-                  borderLeft: isActive ? "3px solid #8b7355" : "3px solid transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = "#8b7355";
-                    e.currentTarget.style.transform = "translateX(4px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = "#5a5a5a";
-                    e.currentTarget.style.transform = "translateX(0)";
-                  }
-                }}
-              >
-                {item.icon && <span style={{ fontSize: "1.1rem" }}>{item.icon}</span>}
-                <span>{item.label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+        {/* Toggle Button */}
+        <Collapsible.Trigger asChild>
+          <button
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              background: "rgba(139, 115, 85, 0.1)",
+              borderRadius: "6px",
+              cursor: "pointer",
+              color: "#8b7355",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(139, 115, 85, 0.1)";
+            }}
+          >
+            {isOpen ? <ChevronLeftIcon width={20} height={20} /> : <ChevronRightIcon width={20} height={20} />}
+          </button>
+        </Collapsible.Trigger>
+
+        {/* Collapsed State - Just Icons */}
+        {!isOpen && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "48px",
+            }}
+          >
+            {items.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  title={item.label}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "none",
+                    background: isActive ? "rgba(139, 115, 85, 0.15)" : "transparent",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "1.3rem",
+                    transition: "all 0.2s ease",
+                    borderLeft: isActive ? "3px solid #8b7355" : "3px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "rgba(139, 115, 85, 0.1)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "transparent";
+                    }
+                  }}
+                >
+                  {item.icon}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Expanded State - Full Navigation */}
+        <Collapsible.Content>
+          <ul
+            style={{
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              marginTop: "48px",
+            }}
+          >
+            {items.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <li key={item.id} style={{ marginBottom: "4px" }}>
+                  <button
+                    onClick={() => scrollToSection(item.id)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 20px",
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "0.95rem",
+                      color: isActive ? "#8b7355" : "#5a5a5a",
+                      fontWeight: isActive ? 600 : 400,
+                      transition: "all 0.3s ease",
+                      position: "relative",
+                      borderLeft: isActive ? "3px solid #8b7355" : "3px solid transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "#8b7355";
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.color = "#5a5a5a";
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }
+                    }}
+                  >
+                    {item.icon && <span style={{ fontSize: "1.1rem" }}>{item.icon}</span>}
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </Collapsible.Content>
+      </nav>
+    </Collapsible.Root>
   );
 };
 
