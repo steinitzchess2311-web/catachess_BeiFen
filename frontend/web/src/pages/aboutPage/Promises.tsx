@@ -45,7 +45,7 @@ const Promises = () => {
             lineHeight: "1.4",
           }}
         >
-          We solemnly announce 3 promises.
+          Our Three NOs.
         </h2>
         <p
           style={{
