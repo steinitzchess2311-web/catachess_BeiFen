@@ -1,5 +1,6 @@
 import React from 'react';
 import * as Toggle from '@radix-ui/react-toggle';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import { CalendarIcon, ClockIcon, ArrowUpIcon, ArrowDownIcon } from '@radix-ui/react-icons';
 import './SortToggles.css';
 
@@ -37,28 +38,65 @@ const SortToggles: React.FC<SortTogglesProps> = ({ sortKey, sortDir, onSortChang
 
   const DirectionIcon = sortDir === 'asc' ? ArrowUpIcon : ArrowDownIcon;
 
-  return (
-    <div className="sort-toggles">
-      <Toggle.Root
-        className="sort-toggle"
-        pressed={sortKey === 'created'}
-        onPressedChange={handleCreatedClick}
-        aria-label="Sort by created time"
-      >
-        <CalendarIcon className="sort-toggle-icon" />
-        {sortKey === 'created' && <DirectionIcon className="sort-direction-icon" />}
-      </Toggle.Root>
+  // Get tooltip text based on current sort state
+  const getTooltipText = (key: 'created' | 'modified'): string => {
+    if (sortKey !== key) {
+      return ''; // No tooltip when not active
+    }
 
-      <Toggle.Root
-        className="sort-toggle"
-        pressed={sortKey === 'modified'}
-        onPressedChange={handleModifiedClick}
-        aria-label="Sort by modified time"
-      >
-        <ClockIcon className="sort-toggle-icon" />
-        {sortKey === 'modified' && <DirectionIcon className="sort-direction-icon" />}
-      </Toggle.Root>
-    </div>
+    const baseName = key === 'created' ? 'Creation time' : 'Last modified time';
+    const reverseText = sortDir === 'desc' ? ' (reverse)' : '';
+    return `Sorted by ${baseName}${reverseText}`;
+  };
+
+  return (
+    <Tooltip.Provider delayDuration={300}>
+      <div className="sort-toggles">
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <Toggle.Root
+              className="sort-toggle"
+              pressed={sortKey === 'created'}
+              onPressedChange={handleCreatedClick}
+              aria-label="Sort by created time"
+            >
+              <CalendarIcon className="sort-toggle-icon" />
+              {sortKey === 'created' && <DirectionIcon className="sort-direction-icon" />}
+            </Toggle.Root>
+          </Tooltip.Trigger>
+          {sortKey === 'created' && (
+            <Tooltip.Portal>
+              <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
+                {getTooltipText('created')}
+                <Tooltip.Arrow className="sort-tooltip-arrow" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          )}
+        </Tooltip.Root>
+
+        <Tooltip.Root>
+          <Tooltip.Trigger asChild>
+            <Toggle.Root
+              className="sort-toggle"
+              pressed={sortKey === 'modified'}
+              onPressedChange={handleModifiedClick}
+              aria-label="Sort by modified time"
+            >
+              <ClockIcon className="sort-toggle-icon" />
+              {sortKey === 'modified' && <DirectionIcon className="sort-direction-icon" />}
+            </Toggle.Root>
+          </Tooltip.Trigger>
+          {sortKey === 'modified' && (
+            <Tooltip.Portal>
+              <Tooltip.Content className="sort-tooltip-content" sideOffset={5}>
+                {getTooltipText('modified')}
+                <Tooltip.Arrow className="sort-tooltip-arrow" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          )}
+        </Tooltip.Root>
+      </div>
+    </Tooltip.Provider>
   );
 };
 

@@ -41,8 +41,8 @@ export async function initWorkspace(container: HTMLElement, options: WorkspaceOp
     let breadcrumbPath: Array<{id: string, title: string}> = [{id: 'root', title: 'Root'}];
     let allNodesCache: any[] | null = null;
     let dragNode: any | null = null;
-    let sortKey: SortKey = null;
-    let sortDir: SortDir = 'asc';
+    let sortKey: SortKey = 'modified';
+    let sortDir: SortDir = 'desc';
 
     // Create modal container and React root
     let modalContainer: HTMLDivElement | null = null;
