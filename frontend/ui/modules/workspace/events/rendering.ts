@@ -1,0 +1,186 @@
+// UI rendering functions
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import LogoutButton from '../../../../web/src/components/dialogBox/LogoutButton';
+import SortToggles from '../../../../web/src/components/workspace/SortToggles';
+import TestSign from '../../../../web/src/components/dialogBox/TestSign';
+import { WorkspaceState, WorkspaceElements, WorkspaceOptions, SortKey, SortDir } from './types';
+import { sortNodes, renameNode } from './nodeOperations';
+
+export function renderItems(
+    state: WorkspaceState,
+    elements: WorkspaceElements,
+    nodes: any[],
+    options: WorkspaceOptions,
+    handlers: {
+        navigateToFolder: (id: string, title: string) => Promise<void>;
+        openNodeActions: (node: any) => void;
+        openMoveConfirm: (source: any, target: any) => void;
+    }
+) {
+    const sortedNodes = sortNodes(state, nodes);
+    state.currentNodes = sortedNodes;
+    elements.itemsGrid.innerHTML = '';
+    const folderTpl = document.getElementById('folder-item-template') as HTMLTemplateTemplate;
+    const studyTpl = document.getElementById('study-item-template') as HTMLTemplateElement;
+
+    sortedNodes.forEach(node => {
+        const tpl = node.node_type === 'folder' ? folderTpl : studyTpl;
+        const item = document.importNode(tpl.content, true);
+        const itemDiv = item.querySelector('.grid-item') as HTMLElement;
+        itemDiv.setAttribute('data-id', node.id);
+        itemDiv.setAttribute('data-type', node.node_type);
+        itemDiv.setAttribute('data-version', String(node.version));
+        itemDiv.setAttribute('data-parent-id', node.parent_id ?? '');
+        itemDiv.setAttribute('draggable', 'true');
+        itemDiv.querySelector('.item-title')!.textContent = node.title;
+        const errorEl = itemDiv.querySelector('.item-error') as HTMLElement;
+
+        const date = new Date(node.updated_at).toLocaleDateString();
+        itemDiv.querySelector('.item-meta')!.textContent = date;
+
+        itemDiv.addEventListener('click', (event) => {
+            if (event.button !== 0) return;
+            const target = event.target as HTMLElement;
+            if (target.closest('.item-title') || target.closest('.item-title-input')) return;
+            if (event.detail > 1) return;
+            if (node.node_type === 'folder') {
+                handlers.navigateToFolder(node.id, node.title);
+                return;
+            }
+            if (options.onOpenStudy) {
+                options.onOpenStudy(node.id);
+            } else {
+                window.location.assign(`/workspace/${node.id}`);
+            }
+        });
+
+        itemDiv.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handlers.openNodeActions(node);
+        });
+
+        const startInlineRename = () => {
+            const titleSpan = itemDiv.querySelector('.item-title') as HTMLElement;
+            if (!titleSpan) return;
+            titleSpan.style.display = 'none';
+            const input = document.createElement('input');
+            input.className = 'item-title-input';
+            input.value = node.title || '';
+            titleSpan.parentElement?.insertBefore(input, titleSpan.nextSibling);
+            input.focus();
+            input.select();
+            input.addEventListener('click', (event) => event.stopPropagation());
+
+            let cleanedUp = false;
+
+            const cleanup = () => {
+                if (cleanedUp) return;
+                cleanedUp = true;
+                input.remove();
+                titleSpan.style.display = '';
+                errorEl.textContent = '';
+            };
+
+            input.addEventListener('keydown', async (event) => {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cleanup();
+                    return;
+                }
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const nextTitle = input.value.trim();
+                    if (!nextTitle) {
+                        cleanup();
+                        return;
+                    }
+                    if (nextTitle.includes('/')) {
+                        errorEl.textContent = 'No "/" in study or folder name';
+                        return;
+                    }
+                    try {
+                        await renameNode(state, node, nextTitle);
+                        titleSpan.textContent = node.title;
+                        cleanup();
+                    } catch (error) {
+                        console.error('Failed to rename node:', error);
+                        errorEl.textContent = 'Rename failed. Press Enter to retry or Esc to cancel.';
+                    }
+                }
+            });
+
+            input.addEventListener('blur', () => cleanup());
+        };
+
+        itemDiv.addEventListener('dblclick', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            startInlineRename();
+        });
+
+        itemDiv.addEventListener('dragstart', (event) => {
+            state.dragNode = node;
+            event.dataTransfer?.setData('text/plain', node.id);
+            event.dataTransfer?.setDragImage(itemDiv, 10, 10);
+        });
+
+        itemDiv.addEventListener('dragend', () => {
+            state.dragNode = null;
+            itemDiv.classList.remove('drag-over');
+        });
+
+        itemDiv.addEventListener('dragover', (event) => {
+            if (!state.dragNode) return;
+            if (node.node_type !== 'folder') return;
+            if (state.dragNode.id === node.id) return;
+            event.preventDefault();
+            itemDiv.classList.add('drag-over');
+        });
+
+        itemDiv.addEventListener('dragleave', () => {
+            itemDiv.classList.remove('drag-over');
+        });
+
+        itemDiv.addEventListener('drop', async (event) => {
+            if (!state.dragNode) return;
+            itemDiv.classList.remove('drag-over');
+            if (node.node_type !== 'folder' || state.dragNode.id === node.id) {
+                itemDiv.classList.remove('drag-over');
+                const sourceEl = elements.itemsGrid.querySelector(`[data-id="${state.dragNode.id}"]`) as HTMLElement | null;
+                if (sourceEl) {
+                    sourceEl.classList.remove('shake');
+                    void sourceEl.offsetWidth;
+                    sourceEl.classList.add('shake');
+                }
+                return;
+            }
+            event.preventDefault();
+            handlers.openMoveConfirm(state.dragNode, node);
+        });
+
+        elements.itemsGrid.appendChild(item);
+    });
+}
+
+export function renderReactComponents(
+    container: HTMLElement,
+    state: WorkspaceState,
+    onSortChange: (key: SortKey, dir: SortDir) => void
+) {
+    // Render LogoutButton
+    const logoutContainer = container.querySelector('#logout-button-container') as HTMLElement;
+    if (logoutContainer) {
+        const root = ReactDOM.createRoot(logoutContainer);
+        root.render(React.createElement(LogoutButton));
+    }
+
+    // Render TestSign
+    const testSignContainer = container.querySelector('#test-sign-container') as HTMLElement;
+    if (testSignContainer) {
+        const testSignRoot = ReactDOM.createRoot(testSignContainer);
+        testSignRoot.render(React.createElement(TestSign));
+    }
+}

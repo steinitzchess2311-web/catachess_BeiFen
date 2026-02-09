@@ -12,10 +12,10 @@ export default defineConfig({
       "chess.js": path.resolve(__dirname, "node_modules/chess.js"),
     },
     // Ensure modules are resolved from frontend/web/node_modules for patch files
-    dedupe: ["react", "react-dom", "react-router-dom", "chess.js"],
+    dedupe: ["react", "react-dom", "react-router-dom", "chess.js", "react-chessboard"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-router-dom", "chess.js"],
+    include: ["react", "react-dom", "react-router-dom", "chess.js", "react-chessboard"],
   },
   server: {
     fs: {
