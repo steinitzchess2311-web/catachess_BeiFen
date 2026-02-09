@@ -212,7 +212,7 @@ const ProblemsSection = () => {
           >
             ChessTempo opening is also good! But there are{" "}
             <strong>limitations when opening a PGN file</strong>, making it harder to import
-            your existing chess materials.
+            your existing chess materials. Plus, there is <strong>NO DATABASE</strong> for referring.
           </p>
         </div>
       </div>
