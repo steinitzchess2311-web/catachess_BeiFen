@@ -7,7 +7,7 @@ const SolutionSection = () => {
         background: "linear-gradient(135deg, rgba(139, 115, 85, 0.08) 0%, rgba(160, 130, 95, 0.08) 100%)",
         borderRadius: "12px",
         padding: "35px",
-        marginBottom: "45px",
+        marginBottom: "60px",
         border: "2px solid rgba(139, 115, 85, 0.2)",
       }}
     >

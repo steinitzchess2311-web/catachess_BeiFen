@@ -7,7 +7,7 @@ const ImitatorSection = () => {
         background: "rgba(255, 255, 255, 0.85)",
         borderRadius: "12px",
         padding: "40px",
-        marginBottom: "45px",
+        marginBottom: "60px",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
       }}
     >

@@ -29,7 +29,7 @@ const FoundersSection = () => {
       style={{
         background: "transparent",
         padding: "32px",
-        marginBottom: "45px",
+        marginBottom: "60px",
         display: "flex",
         gap: "32px",
         alignItems: "center",

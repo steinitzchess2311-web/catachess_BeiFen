@@ -5,7 +5,7 @@ import chesstempoImg from "../../assets/chesstempo.jpg";
 
 const ProblemsSection = () => {
   return (
-    <div style={{ marginBottom: "45px" }}>
+    <div style={{ marginBottom: "60px" }}>
       <h2
         style={{
           fontSize: "1.9rem",
