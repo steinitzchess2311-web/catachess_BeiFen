@@ -8,8 +8,6 @@ import { useState, useEffect } from "react";
 import PageTransition from "../../components/animation/PageTransition";
 import CategorySidebar from "./CategorySidebar";
 import ContentArea from "./ContentArea";
-import CreateButton from "./CreateButton";
-import UserRoleDebug from "./UserRoleDebug";
 import { api } from '@ui/assets/api';
 
 /**
@@ -136,15 +134,10 @@ const BlogsPage = () => {
               search={search}
               page={page}
               onPageChange={handlePageChange}
+              userRole={userRole}
             />
           </div>
         </div>
-
-        {/* Create Button - Only for Editor/Admin */}
-        {(userRole === 'editor' || userRole === 'admin') && <CreateButton />}
-
-        {/* Debug: Show current user role (remove in production) */}
-        <UserRoleDebug />
       </div>
     </PageTransition>
   );

@@ -6,9 +6,10 @@ import logoImage from "../../assets/logo.jpg";
 interface HeaderProps {
   username: string | null;
   isAuthed: boolean;
+  userRole?: string | null;  // User's role (admin, editor, etc.)
 }
 
-const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
+const Header: React.FC<HeaderProps> = ({ username, isAuthed, userRole }) => {
   const displayName = username?.trim() || 'Account';
   const rightClickCountRef = useRef(0);
   const rightClickTimerRef = useRef<number | null>(null);
@@ -68,7 +69,24 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed }) => {
         <Link to="/blogs" className="nav-link">Blogs</Link>
         <Link to="/sponsorship" className="nav-link" style={{ color: '#ff8c00', fontWeight: 600 }}>Sponsorship</Link>
         {isAuthed ? (
-          <Link to="/account" className="username">{displayName}</Link>
+          <Link to="/account" className="username" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {displayName}
+            {(userRole === 'admin' || userRole === 'editor') && (
+              <span style={{
+                display: 'inline-block',
+                padding: '2px 8px',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                color: 'white',
+                backgroundColor: userRole === 'admin' ? '#4caf50' : '#2196f3',
+                borderRadius: '10px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {userRole}
+              </span>
+            )}
+          </Link>
         ) : (
           <Link to="/login" className="nav-link">Login</Link>
         )}

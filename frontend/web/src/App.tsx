@@ -301,6 +301,7 @@ function WorkspacePage() {
 
 function Layout() {
   const [username, setUsername] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const authed = isAuthed();
   const catamazeStateRef = useRef({
     gameId: null as string | null,
@@ -327,6 +328,7 @@ function Layout() {
             },
           });
           setUsername(response.username);
+          setUserRole(response.role || null);
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
         }
@@ -337,7 +339,7 @@ function Layout() {
 
   return (
     <>
-      <Header username={username} isAuthed={authed} />
+      <Header username={username} isAuthed={authed} userRole={userRole} />
       <main>
         <Routes>
           <Route path="/" element={<LandingPage isAuthed={authed} />} />

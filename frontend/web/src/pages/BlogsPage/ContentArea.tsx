@@ -10,12 +10,14 @@ import LoadingState from "./components/LoadingState";
 import EmptyState from "./components/EmptyState";
 import ErrorState from "./components/ErrorState";
 import Pagination from "./components/Pagination";
+import CreateButton from "./CreateButton";
 
 interface ContentAreaProps {
   category?: string;  // Category filter (about, function, allblogs)
   search?: string;    // Search query
   page?: number;      // Current page number
   onPageChange: (page: number) => void;  // Callback for page changes
+  userRole?: string | null;  // User's role for showing create button
 }
 
 /**
@@ -27,6 +29,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
   search,
   page = 1,
   onPageChange,
+  userRole,
 }) => {
   // Fetch articles with current filters
   const { articles, loading, error, pagination } = useBlogArticles({
@@ -40,6 +43,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     <div
       style={{
         flex: 1,
+        position: "relative",  // For absolute positioning of CreateButton
         background: "rgba(255, 255, 255, 0.85)",
         borderRadius: "12px",
         padding: "40px",
@@ -47,6 +51,8 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         minHeight: "600px",
       }}
     >
+      {/* Create Button - Only for Editor/Admin */}
+      {(userRole === 'editor' || userRole === 'admin') && <CreateButton />}
       {/* Loading State */}
       {loading && <LoadingState />}
 

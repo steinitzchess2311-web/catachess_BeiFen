@@ -1,6 +1,7 @@
 /**
- * CreateButton component - Floating Action Button for creating blogs
+ * CreateButton component - Button for creating blog articles
  * Shows for authenticated users with Editor or Admin role
+ * Positioned in top-right corner of ContentArea
  */
 
 import React, { useState } from 'react';
@@ -12,8 +13,7 @@ interface CreateButtonProps {
 }
 
 /**
- * Floating action button that opens the blog editor
- * Displays at bottom-right corner of the page
+ * Create article button positioned in top-right
  */
 const CreateButton: React.FC<CreateButtonProps> = ({ onArticleCreated }) => {
   const [editorOpen, setEditorOpen] = useState(false);
@@ -31,40 +31,42 @@ const CreateButton: React.FC<CreateButtonProps> = ({ onArticleCreated }) => {
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Create Button - Top Right */}
       <button
         onClick={() => setEditorOpen(true)}
         style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          width: '64px',
-          height: '64px',
-          backgroundColor: '#8b7355',
-          color: 'white',
-          border: 'none',
-          borderRadius: '50%',
-          fontSize: '2rem',
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          padding: '10px 20px',
+          fontSize: '0.95rem',
           fontWeight: 600,
+          color: 'white',
+          backgroundColor: '#8b7355',
+          border: 'none',
+          borderRadius: '8px',
           cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(139, 115, 85, 0.4)',
+          boxShadow: '0 2px 8px rgba(139, 115, 85, 0.3)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.3s ease',
-          zIndex: 1000
+          gap: '6px',
+          transition: 'all 0.2s ease',
+          zIndex: 10
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-          e.currentTarget.style.boxShadow = '0 6px 24px rgba(139, 115, 85, 0.5)';
+          e.currentTarget.style.backgroundColor = '#6f5a43';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 115, 85, 0.4)';
+          e.currentTarget.style.transform = 'translateY(-2px)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 16px rgba(139, 115, 85, 0.4)';
+          e.currentTarget.style.backgroundColor = '#8b7355';
+          e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 115, 85, 0.3)';
+          e.currentTarget.style.transform = 'translateY(0)';
         }}
         title="Create New Article"
       >
-        +
+        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>+</span>
+        <span>Create Article</span>
       </button>
 
       {/* Blog Editor Modal */}
