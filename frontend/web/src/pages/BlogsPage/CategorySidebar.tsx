@@ -1,155 +1,327 @@
 import React, { useState } from "react";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import pureLogo from "../../assets/chessortag_pure_logo.png";
 
 const CategorySidebar = () => {
-  const [activeCategory, setActiveCategory] = useState<string>("pinned");
   const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const categories = [
-    { id: "pinned", label: "📌 Pinned Articles", icon: "📌" },
-    { id: "about", label: "👋 About Us", icon: "👋" },
-    { id: "function", label: "⚡ Function Intro", icon: "⚡" },
-    { id: "chess", label: "♟️ Chess Topic", icon: "♟️" },
-  ];
+  const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
+  const [showComingSoon, setShowComingSoon] = useState<boolean>(false);
+  const [activeItem, setActiveItem] = useState<string>("");
 
   const handleSearchClear = () => {
     setSearchQuery("");
   };
 
+  const handleComingSoonClick = () => {
+    setShowComingSoon(true);
+    setTimeout(() => setShowComingSoon(false), 2000);
+  };
+
+  const officialSubItems = [
+    { id: "about", label: "About Us" },
+    { id: "function", label: "Function Intro" },
+    { id: "allblogs", label: "All Blogs" },
+  ];
+
   return (
-    <div
-      style={{
-        width: "280px",
-        flexShrink: 0,
-        background: "rgba(255, 255, 255, 0.85)",
-        borderRadius: "12px",
-        padding: "25px 0",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-        position: "sticky",
-        top: "0",
-        alignSelf: "flex-start",
-      }}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        {categories.map((category) => (
+    <>
+      {/* Coming Soon Modal */}
+      {showComingSoon && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "rgba(44, 44, 44, 0.95)",
+            color: "white",
+            padding: "20px 40px",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+            zIndex: 9999,
+            fontSize: "1.2rem",
+            fontWeight: 600,
+            animation: "fadeIn 0.2s ease",
+          }}
+        >
+          Coming Soon ✨
+        </div>
+      )}
+
+      <div
+        style={{
+          width: "280px",
+          flexShrink: 0,
+          background: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "12px",
+          padding: "25px 0",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          position: "sticky",
+          top: "0",
+          alignSelf: "flex-start",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          {/* Pinned Articles */}
           <button
-            key={category.id}
-            onClick={() => setActiveCategory(category.id)}
+            onClick={handleComingSoonClick}
             style={{
-              background:
-                activeCategory === category.id
-                  ? "linear-gradient(90deg, rgba(139, 115, 85, 0.15) 0%, rgba(139, 115, 85, 0.05) 100%)"
-                  : "transparent",
+              background: activeItem === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
-              borderLeft:
-                activeCategory === category.id
-                  ? "4px solid #8b7355"
-                  : "4px solid transparent",
+              borderLeft: activeItem === "pinned" ? "4px solid #8b7355" : "4px solid transparent",
               padding: "14px 25px",
               textAlign: "left",
               cursor: "pointer",
               fontSize: "0.95rem",
-              fontWeight: activeCategory === category.id ? 600 : 500,
-              color: activeCategory === category.id ? "#2c2c2c" : "#5a5a5a",
+              fontWeight: activeItem === "pinned" ? 600 : 500,
+              color: activeItem === "pinned" ? "#2c2c2c" : "#5a5a5a",
               transition: "all 0.2s ease",
               display: "flex",
               alignItems: "center",
               gap: "10px",
             }}
             onMouseEnter={(e) => {
-              if (activeCategory !== category.id) {
-                e.currentTarget.style.background =
-                  "rgba(139, 115, 85, 0.05)";
+              if (activeItem !== "pinned") {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
               }
             }}
             onMouseLeave={(e) => {
-              if (activeCategory !== category.id) {
+              if (activeItem !== "pinned") {
                 e.currentTarget.style.background = "transparent";
               }
             }}
           >
-            <span style={{ fontSize: "1.2rem" }}>{category.icon}</span>
-            <span>{category.label.replace(/^[^\s]+ /, "")}</span>
+            <span style={{ fontSize: "1.2rem" }}>📌</span>
+            <span>Pinned Articles</span>
           </button>
-        ))}
-      </div>
 
-      {/* Search Section */}
-      <div
-        style={{
-          marginTop: "30px",
-          paddingTop: "20px",
-          borderTop: "1px solid rgba(139, 115, 85, 0.15)",
-          paddingLeft: "25px",
-          paddingRight: "25px",
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Search articles..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 32px 8px 12px",
-              border: "1px solid rgba(139, 115, 85, 0.3)",
-              borderRadius: "6px",
-              fontSize: "0.9rem",
-              color: "#2c2c2c",
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              boxSizing: "border-box",
-              transition: "all 0.2s ease",
-              outline: "none",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "#8b7355";
-              e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 115, 85, 0.1)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-          {searchQuery && (
-            <button
-              onClick={handleSearchClear}
+          {/* Chessortag Official - Collapsible */}
+          <Collapsible.Root open={isOfficialOpen} onOpenChange={setIsOfficialOpen}>
+            <Collapsible.Trigger asChild>
+              <button
+                style={{
+                  background: isOfficialOpen ? "rgba(139, 115, 85, 0.1)" : "transparent",
+                  border: "none",
+                  borderLeft: isOfficialOpen ? "4px solid #8b7355" : "4px solid transparent",
+                  padding: "14px 25px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  fontWeight: isOfficialOpen ? 600 : 500,
+                  color: isOfficialOpen ? "#2c2c2c" : "#5a5a5a",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  width: "100%",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isOfficialOpen) {
+                    e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isOfficialOpen) {
+                    e.currentTarget.style.background = "transparent";
+                  }
+                }}
+              >
+                <img
+                  src={pureLogo}
+                  alt="Chessortag"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    objectFit: "contain",
+                  }}
+                />
+                <span style={{ flex: 1 }}>Chessortag Official</span>
+                {isOfficialOpen ? (
+                  <ChevronDownIcon style={{ width: "18px", height: "18px" }} />
+                ) : (
+                  <ChevronRightIcon style={{ width: "18px", height: "18px" }} />
+                )}
+              </button>
+            </Collapsible.Trigger>
+
+            <Collapsible.Content
               style={{
-                position: "absolute",
-                top: "50%",
-                right: "8px",
-                transform: "translateY(-50%)",
-                width: "20px",
-                height: "20px",
-                border: "none",
-                background: "rgba(139, 115, 85, 0.2)",
-                borderRadius: "50%",
-                fontSize: "14px",
-                lineHeight: "1",
-                color: "#5a5a5a",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+                overflow: "hidden",
+                transition: "all 0.3s cubic-bezier(0.87, 0, 0.13, 1)",
               }}
             >
-              ×
-            </button>
-          )}
+              <div
+                style={{
+                  paddingLeft: "54px",
+                  paddingTop: "4px",
+                  paddingBottom: "4px",
+                }}
+              >
+                {officialSubItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveItem(item.id)}
+                    style={{
+                      background: activeItem === item.id ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                      border: "none",
+                      padding: "10px 25px 10px 20px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      fontWeight: activeItem === item.id ? 600 : 400,
+                      color: activeItem === item.id ? "#8b7355" : "#6a6a6a",
+                      transition: "all 0.15s ease",
+                      display: "block",
+                      width: "100%",
+                      borderRadius: "6px",
+                      marginBottom: "2px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(139, 115, 85, 0.08)";
+                      e.currentTarget.style.color = "#8b7355";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeItem !== item.id) {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = "#6a6a6a";
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </Collapsible.Content>
+          </Collapsible.Root>
+
+          {/* Users' Blogs */}
+          <button
+            onClick={handleComingSoonClick}
+            style={{
+              background: activeItem === "users" ? "rgba(139, 115, 85, 0.1)" : "transparent",
+              border: "none",
+              borderLeft: activeItem === "users" ? "4px solid #8b7355" : "4px solid transparent",
+              padding: "14px 25px",
+              textAlign: "left",
+              cursor: "pointer",
+              fontSize: "0.95rem",
+              fontWeight: activeItem === "users" ? 600 : 500,
+              color: activeItem === "users" ? "#2c2c2c" : "#5a5a5a",
+              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+            onMouseEnter={(e) => {
+              if (activeItem !== "users") {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeItem !== "users") {
+                e.currentTarget.style.background = "transparent";
+              }
+            }}
+          >
+            <span style={{ fontSize: "1.2rem" }}>✍️</span>
+            <span>Users' Blogs</span>
+          </button>
+        </div>
+
+        {/* Search Section */}
+        <div
+          style={{
+            marginTop: "30px",
+            paddingTop: "20px",
+            borderTop: "1px solid rgba(139, 115, 85, 0.15)",
+            paddingLeft: "25px",
+            paddingRight: "25px",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Search articles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 32px 8px 12px",
+                border: "1px solid rgba(139, 115, 85, 0.3)",
+                borderRadius: "6px",
+                fontSize: "0.9rem",
+                color: "#2c2c2c",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                boxSizing: "border-box",
+                transition: "all 0.2s ease",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#8b7355";
+                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 115, 85, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={handleSearchClear}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: "8px",
+                  transform: "translateY(-50%)",
+                  width: "20px",
+                  height: "20px",
+                  border: "none",
+                  background: "rgba(139, 115, 85, 0.2)",
+                  borderRadius: "50%",
+                  fontSize: "14px",
+                  lineHeight: "1",
+                  color: "#5a5a5a",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translate(-50%, -60%);
+            }
+            to {
+              opacity: 1;
+              transform: translate(-50%, -50%);
+            }
+          }
+        `}
+      </style>
+    </>
   );
 };
 
