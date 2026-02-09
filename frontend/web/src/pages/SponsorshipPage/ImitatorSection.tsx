@@ -39,48 +39,169 @@ const ImitatorSection = () => {
         style={{
           background: "rgba(245, 242, 238, 0.5)",
           borderRadius: "10px",
-          padding: "28px",
+          padding: "32px",
           marginBottom: "20px",
         }}
       >
-        <p
-          style={{
-            fontSize: "1.05rem",
-            lineHeight: "1.9",
-            color: "#4a4a4a",
-            marginBottom: "1.3rem",
-          }}
-        >
-          ChessorTag imitator is our core inventive algorithm that <strong>does not use neural
-          network imitation</strong>, but ranks the top 8 Stockfish moves by the{" "}
-          <strong style={{ color: "#8b7355" }}>
-            probability that a specific player would choose them
-          </strong>
-          . This......
-        </p>
-        <ul
-          style={{
-            fontSize: "0.98rem",
-            lineHeight: "1.9",
-            color: "#5a5a5a",
-            paddingLeft: "1.8rem",
-            listStyleType: "none",
-          }}
-        >
-          <li style={{ marginBottom: "14px" }}>
-            <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
-            Helps you to <strong>prepare against your opponent easily!</strong> You can have
-            clear focus on which opening variation to study deeper when preparing!
-          </li>
-          <li style={{ marginBottom: "14px" }}>
-            <span style={{ color: "#8b7355", fontWeight: 700, marginRight: "8px" }}>✓</span>
-            Allows LLMs to <strong>explain moves in the style of a target player</strong>{" "}
-            (which is epoch-making). If you give an FEN to ChatGPT or Gemini etc, they
-            generate wrong ideas. But with our system, <strong>LLMs can actively reflect what
-            players are thinking</strong>. We are making TOP players from William Steinitz to
-            Magnus Carlsen your <strong style={{ color: "#8b7355" }}>PERSONAL CHESS COACH!</strong>
-          </li>
-        </ul>
+        {/* How it works */}
+        <div style={{ marginBottom: "32px" }}>
+          <h4
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 700,
+              color: "#8b7355",
+              marginBottom: "16px",
+              borderLeft: "4px solid #8b7355",
+              paddingLeft: "16px",
+            }}
+          >
+            How it works?
+          </h4>
+          <p
+            style={{
+              fontSize: "1.02rem",
+              lineHeight: "1.8",
+              color: "#4a4a4a",
+              marginBottom: "0",
+            }}
+          >
+            We developed our tagger algorithm, which gives each chess move one or more tags, and
+            calculates the percentage of different tags in all player's games. We do the imitation
+            by calculating the similarities between Stockfish moves and player's tag percentage.
+          </p>
+        </div>
+
+        {/* What does it do */}
+        <div style={{ marginBottom: "32px" }}>
+          <h4
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 700,
+              color: "#8b7355",
+              marginBottom: "16px",
+              borderLeft: "4px solid #8b7355",
+              paddingLeft: "16px",
+            }}
+          >
+            What does it do?
+          </h4>
+          <ul
+            style={{
+              fontSize: "1.02rem",
+              lineHeight: "1.8",
+              color: "#4a4a4a",
+              paddingLeft: "0",
+              listStyleType: "none",
+              margin: "0",
+            }}
+          >
+            <li style={{ marginBottom: "12px", paddingLeft: "28px", position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "0",
+                  color: "#8b7355",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                }}
+              >
+                ✓
+              </span>
+              Helps you to <strong>prepare against your opponent easily!</strong> You can have
+              clear focus on which opening variation to study deeper when preparing!
+            </li>
+            <li style={{ marginBottom: "0", paddingLeft: "28px", position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "0",
+                  color: "#8b7355",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                }}
+              >
+                ✓
+              </span>
+              Allows LLMs to <strong>explain moves in the style of a target player</strong> (which
+              is epoch-making).
+            </li>
+          </ul>
+        </div>
+
+        {/* Why is it important */}
+        <div>
+          <h4
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 700,
+              color: "#8b7355",
+              marginBottom: "16px",
+              borderLeft: "4px solid #8b7355",
+              paddingLeft: "16px",
+            }}
+          >
+            Why is it important?
+          </h4>
+          <ul
+            style={{
+              fontSize: "1.02rem",
+              lineHeight: "1.8",
+              color: "#4a4a4a",
+              paddingLeft: "0",
+              listStyleType: "none",
+              margin: "0",
+            }}
+          >
+            <li style={{ marginBottom: "12px", paddingLeft: "28px", position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "0",
+                  color: "#8b7355",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                }}
+              >
+                •
+              </span>
+              This is the <strong>BEST AI-powered chess coaching system</strong>! Unlike human
+              coaches, it's available 24/7 and learns from the world's greatest players.
+            </li>
+            <li style={{ marginBottom: "12px", paddingLeft: "28px", position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "0",
+                  color: "#8b7355",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                }}
+              >
+                •
+              </span>
+              If you give an FEN to ChatGPT or Gemini, they generate wrong ideas. But with our
+              system, <strong>LLMs can actively reflect what players are thinking</strong>.
+            </li>
+            <li style={{ marginBottom: "0", paddingLeft: "28px", position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: "0",
+                  color: "#8b7355",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                }}
+              >
+                •
+              </span>
+              Not everyone can access chess coaches. We provide a{" "}
+              <strong style={{ color: "#8b7355" }}>
+                free and accessible platform for aspiring players
+              </strong>{" "}
+              who are eager to improve their game.
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );
