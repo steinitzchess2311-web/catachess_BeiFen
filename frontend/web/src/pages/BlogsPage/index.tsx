@@ -11,6 +11,7 @@ import ContentArea from "./ContentArea";
 import BlogHeader from "../../components/BlogHeader";
 import ArticleDetailPage from "./ArticleDetailPage";
 import { api } from '@ui/assets/api';
+import { useBlogArticle } from "../../hooks/useBlogArticle";
 
 /**
  * Main blog page with sidebar navigation and article grid
@@ -29,6 +30,11 @@ const BlogsPage = () => {
 
   // Check if we're in detail view
   const isDetailView = Boolean(articleId);
+
+  // Fetch article data when in detail view (for header title)
+  const { article, loading: articleLoading } = useBlogArticle(
+    isDetailView ? articleId : undefined
+  );
 
   // Auto-collapse sidebar when entering detail view
   useEffect(() => {
@@ -76,8 +82,10 @@ const BlogsPage = () => {
   /**
    * Handle category filter change
    * Resets to page 1 when category changes
+   * Clears articleId to return to list view
    */
   const handleCategoryChange = (newCategory: string | undefined) => {
+    // Navigate to /blogs with new category (clears articleId from URL)
     const params = new URLSearchParams();
 
     if (newCategory) {
@@ -89,14 +97,18 @@ const BlogsPage = () => {
     }
 
     params.set('page', '1');  // Reset to first page
-    setSearchParams(params);
+
+    // Navigate to /blogs (without articleId in path)
+    navigate(`/blogs?${params.toString()}`);
   };
 
   /**
    * Handle search query change
    * Resets to page 1 when search changes
+   * Clears articleId to return to list view
    */
   const handleSearchChange = (newSearch: string) => {
+    // Navigate to /blogs with new search (clears articleId from URL)
     const params = new URLSearchParams();
 
     if (category) {
@@ -108,7 +120,9 @@ const BlogsPage = () => {
     }
 
     params.set('page', '1');  // Reset to first page
-    setSearchParams(params);
+
+    // Navigate to /blogs (without articleId in path)
+    navigate(`/blogs?${params.toString()}`);
   };
 
   /**
@@ -169,21 +183,23 @@ const BlogsPage = () => {
                 viewMode={viewMode}
                 isDetailView={isDetailView}
                 onBackClick={() => navigate('/blogs')}
+                articleTitle={article?.title}
+                articleLoading={articleLoading}
               />
 
-              {/* Conditional rendering: Article Detail or Article List */}
-              {isDetailView ? (
-                <ArticleDetailPage />
-              ) : (
-                <ContentArea
-                  category={category}
-                  search={search}
-                  page={page}
-                  onPageChange={handlePageChange}
-                  userRole={userRole}
-                  viewMode={viewMode}
-                />
-              )}
+              {/* ContentArea handles both list and detail views */}
+              <ContentArea
+                category={category}
+                search={search}
+                page={page}
+                onPageChange={handlePageChange}
+                userRole={userRole}
+                viewMode={viewMode}
+                isDetailView={isDetailView}
+                articleId={articleId}
+                article={article}
+                articleLoading={articleLoading}
+              />
             </div>
           </div>
         </div>

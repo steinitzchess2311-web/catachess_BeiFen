@@ -8,19 +8,37 @@ import { useParams, useNavigate } from "react-router-dom";
 import { EyeOpenIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
 import { HandIcon } from "@radix-ui/react-icons";
 import { useBlogArticle } from "../../hooks/useBlogArticle";
+import { BlogArticle } from "../../types/blog";
 import MarkdownRenderer from "./components/MarkdownRenderer";
 import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
 import PageTransition from "../../components/animation/PageTransition";
 
+interface ArticleDetailPageProps {
+  embedded?: boolean;  // If true, render without PageTransition wrapper and back button
+  article?: BlogArticle | null;  // Pre-fetched article data (for embedded mode)
+  loading?: boolean;  // Pre-fetched loading state (for embedded mode)
+}
+
 /**
  * Full article detail page with back navigation
  * Automatically increments view count on load
+ * Can be embedded in BlogsPage or used as standalone page
  */
-const ArticleDetailPage: React.FC = () => {
+const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
+  embedded = false,
+  article: propArticle,
+  loading: propLoading,
+}) => {
   const { articleId } = useParams<{ articleId: string }>();
   const navigate = useNavigate();
-  const { article, loading, error } = useBlogArticle(articleId);
+
+  // Use prop data if provided (embedded mode), otherwise fetch with hook (standalone mode)
+  const hookResult = useBlogArticle(propArticle !== undefined ? undefined : articleId);
+  const article = propArticle !== undefined ? propArticle : hookResult.article;
+  const loading = propLoading !== undefined ? propLoading : hookResult.loading;
+  const error = propArticle !== undefined ? null : hookResult.error;
+
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
 
@@ -40,6 +58,25 @@ const ArticleDetailPage: React.FC = () => {
 
   // Loading state
   if (loading) {
+    const loadingContent = <LoadingState />;
+
+    if (embedded) {
+      return (
+        <div style={{
+          background: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "12px",
+          padding: "40px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+          minHeight: "400px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          {loadingContent}
+        </div>
+      );
+    }
+
     return (
       <PageTransition>
         <div
@@ -49,7 +86,7 @@ const ArticleDetailPage: React.FC = () => {
             padding: "80px 24px 40px",
           }}
         >
-          <LoadingState />
+          {loadingContent}
         </div>
       </PageTransition>
     );
@@ -57,6 +94,21 @@ const ArticleDetailPage: React.FC = () => {
 
   // Error state
   if (error) {
+    const errorContent = <ErrorState message="Failed to load article" />;
+
+    if (embedded) {
+      return (
+        <div style={{
+          background: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "12px",
+          padding: "40px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+        }}>
+          {errorContent}
+        </div>
+      );
+    }
+
     return (
       <PageTransition>
         <div
@@ -92,7 +144,7 @@ const ArticleDetailPage: React.FC = () => {
             >
               ← Back to Blogs
             </button>
-            <ErrorState message="Failed to load article" />
+            {errorContent}
           </div>
         </div>
       </PageTransition>
@@ -101,6 +153,57 @@ const ArticleDetailPage: React.FC = () => {
 
   // Not found state
   if (!article) {
+    const notFoundContent = (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "60px 20px",
+        }}
+      >
+        <h1 style={{ fontSize: "3rem", marginBottom: "20px" }}>404</h1>
+        <p style={{ fontSize: "1.2rem", color: "#5a5a5a", marginBottom: "30px" }}>
+          Article not found
+        </p>
+        {!embedded && (
+          <button
+            onClick={() => navigate("/blogs")}
+            style={{
+              padding: "12px 30px",
+              fontSize: "1rem",
+              fontWeight: 600,
+              color: "white",
+              backgroundColor: "#8b7355",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#6f5a43";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#8b7355";
+            }}
+          >
+            Back to Blogs
+          </button>
+        )}
+      </div>
+    );
+
+    if (embedded) {
+      return (
+        <div style={{
+          background: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "12px",
+          padding: "40px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+        }}>
+          {notFoundContent}
+        </div>
+      );
+    }
+
     return (
       <PageTransition>
         <div
@@ -110,40 +213,8 @@ const ArticleDetailPage: React.FC = () => {
             padding: "80px 24px 40px",
           }}
         >
-          <div
-            style={{
-              maxWidth: "800px",
-              margin: "0 auto",
-              textAlign: "center",
-              padding: "60px 20px",
-            }}
-          >
-            <h1 style={{ fontSize: "3rem", marginBottom: "20px" }}>404</h1>
-            <p style={{ fontSize: "1.2rem", color: "#5a5a5a", marginBottom: "30px" }}>
-              Article not found
-            </p>
-            <button
-              onClick={() => navigate("/blogs")}
-              style={{
-                padding: "12px 30px",
-                fontSize: "1rem",
-                fontWeight: 600,
-                color: "white",
-                backgroundColor: "#8b7355",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#6f5a43";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#8b7355";
-              }}
-            >
-              Back to Blogs
-            </button>
+          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            {notFoundContent}
           </div>
         </div>
       </PageTransition>
@@ -157,53 +228,16 @@ const ArticleDetailPage: React.FC = () => {
     day: 'numeric'
   });
 
-  return (
-    <PageTransition>
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "linear-gradient(135deg, #f8f4f0 0%, #e8ddd0 100%)",
-          padding: "80px 24px 40px",
-          overflowY: "auto",
-        }}
-      >
-        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          {/* Back Button */}
-          <button
-            onClick={() => navigate("/blogs")}
-            style={{
-              padding: "10px 20px",
-              marginBottom: "30px",
-              fontSize: "0.95rem",
-              fontWeight: 500,
-              color: "#2c2c2c",
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              border: "1px solid #e0e0e0",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.1)";
-              e.currentTarget.style.borderColor = "#8b7355";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
-              e.currentTarget.style.borderColor = "#e0e0e0";
-            }}
-          >
-            ← Back to Blogs
-          </button>
-
-          {/* Article Container */}
-          <article
-            style={{
-              background: "rgba(255, 255, 255, 0.95)",
-              borderRadius: "12px",
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-            }}
-          >
+  // Article content (reusable for both embedded and standalone modes)
+  const articleContent = (
+    <article
+      style={{
+        background: "rgba(255, 255, 255, 0.95)",
+        borderRadius: "12px",
+        overflow: "hidden",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+      }}
+    >
             {/* Cover Image */}
             <div
               style={{
@@ -401,6 +435,53 @@ const ArticleDetailPage: React.FC = () => {
               </div>
             </div>
           </article>
+  );
+
+  // Embedded mode: render article within BlogsPage container
+  if (embedded) {
+    return articleContent;
+  }
+
+  // Standalone mode: render with PageTransition and back button
+  return (
+    <PageTransition>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #f8f4f0 0%, #e8ddd0 100%)",
+          padding: "80px 24px 40px",
+          overflowY: "auto",
+        }}
+      >
+        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/blogs")}
+            style={{
+              padding: "10px 20px",
+              marginBottom: "30px",
+              fontSize: "0.95rem",
+              fontWeight: 500,
+              color: "#2c2c2c",
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.1)";
+              e.currentTarget.style.borderColor = "#8b7355";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+              e.currentTarget.style.borderColor = "#e0e0e0";
+            }}
+          >
+            ← Back to Blogs
+          </button>
+
+          {articleContent}
         </div>
       </div>
     </PageTransition>

@@ -15,6 +15,8 @@ interface BlogHeaderProps {
   viewMode?: ViewMode;
   isDetailView?: boolean;
   onBackClick?: () => void;
+  articleTitle?: string;
+  articleLoading?: boolean;
 }
 
 const CATEGORY_LABELS: { [key: string]: string } = {
@@ -37,6 +39,8 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
   viewMode = 'articles',
   isDetailView = false,
   onBackClick,
+  articleTitle,
+  articleLoading = false,
 }) => {
   const [localSearchQuery, setLocalSearchQuery] = React.useState(searchQuery);
 
@@ -62,6 +66,14 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
 
   // Determine label based on viewMode first, then category
   const getLabel = () => {
+    // In detail view, show article title or loading state
+    if (isDetailView) {
+      if (articleLoading) {
+        return 'Loading...';
+      }
+      return articleTitle || 'Article';
+    }
+
     if (viewMode !== 'articles' && VIEW_MODE_LABELS[viewMode]) {
       return VIEW_MODE_LABELS[viewMode];
     }
@@ -96,9 +108,19 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
           display: "flex",
           alignItems: "center",
           gap: "12px",
+          maxWidth: "70%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
         }}
       >
-        <span>{isDetailView ? "Article" : categoryLabel}</span>
+        <span style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {categoryLabel}
+        </span>
       </div>
 
       {/* Right: Search Bar or Back Button */}

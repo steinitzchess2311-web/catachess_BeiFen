@@ -13,6 +13,7 @@ import LoadingState from "./components/LoadingState";
 import EmptyState from "./components/EmptyState";
 import ErrorState from "./components/ErrorState";
 import Pagination from "./components/Pagination";
+import ArticleDetailContent from "./ArticleDetailContent";
 
 type ViewMode = 'articles' | 'drafts' | 'my-published';
 
@@ -23,6 +24,10 @@ interface ContentAreaProps {
   onPageChange: (page: number) => void;  // Callback for page changes
   userRole?: string | null;  // User's role for showing create button
   viewMode: ViewMode;  // View mode: articles, drafts, or my-published
+  isDetailView?: boolean;  // Whether showing article detail
+  articleId?: string;  // Article ID when in detail view
+  article?: BlogArticle | null;  // Pre-fetched article data
+  articleLoading?: boolean;  // Article loading state
 }
 
 /**
@@ -37,6 +42,10 @@ const ContentArea: React.FC<ContentAreaProps> = ({
   onPageChange,
   userRole,
   viewMode,
+  isDetailView = false,
+  articleId,
+  article,
+  articleLoading = false,
 }) => {
   // State for drafts and my-published views
   const [myArticles, setMyArticles] = useState<BlogArticle[]>([]);
@@ -130,41 +139,52 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         overflowY: "auto",  // Enable vertical scrolling
       }}
     >
-      {/* Loading State */}
-      {displayLoading && <LoadingState />}
-
-      {/* Error State */}
-      {!displayLoading && displayError && <ErrorState message={displayError.message} />}
-
-      {/* Empty State */}
-      {!displayLoading && !displayError && displayArticles.length === 0 && <EmptyState />}
-
-      {/* Articles Grid */}
-      {!displayLoading && !displayError && displayArticles.length > 0 && (
+      {/* Article Detail View */}
+      {isDetailView ? (
+        <ArticleDetailContent
+          article={article}
+          loading={articleLoading}
+          articleId={articleId}
+        />
+      ) : (
         <>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(16rem, 1fr))",
-              gap: "1.5rem",
-              marginBottom: "20px",
-            }}
-          >
-            {displayArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                article={article}
-                userRole={userRole}
-                viewMode={viewMode}
-                onDelete={handleDelete}
-                onPinToggle={handlePinToggle}
-              />
-            ))}
-          </div>
+          {/* Loading State */}
+          {displayLoading && <LoadingState />}
 
-          {/* Pagination Controls - Only for 'articles' view and not pinned */}
-          {viewMode === 'articles' && category !== 'pinned' && pagination.total_pages > 1 && (
-            <Pagination pagination={pagination} onPageChange={onPageChange} />
+          {/* Error State */}
+          {!displayLoading && displayError && <ErrorState message={displayError.message} />}
+
+          {/* Empty State */}
+          {!displayLoading && !displayError && displayArticles.length === 0 && <EmptyState />}
+
+          {/* Articles Grid */}
+          {!displayLoading && !displayError && displayArticles.length > 0 && (
+            <>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(16rem, 1fr))",
+                  gap: "1.5rem",
+                  marginBottom: "20px",
+                }}
+              >
+                {displayArticles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    userRole={userRole}
+                    viewMode={viewMode}
+                    onDelete={handleDelete}
+                    onPinToggle={handlePinToggle}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls - Only for 'articles' view and not pinned */}
+              {viewMode === 'articles' && category !== 'pinned' && pagination.total_pages > 1 && (
+                <Pagination pagination={pagination} onPageChange={onPageChange} />
+              )}
+            </>
           )}
         </>
       )}
