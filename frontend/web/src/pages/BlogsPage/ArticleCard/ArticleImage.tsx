@@ -87,7 +87,11 @@ const ArticleImage: React.FC<ArticleImageWithActionsProps> = ({
           {/* Delete Button */}
           {canDelete && (
             <button
-              onClick={onDeleteClick}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteClick?.(e);
+              }}
               style={{
                 width: "36px",
                 height: "36px",
@@ -124,7 +128,11 @@ const ArticleImage: React.FC<ArticleImageWithActionsProps> = ({
           {/* Pin Button */}
           {canPin && (
             <button
-              onClick={onPinToggle}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPinToggle?.(e);
+              }}
               style={{
                 width: "36px",
                 height: "36px",

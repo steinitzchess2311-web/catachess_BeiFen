@@ -623,6 +623,445 @@ DELETE /api/blogs/articles/{article-uuid}
 
 **Base URL:** `https://api.catachess.com`
 
-**文档版本:** v1.0.0
+---
 
-**最后更新:** 2026-02-09
+## 🖼️ 图片管理系统
+
+### 架构设计
+
+Blog模块使用**多对多关联表**来管理文章和图片的关系，支持图片复用和智能清理。
+
+#### 数据库表
+
+```sql
+-- 图片元数据表
+blog_images
+├── id (UUID)
+├── url (CDN URL)
+├── storage_path (R2路径)
+├── uploaded_by (上传者)
+├── is_orphan (是否孤儿图片)
+├── marked_for_deletion_at (标记删除时间)
+├── last_referenced_at (最后引用时间)
+└── ...
+
+-- 文章-图片关联表 (多对多)
+blog_article_images
+├── id (UUID)
+├── article_id (文章ID)
+├── image_id (图片ID)
+├── position (图片位置)
+├── usage_context ("content" | "cover")
+└── created_at
+```
+
+### 图片工作流程
+
+#### 1. 上传图片
+
+```bash
+POST /api/blogs/upload-image
+Content-Type: multipart/form-data
+
+file: <image_file>
+resize_mode: "adaptive_width"  # 或 "original"
+image_type: "content"          # 或 "cover"
+```
+
+**处理流程：**
+1. 验证文件大小（最大5MB）和格式（JPEG/PNG/GIF/WEBP）
+2. 根据`resize_mode`处理图片：
+   - `adaptive_width`: 最大宽度1920px，转WebP格式（85%质量）
+   - `original`: 保持原始尺寸，轻度压缩（90%质量）
+3. 上传到Cloudflare R2：`blog/年/月/唯一ID_文件名`
+4. 保存元数据到`blog_images`表（`is_orphan=true`）
+
+**返回：**
+```json
+{
+  "id": "uuid",
+  "url": "https://cdn.catachess.com/blog/2026/02/abc123_image.webp",
+  "markdown": "![image](https://cdn.catachess.com/blog/2026/02/abc123_image.webp)"
+}
+```
+
+**前端使用：**
+- 用户在Markdown编辑器中粘贴/拖拽图片
+- 前端自动调用上传接口
+- 获得`markdown`字段后，自动插入到光标位置
+
+---
+
+#### 2. 创建文章（自动关联图片）
+
+```bash
+POST /api/blogs/articles
+{
+  "title": "文章标题",
+  "content": "文字 ![img1](https://cdn.../image1.webp) 更多文字 ![img2](https://cdn.../image2.webp)",
+  "cover_image_url": "https://cdn.../cover.jpg",
+  ...
+}
+```
+
+**后端自动处理：**
+1. 创建文章记录
+2. 解析`content`中的所有图片URL（正则匹配`![...](url)`）
+3. 查找对应的`blog_images`记录
+4. 创建`blog_article_images`关联记录
+5. 更新图片状态：
+   - `is_orphan = false`
+   - `last_referenced_at = NOW()`
+   - `marked_for_deletion_at = NULL`（清除删除标记）
+
+**日志输出：**
+```
+✅ Linked 3 images to new article
+```
+
+---
+
+#### 3. 更新文章（重新同步图片）
+
+```bash
+PUT /api/blogs/articles/{id}
+{
+  "content": "更新后的内容，可能添加/删除了图片"
+}
+```
+
+**智能同步逻辑：**
+1. 提取新的图片URL列表
+2. 对比当前关联的图片：
+   - **新增的图片**：创建关联，标记`is_orphan=false`
+   - **保留的图片**：不变
+   - **删除的图片**：
+     - 删除关联记录
+     - 检查是否被其他文章使用
+     - 如果没有其他引用，标记`is_orphan=true`
+
+**日志输出：**
+```
+✅ Synced images: linked=2, unlinked=1
+```
+
+---
+
+#### 4. 删除文章（自动清理关联）
+
+```bash
+DELETE /api/blogs/articles/{id}
+```
+
+**清理逻辑：**
+1. 删除文章记录（CASCADE自动删除`blog_article_images`关联）
+2. 触发器/定时任务检查孤儿图片
+3. 孤儿图片进入清理流程
+
+---
+
+### 孤儿图片清理机制
+
+#### 定义
+**孤儿图片** = 上传后未被任何文章使用的图片
+
+#### 清理策略（两阶段）
+
+**阶段1：标记孤儿**（每天运行）
+- 条件：`is_orphan=true` 且 `created_at < 30天前`
+- 动作：设置`marked_for_deletion_at = NOW()`
+- 目的：给用户7天宽限期
+
+**阶段2：删除标记图片**（每天运行）
+- 条件：`marked_for_deletion_at < 7天前`
+- 动作：
+  1. 从R2删除文件
+  2. 从数据库删除记录
+
+#### 手动运行清理任务
+
+```bash
+# 显示统计
+python -m modules.blogs.tasks.cleanup_images stats
+
+# 标记孤儿图片
+python -m modules.blogs.tasks.cleanup_images mark
+
+# 删除已标记的图片
+python -m modules.blogs.tasks.cleanup_images delete
+
+# 完整清理流程
+python -m modules.blogs.tasks.cleanup_images all
+```
+
+#### 定时任务（cron）
+
+```bash
+# 每天凌晨2点运行
+0 2 * * * cd /app && python -m modules.blogs.tasks.cleanup_images all >> /var/log/blog_cleanup.log 2>&1
+```
+
+---
+
+### 图片复用
+
+**场景：** 同一张图片在多篇文章中使用
+
+**实现：**
+- `blog_article_images` 表支持一张图片关联多篇文章
+- 删除文章时，只删除关联记录，不删除图片本身
+- 只有当所有关联都删除后，图片才标记为孤儿
+
+**示例：**
+```sql
+-- 图片 img-001 被两篇文章使用
+blog_article_images
+├── (article-A, img-001, content)
+└── (article-B, img-001, content)
+
+-- 删除 article-A 后：
+-- img-001 仍然被 article-B 使用，is_orphan=false
+
+-- 删除 article-B 后：
+-- img-001 没有任何引用，is_orphan=true
+```
+
+---
+
+### Markdown 图片提取
+
+**正则表达式：**
+```python
+pattern = r'!\[.*?\]\((https?://[^\)]+)\)'
+urls = re.findall(pattern, markdown_content)
+```
+
+**匹配示例：**
+```markdown
+![描述](https://cdn.example.com/image.jpg)  ✅ 匹配
+![](https://cdn.example.com/image.png)     ✅ 匹配
+![图片](https://example.com/img.webp)      ✅ 匹配
+
+<img src="...">                            ❌ 不匹配（HTML标签）
+[链接](https://...)                        ❌ 不匹配（非图片）
+```
+
+---
+
+### 前端集成指南
+
+#### 推荐编辑器
+- **Toast UI Editor** - Markdown专用，支持图片上传钩子
+- **tiptap** - 现代化，灵活性高
+- **react-markdown-editor-lite** - 轻量
+
+#### 集成示例（React + Toast UI Editor）
+
+```typescript
+import Editor from '@toast-ui/react-editor';
+
+function BlogEditor() {
+  const editorRef = useRef<Editor>(null);
+
+  const handleImageUpload = async (blob: Blob, callback: Function) => {
+    // 1. 上传图片到后端
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('resize_mode', 'adaptive_width');
+    formData.append('image_type', 'content');
+
+    const response = await fetch('/api/blogs/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+
+    // 2. 回调插入Markdown
+    callback(result.url, 'image alt text');
+  };
+
+  return (
+    <Editor
+      ref={editorRef}
+      initialValue="# 开始写作..."
+      hooks={{
+        addImageBlobHook: handleImageUpload
+      }}
+    />
+  );
+}
+```
+
+#### 保存文章
+
+```typescript
+async function saveArticle() {
+  const markdown = editorRef.current?.getInstance().getMarkdown();
+
+  await fetch('/api/blogs/articles', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: '文章标题',
+      content: markdown,  // 包含图片的Markdown
+      cover_image_url: coverUrl,
+      category: 'function',
+      status: 'published'
+    })
+  });
+
+  // 后端自动关联图片，无需前端额外操作
+}
+```
+
+---
+
+### 安全性考虑
+
+#### 1. 文件验证
+- 最大大小：5MB
+- 允许格式：JPEG, PNG, GIF, WEBP
+- MIME类型检查：使用Pillow验证真实格式
+
+#### 2. 路径安全
+- 使用UUID生成唯一文件名
+- 按年/月组织目录：`blog/2026/02/abc123_image.webp`
+- 防止路径遍历攻击
+
+#### 3. 权限控制
+- 上传图片：需要Editor或Admin角色
+- 图片URL公开（CDN），但上传受限
+
+#### 4. 孤儿图片清理
+- 30天宽限期（避免误删）
+- 7天删除确认期（可恢复）
+- 日志记录所有删除操作
+
+---
+
+### 性能优化
+
+#### 1. 图片压缩
+- `adaptive_width`模式：转WebP格式（节省60%体积）
+- 最大宽度1920px（移动端自适应）
+- 质量85%（视觉无损）
+
+#### 2. CDN缓存
+- Cache-Control: `public, max-age=31536000`（1年）
+- 图片不可变（文件名包含UUID）
+
+#### 3. 批量操作
+- 图片关联：单次提交，批量INSERT
+- 清理任务：批量查询，批量删除
+
+---
+
+### 监控与统计
+
+#### 查看孤儿图片统计
+
+```bash
+python -m modules.blogs.tasks.cleanup_images stats
+```
+
+**输出示例：**
+```
+📊 Orphan Image Statistics:
+  - Total orphan images: 45
+  - Marked for deletion: 12
+  - Total size: 23.5 MB
+```
+
+#### API端点（未来扩展）
+
+```bash
+# 获取存储统计
+GET /api/blogs/admin/storage-stats
+
+# 返回
+{
+  "total_images": 1234,
+  "total_size_mb": 567.8,
+  "orphan_count": 45,
+  "orphan_size_mb": 23.5,
+  "articles_with_images": 89
+}
+```
+
+---
+
+### 故障排查
+
+#### 问题1：图片上传失败
+
+**可能原因：**
+- R2配置错误：检查`R2_BLOG_ACCESS_KEY`, `R2_BLOG_SECRET_KEY`, `R2_ENDPOINT`
+- 文件太大：最大5MB
+- 格式不支持：仅支持JPEG/PNG/GIF/WEBP
+
+**排查：**
+```bash
+# 测试R2连接
+python -c "from modules.blogs.services.image_service import get_image_service; print(get_image_service())"
+```
+
+#### 问题2：图片未关联到文章
+
+**可能原因：**
+- Markdown格式错误：必须是`![...](url)`格式
+- URL不匹配：检查URL是否完全一致（包括协议、域名）
+
+**排查：**
+```python
+from modules.blogs.utils.image_linker import extract_image_urls
+
+content = "你的Markdown内容"
+urls = extract_image_urls(content)
+print(f"提取到的URL: {urls}")
+```
+
+#### 问题3：孤儿图片未清理
+
+**可能原因：**
+- 定时任务未运行：检查cron配置
+- 宽限期未到：默认30天+7天=37天
+
+**排查：**
+```bash
+# 手动运行清理
+python -m modules.blogs.tasks.cleanup_images all
+```
+
+---
+
+## 📝 总结
+
+### 方案B优势
+
+1. **图片复用** - 一张图片可以在多篇文章中使用
+2. **智能清理** - 自动识别孤儿图片，分阶段删除
+3. **数据一致性** - 多对多关联表，符合数据库规范
+4. **性能优化** - 图片压缩+CDN缓存
+5. **前端友好** - 自动关联，无需手动操作
+
+### 开发checklist
+
+- [x] 创建`blog_article_images`关联表
+- [x] 修改`blog_images`表（添加孤儿追踪字段）
+- [x] 实现图片URL提取工具
+- [x] 修改创建/更新文章API（自动关联图片）
+- [x] 创建孤儿图片清理任务
+- [x] 更新API文档
+
+---
+
+**文档版本:** v2.0.0
+
+**最后更新:** 2026-02-10
