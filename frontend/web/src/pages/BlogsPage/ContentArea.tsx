@@ -18,7 +18,7 @@ import ArticleDetailContent from "./ArticleDetailContent";
 type ViewMode = 'articles' | 'drafts' | 'my-published';
 
 interface ContentAreaProps {
-  category?: string;  // Category filter (about, function, allblogs)
+  category?: string;  // Category filter (about, function, allblogs) - for API calls
   search?: string;    // Search query
   page?: number;      // Current page number
   onPageChange: (page: number) => void;  // Callback for page changes
@@ -28,6 +28,7 @@ interface ContentAreaProps {
   articleId?: string;  // Article ID when in detail view
   article?: BlogArticle | null;  // Pre-fetched article data
   articleLoading?: boolean;  // Article loading state
+  categoryParam?: string;  // Original category from URL (for history tracking)
 }
 
 /**
@@ -46,6 +47,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
   articleId,
   article,
   articleLoading = false,
+  categoryParam,
 }) => {
   // State for drafts and my-published views
   const [myArticles, setMyArticles] = useState<BlogArticle[]>([]);
@@ -145,6 +147,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
           article={article}
           loading={articleLoading}
           articleId={articleId}
+          currentCategory={categoryParam}
         />
       ) : (
         <>

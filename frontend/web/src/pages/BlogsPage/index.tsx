@@ -12,6 +12,7 @@ import BlogHeader from "../../components/BlogHeader";
 import ArticleDetailPage from "./ArticleDetailPage";
 import { api } from '@ui/assets/api';
 import { useBlogArticle } from "../../hooks/useBlogArticle";
+import { getCategoryLastArticle, clearCategoryLastArticle } from "../../utils/articleHistory";
 
 /**
  * Main blog page with sidebar navigation and article grid
@@ -86,29 +87,44 @@ const BlogsPage = () => {
 
   /**
    * Handle category filter change
-   * Resets to page 1 when category changes
-   * Clears articleId to return to list view
-   * IMPORTANT: Even if clicking the same category while viewing an article,
-   * this will exit detail view and return to the list
+   * Implements "remember last article" feature:
+   * - If user is viewing an article and clicks its category: exit to list (clear memory)
+   * - If user clicks a different category: check if there's a remembered article
+   * - If remembered article exists: navigate to that article
+   * - Otherwise: navigate to list view
    */
   const handleCategoryChange = (newCategory: string | undefined) => {
-    // If in detail view, always navigate to list view (clear articleId)
-    // Even if the clicked category is the same as current category
-    const params = new URLSearchParams();
+    // Check if this is an "exit" action (clicking same category while viewing article)
+    const isExitingCurrentArticle = isDetailView && categoryParam === newCategory;
 
-    if (newCategory) {
-      params.set('category', newCategory);
+    if (isExitingCurrentArticle) {
+      // User wants to exit detail view - clear the memory for this category
+      clearCategoryLastArticle(newCategory);
     }
 
-    if (search) {
-      params.set('search', search);
+    // Check if we should return to a remembered article
+    const lastArticleId = getCategoryLastArticle(newCategory);
+
+    if (!isExitingCurrentArticle && lastArticleId) {
+      // Return to the last viewed article in this category
+      navigate(`/blogs/${lastArticleId}`, { replace: isDetailView });
+    } else {
+      // Navigate to category list view
+      const params = new URLSearchParams();
+
+      if (newCategory) {
+        params.set('category', newCategory);
+      }
+
+      if (search) {
+        params.set('search', search);
+      }
+
+      params.set('page', '1');  // Reset to first page
+
+      // Navigate to /blogs (without articleId in path)
+      navigate(`/blogs?${params.toString()}`, { replace: isDetailView });
     }
-
-    params.set('page', '1');  // Reset to first page
-
-    // Navigate to /blogs (without articleId in path)
-    // This clears the articleId and returns to list view
-    navigate(`/blogs?${params.toString()}`, { replace: isDetailView });
   };
 
   /**
@@ -191,7 +207,11 @@ const BlogsPage = () => {
                 onSearchChange={handleSearchChange}
                 viewMode={viewMode}
                 isDetailView={isDetailView}
-                onBackClick={() => navigate('/blogs')}
+                onBackClick={() => {
+                  // Clear the category last article when clicking Back to Blogs
+                  clearCategoryLastArticle(categoryParam);
+                  navigate('/blogs');
+                }}
                 articleTitle={article?.title}
                 articleLoading={articleLoading}
               />
@@ -208,6 +228,7 @@ const BlogsPage = () => {
                 articleId={articleId}
                 article={article}
                 articleLoading={articleLoading}
+                categoryParam={categoryParam}
               />
             </div>
           </div>

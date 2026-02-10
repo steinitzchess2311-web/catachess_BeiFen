@@ -11,17 +11,20 @@ import MarkdownRenderer from "./components/MarkdownRenderer";
 import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
 import { useBlogArticle } from "../../hooks/useBlogArticle";
+import { saveCategoryLastArticle, addRecentArticle } from "../../utils/articleHistory";
 
 interface ArticleDetailContentProps {
   article?: BlogArticle | null;
   loading?: boolean;
   articleId?: string;
+  currentCategory?: string; // Current category from URL for history tracking
 }
 
 const ArticleDetailContent: React.FC<ArticleDetailContentProps> = ({
   article: propArticle,
   loading: propLoading,
   articleId,
+  currentCategory,
 }) => {
   // Fallback: fetch article if not provided
   const hookResult = useBlogArticle(propArticle !== undefined ? undefined : articleId);
@@ -38,6 +41,21 @@ const ArticleDetailContent: React.FC<ArticleDetailContentProps> = ({
       setLikeCount(article.like_count || 0);
     }
   }, [article]);
+
+  // Save article to history when loaded
+  React.useEffect(() => {
+    if (article) {
+      // Save to category last article (for "return to this article" feature)
+      saveCategoryLastArticle(currentCategory, article.id);
+
+      // Save to recent articles (for history list - will implement UI later)
+      addRecentArticle({
+        id: article.id,
+        title: article.title,
+        category: currentCategory,
+      });
+    }
+  }, [article, currentCategory]);
 
   // Handle like toggle
   const handleLikeToggle = () => {
