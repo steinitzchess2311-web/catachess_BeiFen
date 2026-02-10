@@ -61,13 +61,15 @@ const Header: React.FC<HeaderProps> = ({ username, isAuthed, userRole }) => {
         >
           <img src={logoImage} alt="ChessorTag" className="logo-image" />
         </Link>
+        {/* Navigation links moved here, next to logo */}
+        <nav className="header-center">
+          <Link to="/players" className="nav-link">Players</Link>
+          <Link to="/about" className="nav-link">About</Link>
+          <Link to="/blogs" className="nav-link">Blogs</Link>
+          <Link to="/sponsorship" className="nav-link" style={{ color: '#ff8c00', fontWeight: 600 }}>Sponsorship</Link>
+        </nav>
       </div>
-      <nav className="header-center" />
       <div className="header-right">
-        <Link to="/players" className="nav-link">Players</Link>
-        <Link to="/about" className="nav-link">About</Link>
-        <Link to="/blogs" className="nav-link">Blogs</Link>
-        <Link to="/sponsorship" className="nav-link" style={{ color: '#ff8c00', fontWeight: 600 }}>Sponsorship</Link>
         {isAuthed ? (
           <Link to="/account" className="username" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {displayName}
