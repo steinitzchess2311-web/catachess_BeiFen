@@ -28,8 +28,11 @@ export class ApiClient {
         const token =
             localStorage.getItem('catachess_token') ||
             sessionStorage.getItem('catachess_token');
+
+        // Don't set Content-Type for FormData (browser will set it with boundary)
+        const isFormData = options.body instanceof FormData;
         const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
             ...(options.headers as Record<string, string>),
         };
 
@@ -81,14 +84,14 @@ export class ApiClient {
     public post(endpoint: string, body: any) {
         return this.request(endpoint, {
             method: 'POST',
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         });
     }
 
     public put(endpoint: string, body: any) {
         return this.request(endpoint, {
             method: 'PUT',
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         });
     }
 
