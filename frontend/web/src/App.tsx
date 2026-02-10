@@ -320,8 +320,8 @@ function Layout() {
       // Landing page - position cat below "Join" text
       // "Join" is at the beginning of the right-aligned title
       return {
-        x: typeof window !== 'undefined' ? window.innerWidth * 0.44 : 800,
-        y: typeof window !== 'undefined' ? window.innerHeight * 0.33 : 350,
+        x: typeof window !== 'undefined' ? window.innerWidth * 0.47 : 800,
+        y: typeof window !== 'undefined' ? window.innerHeight * 0.36 : 350,
       };
     }
     // Default position for all other pages (bottom left)
@@ -357,7 +357,7 @@ function Layout() {
       <Header username={username} isAuthed={authed} userRole={userRole} />
       <main>
         <Routes>
-          <Route path="/" element={<LandingPage isAuthed={authed} />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
