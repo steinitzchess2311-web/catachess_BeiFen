@@ -44,10 +44,8 @@ const FoundersSection = () => {
             marginBottom: "0",
           }}
         >
-          This website is actually started and <strong>FULLY developed</strong> by 2 high
-          school students: <strong style={{ color: "#8b7355" }}>Quanhao Li </strong>and{" "}
-          <strong style={{ color: "#8b7355" }}>Jorlanda Chen</strong>. They are young dreamers,
-          PRO chess players, and are trying to easier chess players' lives:
+          This website was conceived, built, and fully developed by two high school students, <strong style={{ color: "#8b7355" }}>Quanhao Li</strong> and{" "}
+          <strong style={{ color: "#8b7355" }}>Jorlanda Chen</strong>. As competitive chess players and ambitious young innovators, they created this platform to make high-level chess training more accessible and effective for players everywhere.
         </p>
       </div>
       <div
