@@ -40,25 +40,6 @@ const ArticleImage: React.FC<ArticleImageProps> = ({
           e.currentTarget.style.transform = "scale(1)";
         }}
       />
-
-      {/* Category Badge */}
-      <div
-        style={{
-          position: "absolute",
-          top: "12px",
-          left: "12px",
-          background: "rgba(139, 115, 85, 0.9)",
-          color: "white",
-          padding: "6px 14px",
-          borderRadius: "6px",
-          fontSize: "0.75rem",
-          fontWeight: 600,
-          letterSpacing: "0.5px",
-          textTransform: "uppercase",
-        }}
-      >
-        {CATEGORY_LABELS[category] || category}
-      </div>
     </div>
   );
 };
