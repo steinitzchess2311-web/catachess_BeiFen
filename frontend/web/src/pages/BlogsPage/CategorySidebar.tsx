@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, ChevronRightIcon, ChevronLeftIcon } from "@radix-ui/react-icons";
 import pureLogo from "../../assets/chessortag_pure_logo.png";
 import BlogEditor from "./BlogEditor";
 
@@ -20,6 +20,8 @@ interface CategorySidebarProps {
   onViewModeChange: (mode: ViewMode) => void;  // Callback when view mode changes
   userRole: string | null;  // User role for permission checks
   userName: string | null;  // User name for author field
+  isOpen: boolean;  // Sidebar collapse state
+  onOpenChange: (open: boolean) => void;  // Callback when sidebar toggles
 }
 
 /**
@@ -34,6 +36,8 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   onViewModeChange,
   userRole,
   userName,
+  isOpen,
+  onOpenChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>(externalSearchQuery);
   const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
@@ -65,7 +69,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   };
 
   const handleUserBlogsClick = () => {
-    // Users' Blogs is now enabled - navigate to user category
+    // Community is now enabled - navigate to user category
     handleCategoryClick('user');
   };
 
@@ -77,7 +81,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
       'about': 'about',
       'function': 'function',
       'allblogs': undefined,  // Show all blogs, no filter
-      'user': 'user',  // Users' Blogs category
+      'user': 'user',  // Community category
     };
 
     onCategoryChange(categoryMap[categoryId]);
@@ -116,68 +120,200 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
 
       <div
         style={{
-          width: "280px",
+          width: isOpen ? "280px" : "60px",
           flexShrink: 0,
           background: "rgba(255, 255, 255, 0.85)",
           borderRadius: "12px",
-          padding: "25px 0",
+          padding: isOpen ? "25px 0" : "16px 0",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
           position: "sticky",
           top: "0",
           alignSelf: "flex-start",
+          transition: "width 0.3s ease, padding 0.3s ease",
+          overflow: isOpen ? "visible" : "hidden",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          {/* Pinned Articles */}
-          <button
-            onClick={() => {
-              onCategoryChange('pinned');
-              onViewModeChange('articles'); // Switch to articles view mode
-            }}
-            style={{
-              background: activeCategory === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
-              border: "none",
-              borderLeft: activeCategory === "pinned" ? "4px solid #8b7355" : "4px solid transparent",
-              padding: "14px 25px",
-              textAlign: "left",
-              cursor: "pointer",
-              fontSize: "0.95rem",
-              fontWeight: activeCategory === "pinned" ? 600 : 500,
-              color: activeCategory === "pinned" ? "#2c2c2c" : "#5a5a5a",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-            }}
-            onMouseEnter={(e) => {
-              if (activeCategory !== "pinned") {
-                e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeCategory !== "pinned") {
-                e.currentTarget.style.background = "transparent";
-              }
-            }}
-          >
-            <span style={{ fontSize: "1.2rem" }}>📌</span>
-            <span>Pinned Articles</span>
-          </button>
+        {/* Toggle Button */}
+        <button
+          onClick={() => onOpenChange(!isOpen)}
+          style={{
+            position: "absolute",
+            top: "12px",
+            right: "12px",
+            width: "32px",
+            height: "32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "none",
+            background: "rgba(139, 115, 85, 0.1)",
+            borderRadius: "6px",
+            cursor: "pointer",
+            color: "#8b7355",
+            transition: "all 0.2s ease",
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(139, 115, 85, 0.1)";
+          }}
+        >
+          {isOpen ? <ChevronLeftIcon width={20} height={20} /> : <ChevronRightIcon width={20} height={20} />}
+        </button>
 
-          {/* Chessortag Official - Collapsible */}
-          <Collapsible.Root open={isOfficialOpen} onOpenChange={setIsOfficialOpen}>
-            <Collapsible.Trigger asChild>
+        {isOpen && (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {/* Pinned Articles */}
               <button
+                onClick={() => {
+                  onCategoryChange('pinned');
+                  onViewModeChange('articles'); // Switch to articles view mode
+                }}
                 style={{
-                  background: isOfficialOpen ? "rgba(139, 115, 85, 0.1)" : "transparent",
+                  background: activeCategory === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
                   border: "none",
-                  borderLeft: isOfficialOpen ? "4px solid #8b7355" : "4px solid transparent",
+                  borderLeft: activeCategory === "pinned" ? "4px solid #8b7355" : "4px solid transparent",
                   padding: "14px 25px",
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "0.95rem",
-                  fontWeight: isOfficialOpen ? 600 : 500,
-                  color: isOfficialOpen ? "#2c2c2c" : "#5a5a5a",
+                  fontWeight: activeCategory === "pinned" ? 600 : 500,
+                  color: activeCategory === "pinned" ? "#2c2c2c" : "#5a5a5a",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeCategory !== "pinned") {
+                    e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeCategory !== "pinned") {
+                    e.currentTarget.style.background = "transparent";
+                  }
+                }}
+              >
+                <span style={{ fontSize: "1.2rem" }}>📌</span>
+                <span>Pinned Articles</span>
+              </button>
+
+              {/* Chessortag Official - Collapsible */}
+              <Collapsible.Root open={isOfficialOpen} onOpenChange={setIsOfficialOpen}>
+                <Collapsible.Trigger asChild>
+                  <button
+                    style={{
+                      background: isOfficialOpen ? "rgba(139, 115, 85, 0.1)" : "transparent",
+                      border: "none",
+                      borderLeft: isOfficialOpen ? "4px solid #8b7355" : "4px solid transparent",
+                      padding: "14px 25px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "0.95rem",
+                      fontWeight: isOfficialOpen ? 600 : 500,
+                      color: isOfficialOpen ? "#2c2c2c" : "#5a5a5a",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      width: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isOfficialOpen) {
+                        e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isOfficialOpen) {
+                        e.currentTarget.style.background = "transparent";
+                      }
+                    }}
+                  >
+                    <img
+                      src={pureLogo}
+                      alt="Chessortag"
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        objectFit: "contain",
+                      }}
+                    />
+                    <span style={{ flex: 1 }}>Chessortag Official</span>
+                    {isOfficialOpen ? (
+                      <ChevronDownIcon style={{ width: "18px", height: "18px" }} />
+                    ) : (
+                      <ChevronRightIcon style={{ width: "18px", height: "18px" }} />
+                    )}
+                  </button>
+                </Collapsible.Trigger>
+
+                <Collapsible.Content
+                  style={{
+                    overflow: "hidden",
+                    transition: "all 0.3s cubic-bezier(0.87, 0, 0.13, 1)",
+                  }}
+                >
+                  <div
+                    style={{
+                      paddingLeft: "54px",
+                      paddingTop: "4px",
+                      paddingBottom: "4px",
+                    }}
+                  >
+                    {officialSubItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleCategoryClick(item.id)}
+                        style={{
+                          background: activeCategory === item.id ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                          border: "none",
+                          padding: "10px 25px 10px 20px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          fontSize: "0.9rem",
+                          fontWeight: activeCategory === item.id ? 600 : 400,
+                          color: activeCategory === item.id ? "#8b7355" : "#6a6a6a",
+                          transition: "all 0.15s ease",
+                          display: "block",
+                          width: "100%",
+                          borderRadius: "6px",
+                          marginBottom: "2px",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "rgba(139, 115, 85, 0.08)";
+                          e.currentTarget.style.color = "#8b7355";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (activeCategory !== item.id) {
+                            e.currentTarget.style.background = "transparent";
+                            e.currentTarget.style.color = "#6a6a6a";
+                          }
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </Collapsible.Content>
+              </Collapsible.Root>
+
+              {/* Community */}
+              <button
+                onClick={handleUserBlogsClick}
+                style={{
+                  background: activeCategory === "user" ? "rgba(139, 115, 85, 0.1)" : "transparent",
+                  border: "none",
+                  borderLeft: activeCategory === "user" ? "4px solid #8b7355" : "4px solid transparent",
+                  padding: "14px 25px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontSize: "0.95rem",
+                  fontWeight: activeCategory === "user" ? 600 : 500,
+                  color: activeCategory === "user" ? "#2c2c2c" : "#5a5a5a",
                   transition: "all 0.2s ease",
                   display: "flex",
                   alignItems: "center",
@@ -185,308 +321,354 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
                   width: "100%",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isOfficialOpen) {
+                  if (activeCategory !== "user") {
                     e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isOfficialOpen) {
+                  if (activeCategory !== "user") {
                     e.currentTarget.style.background = "transparent";
                   }
                 }}
               >
-                <img
-                  src={pureLogo}
-                  alt="Chessortag"
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    objectFit: "contain",
-                  }}
-                />
-                <span style={{ flex: 1 }}>Chessortag Official</span>
-                {isOfficialOpen ? (
-                  <ChevronDownIcon style={{ width: "18px", height: "18px" }} />
-                ) : (
-                  <ChevronRightIcon style={{ width: "18px", height: "18px" }} />
-                )}
+                <span style={{ fontSize: "1.2rem" }}>✍️</span>
+                <span style={{ flex: 1 }}>Community</span>
               </button>
-            </Collapsible.Trigger>
+            </div>
 
-            <Collapsible.Content
+            {/* Search Section */}
+            <div
               style={{
-                overflow: "hidden",
-                transition: "all 0.3s cubic-bezier(0.87, 0, 0.13, 1)",
+                marginTop: "30px",
+                paddingTop: "20px",
+                borderTop: "1px solid rgba(139, 115, 85, 0.15)",
+                paddingLeft: "25px",
+                paddingRight: "25px",
               }}
             >
               <div
                 style={{
-                  paddingLeft: "54px",
-                  paddingTop: "4px",
-                  paddingBottom: "4px",
+                  position: "relative",
+                  width: "100%",
                 }}
               >
-                {officialSubItems.map((item) => (
+                <input
+                  type="text"
+                  placeholder="Search articles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 32px 8px 12px",
+                    border: "1px solid rgba(139, 115, 85, 0.3)",
+                    borderRadius: "6px",
+                    fontSize: "0.9rem",
+                    color: "#2c2c2c",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    boxSizing: "border-box",
+                    transition: "all 0.2s ease",
+                    outline: "none",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#8b7355";
+                    e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 115, 85, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                />
+                {searchQuery && (
                   <button
-                    key={item.id}
-                    onClick={() => handleCategoryClick(item.id)}
+                    onClick={handleSearchClear}
                     style={{
-                      background: activeCategory === item.id ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                      position: "absolute",
+                      top: "50%",
+                      right: "8px",
+                      transform: "translateY(-50%)",
+                      width: "20px",
+                      height: "20px",
                       border: "none",
-                      padding: "10px 25px 10px 20px",
-                      textAlign: "left",
+                      background: "rgba(139, 115, 85, 0.2)",
+                      borderRadius: "50%",
+                      fontSize: "14px",
+                      lineHeight: "1",
+                      color: "#5a5a5a",
                       cursor: "pointer",
-                      fontSize: "0.9rem",
-                      fontWeight: activeCategory === item.id ? 600 : 400,
-                      color: activeCategory === item.id ? "#8b7355" : "#6a6a6a",
-                      transition: "all 0.15s ease",
-                      display: "block",
-                      width: "100%",
-                      borderRadius: "6px",
-                      marginBottom: "2px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "background 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(139, 115, 85, 0.08)";
-                      e.currentTarget.style.color = "#8b7355";
+                      e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
                     }}
                     onMouseLeave={(e) => {
-                      if (activeCategory !== item.id) {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#6a6a6a";
-                      }
+                      e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
                     }}
                   >
-                    {item.label}
+                    ×
                   </button>
-                ))}
+                )}
               </div>
-            </Collapsible.Content>
-          </Collapsible.Root>
+            </div>
 
-          {/* Users' Blogs */}
-          <button
-            onClick={handleUserBlogsClick}
-            style={{
-              background: activeCategory === "user" ? "rgba(139, 115, 85, 0.1)" : "transparent",
-              border: "none",
-              borderLeft: activeCategory === "user" ? "4px solid #8b7355" : "4px solid transparent",
-              padding: "14px 25px",
-              textAlign: "left",
-              cursor: "pointer",
-              fontSize: "0.95rem",
-              fontWeight: activeCategory === "user" ? 600 : 500,
-              color: activeCategory === "user" ? "#2c2c2c" : "#5a5a5a",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              width: "100%",
-            }}
-            onMouseEnter={(e) => {
-              if (activeCategory !== "user") {
-                e.currentTarget.style.background = "rgba(139, 115, 85, 0.05)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeCategory !== "user") {
-                e.currentTarget.style.background = "transparent";
-              }
-            }}
-          >
-            <span style={{ fontSize: "1.2rem" }}>✍️</span>
-            <span style={{ flex: 1 }}>Users' Blogs</span>
-          </button>
-        </div>
+            {/* User Actions Section - Only show for Editor/Admin */}
+            {(userRole === 'editor' || userRole === 'admin') && (
+              <div
+                style={{
+                  marginTop: "20px",
+                  paddingTop: "20px",
+                  borderTop: "1px solid rgba(139, 115, 85, 0.15)",
+                  paddingLeft: "25px",
+                  paddingRight: "25px",
+                }}
+              >
+                {/* Create Button */}
+                <button
+                  onClick={() => setEditorOpen(true)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    fontSize: "0.95rem",
+                    fontWeight: 500,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: "#4a9eff",
+                    backgroundColor: "transparent",
+                    border: "2px solid #4a9eff",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    marginBottom: "12px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(74, 158, 255, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = "scale(0.97)";
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  + Create Article
+                </button>
 
-        {/* Search Section */}
-        <div
-          style={{
-            marginTop: "30px",
-            paddingTop: "20px",
-            borderTop: "1px solid rgba(139, 115, 85, 0.15)",
-            paddingLeft: "25px",
-            paddingRight: "25px",
-          }}
-        >
+                {/* Draft Box Button */}
+                <button
+                  onClick={() => onViewModeChange('drafts')}
+                  style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    fontSize: "0.9rem",
+                    fontWeight: 500,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: viewMode === 'drafts' ? "#8b7355" : "#5a5a5a",
+                    backgroundColor: viewMode === 'drafts' ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                    border: "1px solid rgba(139, 115, 85, 0.3)",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (viewMode !== 'drafts') {
+                      e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (viewMode !== 'drafts') {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  <span>📝</span>
+                  <span>Draft Box</span>
+                </button>
+
+                {/* My Published Blogs Button */}
+                <button
+                  onClick={() => onViewModeChange('my-published')}
+                  style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    fontSize: "0.9rem",
+                    fontWeight: 500,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: viewMode === 'my-published' ? "#8b7355" : "#5a5a5a",
+                    backgroundColor: viewMode === 'my-published' ? "rgba(139, 115, 85, 0.08)" : "transparent",
+                    border: "1px solid rgba(139, 115, 85, 0.3)",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (viewMode !== 'my-published') {
+                      e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (viewMode !== 'my-published') {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  <span>📚</span>
+                  <span>My Published Blogs</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Collapsed State - Minimal Icon View */}
+        {!isOpen && (
           <div
             style={{
-              position: "relative",
-              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
+              paddingTop: "20px",
             }}
           >
-            <input
-              type="text"
-              placeholder="Search articles..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            {/* Pinned Icon */}
+            <button
+              onClick={() => {
+                onCategoryChange('pinned');
+                onViewModeChange('articles');
+              }}
               style={{
-                width: "100%",
-                padding: "8px 32px 8px 12px",
-                border: "1px solid rgba(139, 115, 85, 0.3)",
-                borderRadius: "6px",
-                fontSize: "0.9rem",
-                color: "#2c2c2c",
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-                boxSizing: "border-box",
+                width: "36px",
+                height: "36px",
+                border: "none",
+                background: activeCategory === "pinned" ? "rgba(139, 115, 85, 0.2)" : "transparent",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "1.2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 transition: "all 0.2s ease",
-                outline: "none",
               }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#8b7355";
-                e.currentTarget.style.boxShadow = "0 0 0 2px rgba(139, 115, 85, 0.1)";
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
               }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
-                e.currentTarget.style.boxShadow = "none";
+              onMouseLeave={(e) => {
+                if (activeCategory !== "pinned") {
+                  e.currentTarget.style.background = "transparent";
+                }
               }}
-            />
-            {searchQuery && (
-              <button
-                onClick={handleSearchClear}
+              title="Pinned Articles"
+            >
+              📌
+            </button>
+
+            {/* Official Logo Icon */}
+            <button
+              onClick={() => setIsOfficialOpen(!isOfficialOpen)}
+              style={{
+                width: "36px",
+                height: "36px",
+                border: "none",
+                background: isOfficialOpen ? "rgba(139, 115, 85, 0.2)" : "transparent",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s ease",
+                padding: "6px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
+              }}
+              onMouseLeave={(e) => {
+                if (!isOfficialOpen) {
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
+              title="Chessortag Official"
+            >
+              <img
+                src={pureLogo}
+                alt="Chessortag"
                 style={{
-                  position: "absolute",
-                  top: "50%",
-                  right: "8px",
-                  transform: "translateY(-50%)",
-                  width: "20px",
-                  height: "20px",
-                  border: "none",
-                  background: "rgba(139, 115, 85, 0.2)",
-                  borderRadius: "50%",
-                  fontSize: "14px",
-                  lineHeight: "1",
-                  color: "#5a5a5a",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </button>
+
+            {/* Community Icon */}
+            <button
+              onClick={handleUserBlogsClick}
+              style={{
+                width: "36px",
+                height: "36px",
+                border: "none",
+                background: activeCategory === "user" ? "rgba(139, 115, 85, 0.2)" : "transparent",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "1.2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
+              }}
+              onMouseLeave={(e) => {
+                if (activeCategory !== "user") {
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
+              title="Community"
+            >
+              ✍️
+            </button>
+
+            {/* Create Button - Only for Editor/Admin */}
+            {(userRole === 'editor' || userRole === 'admin') && (
+              <button
+                onClick={() => setEditorOpen(true)}
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  border: "2px solid #4a9eff",
+                  background: "transparent",
+                  borderRadius: "8px",
                   cursor: "pointer",
+                  fontSize: "1.2rem",
+                  color: "#4a9eff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "background 0.2s ease",
+                  transition: "all 0.2s ease",
+                  marginTop: "20px",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
+                  e.currentTarget.style.backgroundColor = "rgba(74, 158, 255, 0.08)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+                  e.currentTarget.style.backgroundColor = "transparent";
                 }}
+                title="Create Article"
               >
-                ×
+                +
               </button>
             )}
-          </div>
-        </div>
-
-        {/* User Actions Section - Only show for Editor/Admin */}
-        {(userRole === 'editor' || userRole === 'admin') && (
-          <div
-            style={{
-              marginTop: "20px",
-              paddingTop: "20px",
-              borderTop: "1px solid rgba(139, 115, 85, 0.15)",
-              paddingLeft: "25px",
-              paddingRight: "25px",
-            }}
-          >
-            {/* Create Button */}
-            <button
-              onClick={() => setEditorOpen(true)}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                fontSize: "0.95rem",
-                fontWeight: 500,
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                color: "#4a9eff",
-                backgroundColor: "transparent",
-                border: "2px solid #4a9eff",
-                borderRadius: "8px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                marginBottom: "12px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(74, 158, 255, 0.08)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = "scale(0.97)";
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              + Create Article
-            </button>
-
-            {/* Draft Box Button */}
-            <button
-              onClick={() => onViewModeChange('drafts')}
-              style={{
-                width: "100%",
-                padding: "10px 16px",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                color: viewMode === 'drafts' ? "#8b7355" : "#5a5a5a",
-                backgroundColor: viewMode === 'drafts' ? "rgba(139, 115, 85, 0.08)" : "transparent",
-                border: "1px solid rgba(139, 115, 85, 0.3)",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                marginBottom: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-              onMouseEnter={(e) => {
-                if (viewMode !== 'drafts') {
-                  e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.05)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (viewMode !== 'drafts') {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
-            >
-              <span>📝</span>
-              <span>Draft Box</span>
-            </button>
-
-            {/* My Published Blogs Button */}
-            <button
-              onClick={() => onViewModeChange('my-published')}
-              style={{
-                width: "100%",
-                padding: "10px 16px",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                color: viewMode === 'my-published' ? "#8b7355" : "#5a5a5a",
-                backgroundColor: viewMode === 'my-published' ? "rgba(139, 115, 85, 0.08)" : "transparent",
-                border: "1px solid rgba(139, 115, 85, 0.3)",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-              onMouseEnter={(e) => {
-                if (viewMode !== 'my-published') {
-                  e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.05)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (viewMode !== 'my-published') {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
-            >
-              <span>📚</span>
-              <span>My Published Blogs</span>
-            </button>
           </div>
         )}
       </div>

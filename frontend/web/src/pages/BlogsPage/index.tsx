@@ -21,6 +21,7 @@ const BlogsPage = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('articles');
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
 
   // Extract current state from URL params
   const category = searchParams.get('category') || undefined;
@@ -139,6 +140,8 @@ const BlogsPage = () => {
               onViewModeChange={setViewMode}
               userRole={userRole}
               userName={userName}
+              isOpen={sidebarOpen}
+              onOpenChange={setSidebarOpen}
             />
             <ContentArea
               category={category}

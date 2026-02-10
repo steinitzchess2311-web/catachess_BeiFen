@@ -324,7 +324,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                           <Select.Separator style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '8px 0' }} />
                           <Select.Group>
                             <Select.Label style={{ padding: '8px 12px', fontSize: '0.8rem', color: '#8b7355', fontWeight: 700 }}>
-                              ✍️ Users' Blogs
+                              ✍️ Community
                             </Select.Label>
                             <SelectItem value="user">User Content</SelectItem>
                           </Select.Group>
@@ -343,7 +343,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                     backgroundColor: '#f5f5f5',
                     color: '#5a5a5a'
                   }}>
-                    ✍️ Users' Blogs (User Content)
+                    ✍️ Community (User Content)
                   </div>
                 )}
               </div>

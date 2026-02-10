@@ -145,7 +145,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              gridTemplateColumns: "repeat(3, 1fr)",
               gap: "24px",
               marginBottom: "20px",
             }}
