@@ -3,9 +3,9 @@ import React from "react";
 const Promises = () => {
   const promises = [
     {
-      title: "We promise to be forever FREE to everyone.",
+      title: "No Violation of rights:",
       description:
-        "All functions are free for all users. However, donators get bragging rights with cute little pets on your page.",
+        "Your imported games would not be confidential to the third party.",
       icon: "🎁",
     },
     {
