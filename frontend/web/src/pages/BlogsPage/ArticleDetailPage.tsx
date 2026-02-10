@@ -3,8 +3,10 @@
  * Displays complete article with Markdown rendering
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { EyeOpenIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
+import { HandIcon } from "@radix-ui/react-icons";
 import { useBlogArticle } from "../../hooks/useBlogArticle";
 import MarkdownRenderer from "./components/MarkdownRenderer";
 import LoadingState from "./components/LoadingState";
@@ -19,6 +21,22 @@ const ArticleDetailPage: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const navigate = useNavigate();
   const { article, loading, error } = useBlogArticle(articleId);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  // Initialize like count when article loads
+  React.useEffect(() => {
+    if (article) {
+      setLikeCount(article.like_count || 0);
+    }
+  }, [article]);
+
+  // Handle like toggle
+  const handleLikeToggle = () => {
+    setIsLiked(!isLiked);
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    // TODO: Call API to update like count
+  };
 
   // Loading state
   if (loading) {
@@ -310,14 +328,76 @@ const ArticleDetailPage: React.FC = () => {
                   paddingTop: "24px",
                   borderTop: "1px solid rgba(139, 115, 85, 0.15)",
                   display: "flex",
-                  gap: "24px",
-                  fontSize: "0.9rem",
-                  color: "#8a8a8a",
+                  gap: "32px",
+                  fontSize: "0.95rem",
+                  alignItems: "center",
                 }}
               >
-                <div>👁️ {article.view_count} views</div>
-                <div>❤️ {article.like_count} likes</div>
-                <div>💬 {article.comment_count} comments</div>
+                {/* Views */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: "#6a6a6a",
+                  }}
+                >
+                  <EyeOpenIcon width={18} height={18} />
+                  <span>{article.view_count || 0}</span>
+                </div>
+
+                {/* Likes - Interactive */}
+                <button
+                  onClick={handleLikeToggle}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: isLiked ? "#8b7355" : "#6a6a6a",
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontSize: "0.95rem",
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLiked) {
+                      e.currentTarget.style.color = "#8b7355";
+                      e.currentTarget.style.backgroundColor = "rgba(139, 115, 85, 0.08)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLiked) {
+                      e.currentTarget.style.color = "#6a6a6a";
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  <HandIcon
+                    width={18}
+                    height={18}
+                    style={{
+                      fill: isLiked ? "#8b7355" : "none",
+                      transform: "rotate(0deg)"
+                    }}
+                  />
+                  <span>{likeCount}</span>
+                </button>
+
+                {/* Comments */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: "#6a6a6a",
+                  }}
+                >
+                  <ChatBubbleIcon width={18} height={18} />
+                  <span>{article.comment_count || 0}</span>
+                </div>
               </div>
             </div>
           </article>
