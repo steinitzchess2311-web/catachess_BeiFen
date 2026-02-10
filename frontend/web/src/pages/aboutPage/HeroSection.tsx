@@ -27,7 +27,7 @@ const HeroSection = () => {
           marginBottom: "0",
         }}
       >
-        AKA Why are we SOOOO Great!
+        --We introduce you to the one and only, 24k, ChessorTag!
       </p>
     </div>
   );
