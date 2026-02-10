@@ -103,18 +103,18 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
                 onViewModeChange={onViewModeChange}
               />
 
+              {/* Community */}
+              <CommunityButton
+                activeCategory={activeCategory}
+                onUserBlogsClick={handleUserBlogsClick}
+              />
+
               {/* Chessortag Official - Collapsible */}
               <OfficialSection
                 activeCategory={activeCategory}
                 isOfficialOpen={isOfficialOpen}
                 setIsOfficialOpen={setIsOfficialOpen}
                 onCategoryClick={handleCategoryClick}
-              />
-
-              {/* Community */}
-              <CommunityButton
-                activeCategory={activeCategory}
-                onUserBlogsClick={handleUserBlogsClick}
               />
             </div>
 

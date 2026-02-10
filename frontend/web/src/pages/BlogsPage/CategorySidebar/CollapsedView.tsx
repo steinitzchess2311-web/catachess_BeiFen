@@ -58,6 +58,35 @@ const CollapsedView: React.FC<CollapsedViewProps> = ({
         📌
       </button>
 
+      {/* Community Icon */}
+      <button
+        onClick={onUserBlogsClick}
+        style={{
+          width: "36px",
+          height: "36px",
+          border: "none",
+          background: activeCategory === "user" ? "rgba(139, 115, 85, 0.2)" : "transparent",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontSize: "1.2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
+        }}
+        onMouseLeave={(e) => {
+          if (activeCategory !== "user") {
+            e.currentTarget.style.background = "transparent";
+          }
+        }}
+        title="Community"
+      >
+        ✍️
+      </button>
+
       {/* Official Logo Icon - Navigate to all official blogs */}
       <button
         onClick={() => {
@@ -96,35 +125,6 @@ const CollapsedView: React.FC<CollapsedViewProps> = ({
             objectFit: "contain",
           }}
         />
-      </button>
-
-      {/* Community Icon */}
-      <button
-        onClick={onUserBlogsClick}
-        style={{
-          width: "36px",
-          height: "36px",
-          border: "none",
-          background: activeCategory === "user" ? "rgba(139, 115, 85, 0.2)" : "transparent",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontSize: "1.2rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
-        }}
-        onMouseLeave={(e) => {
-          if (activeCategory !== "user") {
-            e.currentTarget.style.background = "transparent";
-          }
-        }}
-        title="Community"
-      >
-        ✍️
       </button>
 
       {/* Create Button - Only for Editor/Admin */}
