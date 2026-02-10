@@ -72,10 +72,11 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   // Handle category click
   const handleCategoryClick = (categoryId: string) => {
     // Map UI category IDs to API category values
+    // 'allblogs' shows all articles (no category filter)
     const categoryMap: { [key: string]: string | undefined } = {
       'about': 'about',
       'function': 'function',
-      'allblogs': 'allblogs',
+      'allblogs': undefined,  // Show all blogs, no filter
       'user': 'user',  // Users' Blogs category
     };
 
@@ -83,7 +84,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   };
 
   const officialSubItems = [
-    { id: "about", label: "About Us" },
+    { id: "about", label: "Our Stories" },
     { id: "function", label: "Function Intro" },
     { id: "allblogs", label: "All Blogs" },
   ];

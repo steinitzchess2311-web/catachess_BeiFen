@@ -318,9 +318,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                             <Select.Label style={{ padding: '8px 12px', fontSize: '0.8rem', color: '#8b7355', fontWeight: 700 }}>
                               📖 ChessorTag Official
                             </Select.Label>
-                            <SelectItem value="about">About Us</SelectItem>
+                            <SelectItem value="about">Our Stories</SelectItem>
                             <SelectItem value="function">Function Intro</SelectItem>
-                            <SelectItem value="allblogs">All Blogs</SelectItem>
                           </Select.Group>
                           <Select.Separator style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '8px 0' }} />
                           <Select.Group>

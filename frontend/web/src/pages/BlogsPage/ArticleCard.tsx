@@ -48,7 +48,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   // Map category codes to display labels
   const categoryLabels: { [key: string]: string } = {
-    'about': 'About Us',
+    'about': 'Our Stories',
     'function': 'Function',
     'allblogs': 'Blog',
     'user': 'User'
