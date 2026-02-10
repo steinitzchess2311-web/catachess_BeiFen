@@ -1,0 +1,62 @@
+import React, { useState, useEffect } from "react";
+import logo from "../../assets/chessortag_pure_logo.png";
+
+/**
+ * IntroAnimation - Splash screen with logo fade-in/fade-out effect
+ * Shows a black screen with inverted logo, then fades out to reveal the landing page
+ */
+const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
+  const [opacity, setOpacity] = useState(1);
+
+  useEffect(() => {
+    // Start fading out after 1.5 seconds
+    const fadeTimer = setTimeout(() => {
+      setOpacity(0);
+    }, 1500);
+
+    // Complete animation after fade out (1.5s delay + 1s fade)
+    const completeTimer = setTimeout(() => {
+      onComplete();
+    }, 2500);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onComplete]);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "#000",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+        opacity: opacity,
+        transition: "opacity 1s ease-out",
+        pointerEvents: opacity === 0 ? "none" : "auto",
+      }}
+    >
+      <img
+        src={logo}
+        alt="ChessorTag Logo"
+        style={{
+          width: "200px",
+          height: "200px",
+          objectFit: "contain",
+          filter: "invert(1)", // Invert colors: black background, white logo
+          opacity: opacity > 0 ? 1 : 0,
+          transition: "opacity 0.8s ease-out",
+        }}
+      />
+    </div>
+  );
+};
+
+export default IntroAnimation;
