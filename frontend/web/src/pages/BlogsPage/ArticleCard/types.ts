@@ -41,6 +41,10 @@ export interface ActionButtonsProps {
   onDeleteClick: (e: React.MouseEvent) => void;
   onPinToggle: (e: React.MouseEvent) => void;
   deleteButtonRef: React.RefObject<HTMLButtonElement>;
+  showDeleteConfirm: boolean;
+  dialogRef: React.RefObject<HTMLDivElement>;
+  onConfirmDelete: () => void;
+  onCancelDelete: () => void;
 }
 
 export interface DeleteConfirmDialogProps {

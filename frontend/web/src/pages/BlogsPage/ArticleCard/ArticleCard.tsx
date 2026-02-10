@@ -18,7 +18,6 @@ import ArticleImage from "./ArticleImage";
 import ArticleContent from "./ArticleContent";
 import ArticleMeta from "./ArticleMeta";
 import ActionButtons from "./ActionButtons";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
@@ -155,7 +154,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              position: "relative",  // Required for DeleteConfirmDialog positioning
             }}
           >
             <ArticleContent
@@ -178,13 +176,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               onDeleteClick={handleDeleteClick}
               onPinToggle={handlePinToggle}
               deleteButtonRef={deleteButtonRef}
-            />
-
-            <DeleteConfirmDialog
-              show={showDeleteConfirm && canDelete}
+              showDeleteConfirm={showDeleteConfirm}
               dialogRef={dialogRef}
-              onConfirm={confirmDelete}
-              onCancel={cancelDelete}
+              onConfirmDelete={confirmDelete}
+              onCancelDelete={cancelDelete}
             />
           </div>
         </article>
