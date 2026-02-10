@@ -61,7 +61,9 @@ const RecentArticlesHistory: React.FC = () => {
         <Dialog.Overlay className="recent-articles-overlay" />
         <Dialog.Content className="recent-articles-content">
           <div className="recent-articles-header">
-            <div className="recent-articles-icon">🕐</div>
+            <div className="recent-articles-icon">
+              <CounterClockwiseClockIcon width={24} height={24} />
+            </div>
             <Dialog.Title className="recent-articles-title">
               Recent Articles
             </Dialog.Title>
@@ -99,17 +101,15 @@ const RecentArticlesHistory: React.FC = () => {
                       onClick={() => handleArticleClick(article.id)}
                       className="recent-articles-item"
                     >
-                      <div className="recent-articles-item-meta">
-                        <span className="recent-articles-item-number">
-                          {index + 1}
-                        </span>
-                        <span className="recent-articles-item-time">
-                          {formatRelativeTime(article.timestamp)}
-                        </span>
-                      </div>
+                      <span className="recent-articles-item-number">
+                        {index + 1}
+                      </span>
                       <h3 className="recent-articles-item-title">
                         {article.title}
                       </h3>
+                      <span className="recent-articles-item-time">
+                        {formatRelativeTime(article.timestamp)}
+                      </span>
                     </button>
                   </li>
                 ))}

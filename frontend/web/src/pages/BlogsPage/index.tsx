@@ -48,7 +48,8 @@ const BlogsPage = () => {
   }, [isDetailView]);
 
   // Extract current state from URL params
-  const categoryParam = searchParams.get('category') || undefined;
+  // Default to 'pinned' category if no category specified
+  const categoryParam = searchParams.get('category') || 'pinned';
   const search = searchParams.get('search') || undefined;
   const page = parseInt(searchParams.get('page') || '1', 10);
 
