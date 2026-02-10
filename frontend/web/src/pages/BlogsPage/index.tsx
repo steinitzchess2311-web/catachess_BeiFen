@@ -47,9 +47,13 @@ const BlogsPage = () => {
   }, [isDetailView]);
 
   // Extract current state from URL params
-  const category = searchParams.get('category') || undefined;
+  const categoryParam = searchParams.get('category') || undefined;
   const search = searchParams.get('search') || undefined;
   const page = parseInt(searchParams.get('page') || '1', 10);
+
+  // Map 'official' category to undefined for API calls (shows all official blogs)
+  // Keep original categoryParam for UI display
+  const category = categoryParam === 'official' ? undefined : categoryParam;
 
   // Check user info on mount
   useEffect(() => {
@@ -116,8 +120,8 @@ const BlogsPage = () => {
     // Navigate to /blogs with new search (clears articleId from URL)
     const params = new URLSearchParams();
 
-    if (category) {
-      params.set('category', category);
+    if (categoryParam) {
+      params.set('category', categoryParam);
     }
 
     if (newSearch) {
@@ -167,7 +171,7 @@ const BlogsPage = () => {
             }}
           >
             <CategorySidebar
-              activeCategory={category}
+              activeCategory={categoryParam}
               searchQuery={search}
               onCategoryChange={handleCategoryChange}
               onSearchChange={handleSearchChange}
@@ -182,7 +186,7 @@ const BlogsPage = () => {
             {/* Content Column: Header + Content */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <BlogHeader
-                activeCategory={category}
+                activeCategory={categoryParam}
                 searchQuery={search}
                 onSearchChange={handleSearchChange}
                 viewMode={viewMode}

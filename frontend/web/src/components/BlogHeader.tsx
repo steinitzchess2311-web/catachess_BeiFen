@@ -24,6 +24,7 @@ const CATEGORY_LABELS: { [key: string]: string } = {
   'about': 'Our Stories',
   'function': 'Functions Intro',
   'user': 'Community',
+  'official': 'Chessortag Official',
 };
 
 const VIEW_MODE_LABELS: { [key in ViewMode]: string } = {
