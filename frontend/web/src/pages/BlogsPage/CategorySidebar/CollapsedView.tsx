@@ -58,14 +58,17 @@ const CollapsedView: React.FC<CollapsedViewProps> = ({
         📌
       </button>
 
-      {/* Official Logo Icon */}
+      {/* Official Logo Icon - Navigate to all official blogs */}
       <button
-        onClick={() => setIsOfficialOpen(!isOfficialOpen)}
+        onClick={() => {
+          onCategoryChange('allblogs');
+          onViewModeChange('articles');
+        }}
         style={{
           width: "36px",
           height: "36px",
           border: "none",
-          background: isOfficialOpen ? "rgba(139, 115, 85, 0.2)" : "transparent",
+          background: (activeCategory === undefined || activeCategory === 'allblogs') ? "rgba(139, 115, 85, 0.2)" : "transparent",
           borderRadius: "8px",
           cursor: "pointer",
           display: "flex",
@@ -78,7 +81,7 @@ const CollapsedView: React.FC<CollapsedViewProps> = ({
           e.currentTarget.style.background = "rgba(139, 115, 85, 0.15)";
         }}
         onMouseLeave={(e) => {
-          if (!isOfficialOpen) {
+          if (activeCategory !== undefined && activeCategory !== 'allblogs') {
             e.currentTarget.style.background = "transparent";
           }
         }}

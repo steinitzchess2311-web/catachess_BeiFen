@@ -37,12 +37,13 @@ const BlogsPage = () => {
   );
 
   // Auto-collapse sidebar when entering detail view
+  // Don't auto-expand when exiting detail view - preserve user's preference
   useEffect(() => {
     if (isDetailView) {
       setSidebarOpen(false);
-    } else {
-      setSidebarOpen(true);
     }
+    // Removed: else { setSidebarOpen(true); }
+    // User should manually control sidebar expansion
   }, [isDetailView]);
 
   // Extract current state from URL params
