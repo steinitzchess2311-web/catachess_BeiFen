@@ -146,6 +146,7 @@ const ArticleDetailPage: React.FC = () => {
           minHeight: "100vh",
           background: "linear-gradient(135deg, #f8f4f0 0%, #e8ddd0 100%)",
           padding: "80px 24px 40px",
+          overflowY: "auto",
         }}
       >
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>

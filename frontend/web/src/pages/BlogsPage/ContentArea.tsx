@@ -1,16 +1,20 @@
 /**
  * ContentArea component - Main blog article list display
  * Fetches and displays paginated blog articles with loading/error/empty states
+ * Supports three view modes: articles, drafts, my-published
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useBlogArticles } from "../../hooks/useBlogArticles";
+import { blogApi } from "../../utils/blogApi";
+import { BlogArticle } from "../../types/blog";
 import ArticleCard from "./ArticleCard";
 import LoadingState from "./components/LoadingState";
 import EmptyState from "./components/EmptyState";
 import ErrorState from "./components/ErrorState";
 import Pagination from "./components/Pagination";
-import CreateButton from "./CreateButton";
+
+type ViewMode = 'articles' | 'drafts' | 'my-published';
 
 interface ContentAreaProps {
   category?: string;  // Category filter (about, function, allblogs)
@@ -18,11 +22,13 @@ interface ContentAreaProps {
   page?: number;      // Current page number
   onPageChange: (page: number) => void;  // Callback for page changes
   userRole?: string | null;  // User's role for showing create button
+  viewMode: ViewMode;  // View mode: articles, drafts, or my-published
 }
 
 /**
  * Main content area that displays blog articles in a grid
- * Handles all data fetching and state management via useBlogArticles hook
+ * Handles all data fetching and state management
+ * Supports three view modes: articles (paginated), drafts (user's drafts), my-published (user's published)
  */
 const ContentArea: React.FC<ContentAreaProps> = ({
   category,
@@ -30,8 +36,14 @@ const ContentArea: React.FC<ContentAreaProps> = ({
   page = 1,
   onPageChange,
   userRole,
+  viewMode,
 }) => {
-  // Fetch articles with current filters
+  // State for drafts and my-published views
+  const [myArticles, setMyArticles] = useState<BlogArticle[]>([]);
+  const [myLoading, setMyLoading] = useState(false);
+  const [myError, setMyError] = useState<Error | null>(null);
+
+  // Fetch articles with current filters (for 'articles' view mode)
   const { articles, loading, error, pagination } = useBlogArticles({
     category,
     search,
@@ -39,11 +51,70 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     page_size: 10,
   });
 
+  // Fetch drafts or my-published articles when view mode changes
+  useEffect(() => {
+    const fetchMyArticles = async () => {
+      if (viewMode === 'articles') return; // Skip for articles view
+
+      setMyLoading(true);
+      setMyError(null);
+
+      try {
+        let data: BlogArticle[];
+        if (viewMode === 'drafts') {
+          data = await blogApi.getMyDrafts();
+        } else {
+          data = await blogApi.getMyPublished();
+        }
+        setMyArticles(data);
+      } catch (err) {
+        setMyError(err instanceof Error ? err : new Error('Failed to fetch articles'));
+      } finally {
+        setMyLoading(false);
+      }
+    };
+
+    fetchMyArticles();
+  }, [viewMode]);
+
+  // Handle article deletion
+  const handleDelete = (articleId: string) => {
+    if (viewMode === 'articles') {
+      // Refresh articles view - this will be handled by useBlogArticles hook automatically
+      // Or we can trigger a manual refetch here
+      window.location.reload(); // Simple approach for now
+    } else {
+      // Remove from local state for drafts/my-published views
+      setMyArticles(prev => prev.filter(article => article.id !== articleId));
+    }
+  };
+
+  // Handle pin toggle
+  const handlePinToggle = (articleId: string) => {
+    // Refresh to get updated pin status
+    if (viewMode === 'articles') {
+      window.location.reload(); // Simple approach for now
+    } else {
+      // For drafts/my-published, update local state
+      setMyArticles(prev =>
+        prev.map(article =>
+          article.id === articleId
+            ? { ...article, is_pinned: !article.is_pinned }
+            : article
+        )
+      );
+    }
+  };
+
+  // Determine which data to display based on view mode
+  const displayArticles = viewMode === 'articles' ? articles : myArticles;
+  const displayLoading = viewMode === 'articles' ? loading : myLoading;
+  const displayError = viewMode === 'articles' ? error : myError;
+
   return (
     <div
       style={{
         flex: 1,
-        position: "relative",  // For absolute positioning of CreateButton
         background: "rgba(255, 255, 255, 0.85)",
         borderRadius: "12px",
         padding: "40px",
@@ -51,19 +122,17 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         minHeight: "600px",
       }}
     >
-      {/* Create Button - Only for Editor/Admin */}
-      {(userRole === 'editor' || userRole === 'admin') && <CreateButton userRole={userRole} />}
       {/* Loading State */}
-      {loading && <LoadingState />}
+      {displayLoading && <LoadingState />}
 
       {/* Error State */}
-      {!loading && error && <ErrorState message={error.message} />}
+      {!displayLoading && displayError && <ErrorState message={displayError.message} />}
 
       {/* Empty State */}
-      {!loading && !error && articles.length === 0 && <EmptyState />}
+      {!displayLoading && !displayError && displayArticles.length === 0 && <EmptyState />}
 
       {/* Articles Grid */}
-      {!loading && !error && articles.length > 0 && (
+      {!displayLoading && !displayError && displayArticles.length > 0 && (
         <>
           <div
             style={{
@@ -73,13 +142,20 @@ const ContentArea: React.FC<ContentAreaProps> = ({
               marginBottom: "20px",
             }}
           >
-            {articles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
+            {displayArticles.map((article) => (
+              <ArticleCard
+                key={article.id}
+                article={article}
+                userRole={userRole}
+                viewMode={viewMode}
+                onDelete={handleDelete}
+                onPinToggle={handlePinToggle}
+              />
             ))}
           </div>
 
-          {/* Pagination Controls */}
-          {pagination.total_pages > 1 && (
+          {/* Pagination Controls - Only for 'articles' view */}
+          {viewMode === 'articles' && pagination.total_pages > 1 && (
             <Pagination pagination={pagination} onPageChange={onPageChange} />
           )}
         </>

@@ -106,7 +106,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   };
 
   // Handle save
-  const handleSave = async () => {
+  const handleSave = async (saveStatus: 'draft' | 'published') => {
     // Validation
     if (!title.trim()) {
       setError('Title is required');
@@ -132,7 +132,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         tags: tags
           ? tags.split(',').map(t => t.trim()).filter(Boolean)
           : [],
-        status
+        status: saveStatus
       };
 
       let savedArticle: BlogArticle;
@@ -171,14 +171,15 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
             transform: 'translate(-50%, -50%)',
             width: '90vw',
             maxWidth: '900px',
-            maxHeight: '90vh',
+            maxHeight: '85vh',
             backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            boxShadow: '0 8px 40px rgba(0, 0, 0, 0.15)',
+            borderRadius: '8px',
+            padding: '24px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
             animation: 'slideUp 0.3s ease',
             zIndex: 9999,
-            overflow: 'auto'
+            overflow: 'auto',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif'
           }}
         >
           {/* Header */}
@@ -522,98 +523,79 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
               />
             </div>
 
-            {/* Status */}
-            <div>
-              <Label.Root style={{ fontSize: '0.95rem', fontWeight: 600, color: '#2c2c2c', marginBottom: '8px', display: 'block' }}>
-                Status
-              </Label.Root>
-              <Select.Root value={status} onValueChange={(val) => setStatus(val as 'draft' | 'published')}>
-                <Select.Trigger
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    backgroundColor: 'white',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Select.Value />
-                  <Select.Icon>
-                    <ChevronDownIcon />
-                  </Select.Icon>
-                </Select.Trigger>
-                <Select.Portal>
-                  <Select.Content
-                    style={{
-                      backgroundColor: 'white',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                      padding: '8px',
-                      zIndex: 10000
-                    }}
-                  >
-                    <Select.Viewport>
-                      <SelectItem value="draft">📝 Draft (not public)</SelectItem>
-                      <SelectItem value="published">✅ Published (public)</SelectItem>
-                    </Select.Viewport>
-                  </Select.Content>
-                </Select.Portal>
-              </Select.Root>
-            </div>
-
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-              <Dialog.Close asChild>
-                <button
-                  style={{
-                    padding: '12px 24px',
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    color: '#5a5a5a',
-                    backgroundColor: '#f0f0f0',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                >
-                  Cancel
-                </button>
-              </Dialog.Close>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
               <button
-                onClick={handleSave}
+                onClick={() => handleSave('draft')}
                 disabled={saving || uploading}
                 style={{
-                  padding: '12px 32px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'white',
-                  backgroundColor: '#8b7355',
-                  border: 'none',
+                  flex: 1,
+                  padding: '10px 16px',
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  color: '#8b7355',
+                  backgroundColor: 'transparent',
+                  border: '2px solid #8b7355',
                   borderRadius: '8px',
                   cursor: saving || uploading ? 'not-allowed' : 'pointer',
                   opacity: saving || uploading ? 0.5 : 1,
-                  transition: 'background-color 0.2s'
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   if (!saving && !uploading) {
-                    e.currentTarget.style.backgroundColor = '#6f5a43';
+                    e.currentTarget.style.backgroundColor = 'rgba(139, 115, 85, 0.08)';
                   }
                 }}
                 onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                onMouseDown={(e) => {
                   if (!saving && !uploading) {
-                    e.currentTarget.style.backgroundColor = '#8b7355';
+                    e.currentTarget.style.transform = 'scale(0.97)';
                   }
                 }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
-                {saving ? 'Saving...' : isEditMode ? 'Update Article' : 'Create Article'}
+                {saving ? 'Saving...' : 'Save and Exit'}
+              </button>
+              <button
+                onClick={() => handleSave('published')}
+                disabled={saving || uploading}
+                style={{
+                  flex: 1,
+                  padding: '10px 16px',
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  color: '#4a9eff',
+                  backgroundColor: 'transparent',
+                  border: '2px solid #4a9eff',
+                  borderRadius: '8px',
+                  cursor: saving || uploading ? 'not-allowed' : 'pointer',
+                  opacity: saving || uploading ? 0.5 : 1,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!saving && !uploading) {
+                    e.currentTarget.style.backgroundColor = 'rgba(74, 158, 255, 0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                onMouseDown={(e) => {
+                  if (!saving && !uploading) {
+                    e.currentTarget.style.transform = 'scale(0.97)';
+                  }
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {saving ? 'Publishing...' : 'Publish'}
               </button>
             </div>
           </div>

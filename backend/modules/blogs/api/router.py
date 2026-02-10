@@ -9,6 +9,7 @@ Public Endpoints:
 
 Management Endpoints (Editor/Admin):
 - GET /api/blogs/articles/my-drafts - Get user's draft articles
+- GET /api/blogs/articles/my-published - Get user's published articles
 - POST /api/blogs/upload-image - Upload image
 - POST /api/blogs/articles - Create article
 - PUT /api/blogs/articles/:id - Update article (author or admin)
@@ -313,6 +314,54 @@ async def get_my_drafts(
             published_at=article.published_at,
         )
         for article in drafts
+    ]
+
+
+# ==================== My Published Articles (Editor/Admin) ====================
+
+@router.get("/articles/my-published", response_model=List[ArticleListItem])
+async def get_my_published(
+    current_user = Depends(require_editor),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Get current user's published articles (Editor/Admin only)
+
+    **Requires:** editor or admin role
+
+    **Returns:** List of user's published articles (status='published')
+    """
+    # Query user's published articles
+    stmt = (
+        select(BlogArticle)
+        .where(and_(
+            BlogArticle.author_id == current_user.id,
+            BlogArticle.status == "published"
+        ))
+        .order_by(BlogArticle.updated_at.desc())
+    )
+
+    published = db.execute(stmt).scalars().all()
+
+    # Convert to list
+    return [
+        ArticleListItem(
+            id=article.id,
+            title=article.title,
+            subtitle=article.subtitle,
+            cover_image_url=article.cover_image_url,
+            author_name=article.author_name,
+            author_type=article.author_type,
+            category=article.category,
+            tags=article.tags,
+            is_pinned=article.is_pinned,
+            view_count=article.view_count,
+            like_count=article.like_count,
+            comment_count=article.comment_count,
+            created_at=article.created_at,
+            published_at=article.published_at,
+        )
+        for article in published
     ]
 
 

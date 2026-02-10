@@ -76,6 +76,16 @@ export const blogApi = {
   },
 
   /**
+   * Get user's published articles
+   * Requires Editor or Admin role
+   * @returns Array of published articles
+   */
+  async getMyPublished(): Promise<BlogArticle[]> {
+    const response = await api.get(`${BASE_PATH}/articles/my-published`);
+    return response;
+  },
+
+  /**
    * Create new article (draft or published)
    * Requires Editor or Admin role
    * @param articleData - Article data

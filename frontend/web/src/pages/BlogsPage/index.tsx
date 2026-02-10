@@ -14,9 +14,12 @@ import { api } from '@ui/assets/api';
  * Main blog page with sidebar navigation and article grid
  * Uses URL search params for state management (category, search, page)
  */
+type ViewMode = 'articles' | 'drafts' | 'my-published';
+
 const BlogsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('articles');
 
   // Extract current state from URL params
   const category = searchParams.get('category') || undefined;
@@ -128,6 +131,9 @@ const BlogsPage = () => {
               searchQuery={search}
               onCategoryChange={handleCategoryChange}
               onSearchChange={handleSearchChange}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              userRole={userRole}
             />
             <ContentArea
               category={category}
@@ -135,6 +141,7 @@ const BlogsPage = () => {
               page={page}
               onPageChange={handlePageChange}
               userRole={userRole}
+              viewMode={viewMode}
             />
           </div>
         </div>
