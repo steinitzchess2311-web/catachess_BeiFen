@@ -320,8 +320,8 @@ function Layout() {
       // Landing page - position cat below "Join" text
       // "Join" is at the beginning of the right-aligned title
       return {
-        x: typeof window !== 'undefined' ? window.innerWidth * 0.47 : 800,
-        y: typeof window !== 'undefined' ? window.innerHeight * 0.43 : 430,
+        x: typeof window !== 'undefined' ? window.innerWidth * 0.49 : 850,
+        y: typeof window !== 'undefined' ? window.innerHeight * 0.48 : 480,
       };
     }
     // Default position for all other pages (bottom left)
