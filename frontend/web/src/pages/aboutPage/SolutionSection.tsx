@@ -36,7 +36,7 @@ const SolutionSection = () => {
             margin: 0,
           }}
         >
-          How does ChessorTag solve that?
+          ChessorTag: the Solution.
         </h2>
       </div>
       <div

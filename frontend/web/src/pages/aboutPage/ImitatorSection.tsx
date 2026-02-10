@@ -15,7 +15,7 @@ const ImitatorSection = () => {
             letterSpacing: "0.5px",
           }}
         >
-          And......we got our OWN, NEW thing:
+          Now, Our central Innovation...
         </h2>
         <h3
           style={{
@@ -25,7 +25,7 @@ const ImitatorSection = () => {
             marginBottom: "0",
           }}
         >
-          ChessorTag Imitator!!!!!
+          ChessorTag Imitator!
         </h3>
       </div>
 
