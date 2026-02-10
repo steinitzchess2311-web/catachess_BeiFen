@@ -13,7 +13,6 @@ const AboutPage = () => {
 
   const navItems = [
     { id: "hero", label: "Why We're Great", icon: "📍" },
-    { id: "founders", label: "Meet the Founders", icon: "👥" },
     { id: "problems", label: "The Problem", icon: "⚠️" },
     { id: "solution", label: "Our Solution", icon: "✨" },
     { id: "imitator", label: "ChessorTag Imitator", icon: "🤖" },
