@@ -538,7 +538,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
               flexDirection: "column",
               alignItems: "center",
               gap: "20px",
-              paddingTop: "20px",
+              paddingTop: "52px",
             }}
           >
             {/* Pinned Icon */}

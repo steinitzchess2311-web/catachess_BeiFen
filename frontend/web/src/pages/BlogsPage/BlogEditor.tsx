@@ -50,31 +50,69 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [error, setError] = useState('');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
+  // Track initial form state for change detection
+  const [initialState, setInitialState] = useState<{
+    title: string;
+    subtitle: string;
+    content: string;
+    coverImageUrl: string;
+    authorType: 'official' | 'user';
+    category: string;
+    tags: string;
+  }>({
+    title: '',
+    subtitle: '',
+    content: '',
+    coverImageUrl: '',
+    authorType: 'official',
+    category: isAdmin ? 'allblogs' : 'user',
+    tags: '',
+  });
+
   // Initialize form from existing article
   useEffect(() => {
     if (article) {
-      setTitle(article.title);
-      setSubtitle(article.subtitle || '');
-      setContent(article.content || '');
-      setCoverImageUrl(article.cover_image_url || '');
-      setAuthorType(article.author_type);
-      setCategory(article.category);
-      setTags(article.tags?.join(', ') || '');
+      const initialData = {
+        title: article.title,
+        subtitle: article.subtitle || '',
+        content: article.content || '',
+        coverImageUrl: article.cover_image_url || '',
+        authorType: article.author_type,
+        category: article.category,
+        tags: article.tags?.join(', ') || '',
+      };
+      setTitle(initialData.title);
+      setSubtitle(initialData.subtitle);
+      setContent(initialData.content);
+      setCoverImageUrl(initialData.coverImageUrl);
+      setAuthorType(initialData.authorType);
+      setCategory(initialData.category);
+      setTags(initialData.tags);
       setStatus(article.status as 'draft' | 'published');
+      setInitialState(initialData);
     } else {
       // Reset form for new article
-      setTitle('');
-      setSubtitle('');
-      setContent('');
-      setCoverImageUrl('');
-      setAuthorType('official');  // official: 官方文章
-      // Default category based on role
-      setCategory(isAdmin ? 'allblogs' : 'user');
-      setTags('');
+      const initialData = {
+        title: '',
+        subtitle: '',
+        content: '',
+        coverImageUrl: '',
+        authorType: 'official' as 'official' | 'user',
+        category: isAdmin ? 'allblogs' : 'user',
+        tags: '',
+      };
+      setTitle(initialData.title);
+      setSubtitle(initialData.subtitle);
+      setContent(initialData.content);
+      setCoverImageUrl(initialData.coverImageUrl);
+      setAuthorType(initialData.authorType);
+      setCategory(initialData.category);
+      setTags(initialData.tags);
       setStatus('draft');
+      setInitialState(initialData);
     }
     setError('');
-  }, [article, open]);
+  }, [article, open, isAdmin]);
 
   // Handle image upload
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,9 +189,27 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     }
   };
 
-  // Handle close button click - show confirmation dialog
+  // Check if form has been modified
+  const hasChanges = () => {
+    return (
+      title !== initialState.title ||
+      subtitle !== initialState.subtitle ||
+      content !== initialState.content ||
+      coverImageUrl !== initialState.coverImageUrl ||
+      authorType !== initialState.authorType ||
+      category !== initialState.category ||
+      tags !== initialState.tags
+    );
+  };
+
+  // Handle close button click - show confirmation dialog only if there are changes
   const handleCloseClick = () => {
-    setShowExitConfirm(true);
+    if (hasChanges()) {
+      setShowExitConfirm(true);
+    } else {
+      // No changes, exit directly
+      onOpenChange(false);
+    }
   };
 
   // Handle save and exit from confirmation
