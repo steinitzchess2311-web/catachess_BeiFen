@@ -321,7 +321,7 @@ function Layout() {
       // "Join" is at the beginning of the right-aligned title
       return {
         x: typeof window !== 'undefined' ? window.innerWidth * 0.47 : 800,
-        y: typeof window !== 'undefined' ? window.innerHeight * 0.40 : 400,
+        y: typeof window !== 'undefined' ? window.innerHeight * 0.43 : 430,
       };
     }
     // Default position for all other pages (bottom left)
