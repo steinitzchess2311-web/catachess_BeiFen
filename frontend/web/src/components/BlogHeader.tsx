@@ -125,8 +125,11 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
         </span>
       </div>
 
-      {/* Right: Search Bar or Back Button + History Icon */}
+      {/* Right: History Icon + Search Bar or Back Button */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* Recent Articles History Icon */}
+        <RecentArticlesHistory />
+
         {isDetailView ? (
           <button
             onClick={onBackClick}
@@ -222,9 +225,6 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
           )}
         </div>
         )}
-
-        {/* Recent Articles History Icon */}
-        <RecentArticlesHistory />
       </div>
     </div>
   );
