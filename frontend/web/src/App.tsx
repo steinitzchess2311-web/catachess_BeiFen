@@ -45,7 +45,7 @@ import "@patch/styles/index.css";
 const USE_PATCH_STUDY = import.meta.env.VITE_USE_PATCH_STUDY !== "false";
 
 // Cat pet feature toggle
-const ENABLE_CAT_PET = false;
+const ENABLE_CAT_PET = true;
 
 const TOKEN_KEY = "catachess_token";
 const USER_ID_KEY = "catachess_user_id";
