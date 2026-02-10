@@ -77,9 +77,10 @@ async def _init_blog_db() -> None:
     from sqlalchemy import create_engine, text, inspect
 
     try:
-        blog_db_url = os.getenv("BLOG_DATABASE_URL")
+        # Blog module uses the main DATABASE_URL (not BLOG_DATABASE_URL)
+        blog_db_url = os.getenv("BLOG_DATABASE_URL") or settings.DATABASE_URL
         if not blog_db_url:
-            logger.warning("BLOG_DATABASE_URL not set. Skipping blog database initialization.")
+            logger.warning("DATABASE_URL not set. Skipping blog database initialization.")
             return
 
         logger.info("Checking blog database...")
