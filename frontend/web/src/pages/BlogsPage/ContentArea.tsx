@@ -125,7 +125,9 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         borderRadius: "12px",
         padding: "40px",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-        minHeight: "600px",
+        height: "calc(100vh - 180px)",  // Fixed height based on viewport
+        maxHeight: "calc(100vh - 180px)",
+        overflowY: "auto",  // Enable vertical scrolling
       }}
     >
       {/* Loading State */}
