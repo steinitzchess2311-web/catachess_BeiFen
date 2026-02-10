@@ -4,6 +4,7 @@
  */
 
 import React from "react";
+import { ArrowLeftIcon } from "@radix-ui/react-icons";
 
 type ViewMode = 'articles' | 'drafts' | 'my-published';
 
@@ -12,6 +13,8 @@ interface BlogHeaderProps {
   searchQuery?: string;
   onSearchChange: (search: string) => void;
   viewMode?: ViewMode;
+  isDetailView?: boolean;
+  onBackClick?: () => void;
 }
 
 const CATEGORY_LABELS: { [key: string]: string } = {
@@ -32,6 +35,8 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
   searchQuery = "",
   onSearchChange,
   viewMode = 'articles',
+  isDetailView = false,
+  onBackClick,
 }) => {
   const [localSearchQuery, setLocalSearchQuery] = React.useState(searchQuery);
 
@@ -42,12 +47,14 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
 
   // Debounced search
   React.useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      onSearchChange(localSearchQuery);
-    }, 500);
+    if (!isDetailView) {
+      const timeoutId = setTimeout(() => {
+        onSearchChange(localSearchQuery);
+      }, 500);
 
-    return () => clearTimeout(timeoutId);
-  }, [localSearchQuery, onSearchChange]);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [localSearchQuery, onSearchChange, isDetailView]);
 
   const handleSearchClear = () => {
     setLocalSearchQuery("");
@@ -80,7 +87,7 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
         boxShadow: "0 2px 12px rgba(0, 0, 0, 0.06)",
       }}
     >
-      {/* Left: Category Label */}
+      {/* Left: Category Label or Article Title */}
       <div
         style={{
           fontSize: "1.5rem",
@@ -91,75 +98,105 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
           gap: "12px",
         }}
       >
-        <span>{categoryLabel}</span>
+        <span>{isDetailView ? "Article" : categoryLabel}</span>
       </div>
 
-      {/* Right: Search Bar */}
-      <div
-        style={{
-          position: "relative",
-          width: "320px",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search articles..."
-          value={localSearchQuery}
-          onChange={(e) => setLocalSearchQuery(e.target.value)}
+      {/* Right: Search Bar or Back Button */}
+      {isDetailView ? (
+        <button
+          onClick={onBackClick}
           style={{
-            width: "100%",
-            padding: "10px 40px 10px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "10px 20px",
             border: "1px solid rgba(139, 115, 85, 0.3)",
             borderRadius: "8px",
             fontSize: "0.95rem",
             color: "#2c2c2c",
             backgroundColor: "rgba(255, 255, 255, 0.9)",
-            boxSizing: "border-box",
+            cursor: "pointer",
             transition: "all 0.2s ease",
-            outline: "none",
           }}
-          onFocus={(e) => {
+          onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "#8b7355";
             e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 115, 85, 0.1)";
           }}
-          onBlur={(e) => {
+          onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
             e.currentTarget.style.boxShadow = "none";
           }}
-        />
-        {localSearchQuery && (
-          <button
-            onClick={handleSearchClear}
+        >
+          <ArrowLeftIcon width={16} height={16} />
+          <span>Back to Blogs</span>
+        </button>
+      ) : (
+        <div
+          style={{
+            position: "relative",
+            width: "320px",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={localSearchQuery}
+            onChange={(e) => setLocalSearchQuery(e.target.value)}
             style={{
-              position: "absolute",
-              top: "50%",
-              right: "12px",
-              transform: "translateY(-50%)",
-              width: "24px",
-              height: "24px",
-              border: "none",
-              background: "rgba(139, 115, 85, 0.2)",
-              borderRadius: "50%",
-              fontSize: "16px",
-              lineHeight: "1",
-              color: "#5a5a5a",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "background 0.2s ease",
+              width: "100%",
+              padding: "10px 40px 10px 16px",
+              border: "1px solid rgba(139, 115, 85, 0.3)",
+              borderRadius: "8px",
+              fontSize: "0.95rem",
+              color: "#2c2c2c",
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              boxSizing: "border-box",
+              transition: "all 0.2s ease",
+              outline: "none",
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#8b7355";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 115, 85, 0.1)";
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
+              e.currentTarget.style.boxShadow = "none";
             }}
-          >
-            ×
-          </button>
-        )}
-      </div>
+          />
+          {localSearchQuery && (
+            <button
+              onClick={handleSearchClear}
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "12px",
+                transform: "translateY(-50%)",
+                width: "24px",
+                height: "24px",
+                border: "none",
+                background: "rgba(139, 115, 85, 0.2)",
+                borderRadius: "50%",
+                fontSize: "16px",
+                lineHeight: "1",
+                color: "#5a5a5a",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(139, 115, 85, 0.2)";
+              }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

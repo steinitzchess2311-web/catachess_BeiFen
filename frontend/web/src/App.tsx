@@ -347,7 +347,7 @@ function Layout() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/blogs" element={<BlogsPage />} />
-          <Route path="/blogs/:articleId" element={<ArticleDetailPage />} />
+          <Route path="/blogs/:articleId" element={<BlogsPage />} />
           <Route path="/sponsorship" element={<SponsorshipPage />} />
           <Route
             path="/players"
