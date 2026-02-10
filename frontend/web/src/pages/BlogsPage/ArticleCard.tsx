@@ -4,11 +4,10 @@
  * Includes delete/pin actions with permission checks
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { BlogArticle } from "../../types/blog";
 import { blogApi } from "../../utils/blogApi";
-import ConfirmDialog from "../../components/ConfirmDialog";
 import logoImage from "../../assets/logo.jpg";
 
 type ViewMode = 'articles' | 'drafts' | 'my-published';
@@ -35,8 +34,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
   const displayImage = article.cover_image_url || logoImage;
 
@@ -61,6 +60,31 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     (userRole === 'editor' && (viewMode === 'drafts' || viewMode === 'my-published'));
   const canPin = userRole === 'admin';
 
+  // Handle click outside dialog to close it
+  useEffect(() => {
+    if (!showDeleteConfirm) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dialogRef.current &&
+        !dialogRef.current.contains(event.target as Node) &&
+        deleteButtonRef.current &&
+        !deleteButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowDeleteConfirm(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDeleteConfirm]);
+
   // Show delete confirmation dialog
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,11 +103,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     } catch (error) {
       console.error('Failed to delete article:', error);
-      setErrorMessage('Failed to delete article. Please try again.');
-      setShowErrorDialog(true);
+      alert('Failed to delete article. Please try again.');
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   // Pin handler
@@ -100,8 +128,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     } catch (error) {
       console.error('Failed to toggle pin:', error);
-      setErrorMessage('Failed to toggle pin. Please try again.');
-      setShowErrorDialog(true);
+      alert('Failed to toggle pin. Please try again.');
     } finally {
       setIsPinning(false);
     }
@@ -281,6 +308,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             >
               {canDelete && (
                 <button
+                  ref={deleteButtonRef}
                   onClick={handleDeleteClick}
                   disabled={isDeleting}
                   style={{
@@ -371,33 +399,112 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               )}
             </div>
           )}
+
+          {/* Delete Confirmation Dialog - Positioned above delete button */}
+          {showDeleteConfirm && canDelete && (
+            <div
+              ref={dialogRef}
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                marginBottom: '8px',
+                width: '200px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                padding: '16px',
+                zIndex: 1001,
+                animation: 'dialogSlideUp 0.2s ease-out',
+              }}
+            >
+              <p
+                style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '0.9rem',
+                  color: '#2c2c2c',
+                  textAlign: 'center',
+                  lineHeight: '1.4',
+                }}
+              >
+                Delete this article?
+              </p>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cancelDelete();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: '#4a9eff',
+                    backgroundColor: 'transparent',
+                    border: '2px solid #4a9eff',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(74, 158, 255, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  No
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    confirmDelete();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    color: '#dc3545',
+                    backgroundColor: 'transparent',
+                    border: '2px solid #dc3545',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </article>
     </Link>
-
-    {/* Delete Confirmation Dialog */}
-    <ConfirmDialog
-      isOpen={showDeleteConfirm}
-      title="Delete Article"
-      message={`Are you sure you want to delete "${article.title}"?`}
-      onConfirm={confirmDelete}
-      onCancel={() => setShowDeleteConfirm(false)}
-      confirmText="Delete"
-      cancelText="Cancel"
-      type="danger"
-    />
-
-    {/* Error Dialog */}
-    <ConfirmDialog
-      isOpen={showErrorDialog}
-      title="Error"
-      message={errorMessage}
-      onConfirm={() => setShowErrorDialog(false)}
-      onCancel={() => setShowErrorDialog(false)}
-      confirmText="OK"
-      cancelText="Close"
-      type="danger"
-    />
+    <style>{`
+      @keyframes dialogSlideUp {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+    `}</style>
     </>
   );
 };
