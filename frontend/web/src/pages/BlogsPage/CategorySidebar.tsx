@@ -127,7 +127,10 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           {/* Pinned Articles */}
           <button
-            onClick={handleComingSoonClick}
+            onClick={() => {
+              onCategoryChange('pinned');
+              onViewModeChange('articles'); // Switch to articles view mode
+            }}
             style={{
               background: activeCategory === "pinned" ? "rgba(139, 115, 85, 0.1)" : "transparent",
               border: "none",
@@ -489,11 +492,11 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
       <BlogEditor
         open={editorOpen}
         onOpenChange={setEditorOpen}
-        onSaved={() => {
-          // Refresh the current view
-          if (viewMode === 'drafts') {
-            onViewModeChange('drafts');
-          }
+        onSaved={(savedArticle) => {
+          // Close the editor
+          setEditorOpen(false);
+          // Refresh the page to show the new/updated article
+          window.location.reload();
         }}
         userRole={userRole}
       />

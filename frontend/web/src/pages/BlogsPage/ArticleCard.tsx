@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { BlogArticle } from "../../types/blog";
 import { blogApi } from "../../utils/blogApi";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import logoImage from "../../assets/logo.jpg";
 
 type ViewMode = 'articles' | 'drafts' | 'my-published';
@@ -33,6 +34,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const displayImage = article.cover_image_url || logoImage;
 
@@ -57,15 +61,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     (userRole === 'editor' && (viewMode === 'drafts' || viewMode === 'my-published'));
   const canPin = userRole === 'admin';
 
-  // Delete handler
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
+  // Show delete confirmation dialog
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
 
-    if (!window.confirm(`Are you sure you want to delete "${article.title}"?`)) {
-      return;
-    }
-
+  // Confirm delete
+  const confirmDelete = async () => {
+    setShowDeleteConfirm(false);
     setIsDeleting(true);
     try {
       await blogApi.deleteArticle(article.id);
@@ -74,7 +79,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     } catch (error) {
       console.error('Failed to delete article:', error);
-      alert('Failed to delete article. Please try again.');
+      setErrorMessage('Failed to delete article. Please try again.');
+      setShowErrorDialog(true);
     } finally {
       setIsDeleting(false);
     }
@@ -82,12 +88,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   // Pin handler
   const handlePinToggle = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
+    e.preventDefault();
     e.stopPropagation();
 
     setIsPinning(true);
     try {
-      // If currently pinned, unpin (pin_order=0), else pin with order 1
       const newPinOrder = article.is_pinned ? 0 : 1;
       await blogApi.pinArticle(article.id, newPinOrder);
       if (onPinToggle) {
@@ -95,13 +100,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       }
     } catch (error) {
       console.error('Failed to toggle pin:', error);
-      alert('Failed to toggle pin. Please try again.');
+      setErrorMessage('Failed to toggle pin. Please try again.');
+      setShowErrorDialog(true);
     } finally {
       setIsPinning(false);
     }
   };
 
   return (
+    <>
     <Link
       to={`/blogs/${article.id}`}
       style={{ textDecoration: 'none', display: 'block', height: '100%' }}
@@ -274,7 +281,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             >
               {canDelete && (
                 <button
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   disabled={isDeleting}
                   style={{
                     flex: 1,
@@ -367,6 +374,31 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </div>
       </article>
     </Link>
+
+    {/* Delete Confirmation Dialog */}
+    <ConfirmDialog
+      isOpen={showDeleteConfirm}
+      title="Delete Article"
+      message={`Are you sure you want to delete "${article.title}"?`}
+      onConfirm={confirmDelete}
+      onCancel={() => setShowDeleteConfirm(false)}
+      confirmText="Delete"
+      cancelText="Cancel"
+      type="danger"
+    />
+
+    {/* Error Dialog */}
+    <ConfirmDialog
+      isOpen={showErrorDialog}
+      title="Error"
+      message={errorMessage}
+      onConfirm={() => setShowErrorDialog(false)}
+      onCancel={() => setShowErrorDialog(false)}
+      confirmText="OK"
+      cancelText="Close"
+      type="danger"
+    />
+    </>
   );
 };
 

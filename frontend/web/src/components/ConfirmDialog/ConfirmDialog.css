@@ -1,0 +1,128 @@
+/* Overlay */
+.confirm-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dialog Box */
+.confirm-dialog {
+  background-color: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-3);
+  padding: var(--space-lg);
+  width: 90%;
+  max-width: 400px;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dialog Title */
+.confirm-dialog-title {
+  margin: 0 0 var(--space-md) 0;
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+}
+
+/* Dialog Message */
+.confirm-dialog-message {
+  margin: 0 0 var(--space-lg) 0;
+  font-size: var(--font-md);
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Dialog Buttons Container */
+.confirm-dialog-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+/* Dialog Button Base */
+.confirm-dialog-btn {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid;
+  background: transparent;
+}
+
+/* Cancel Button - Blue border */
+.confirm-btn-cancel {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.confirm-btn-cancel:hover {
+  background-color: var(--primary-bg);
+}
+
+/* Confirm Button - Danger (Red) */
+.confirm-btn-confirm.confirm-btn-danger {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.confirm-btn-confirm.confirm-btn-danger:hover {
+  background-color: rgba(217, 48, 37, 0.08);
+}
+
+/* Confirm Button - Warning (Orange) */
+.confirm-btn-confirm.confirm-btn-warning {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+
+.confirm-btn-confirm.confirm-btn-warning:hover {
+  background-color: rgba(255, 193, 7, 0.08);
+}
+
+/* Confirm Button - Info (Blue) */
+.confirm-btn-confirm.confirm-btn-info {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.confirm-btn-confirm.confirm-btn-info:hover {
+  background-color: var(--primary-bg);
+}
+
+.confirm-dialog-btn:active {
+  transform: scale(0.97);
+}

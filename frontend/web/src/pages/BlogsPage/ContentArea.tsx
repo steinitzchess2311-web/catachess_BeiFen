@@ -51,10 +51,11 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     page_size: 10,
   });
 
-  // Fetch drafts or my-published articles when view mode changes
+  // Fetch drafts, my-published, or pinned articles when view mode or category changes
   useEffect(() => {
     const fetchMyArticles = async () => {
-      if (viewMode === 'articles') return; // Skip for articles view
+      // Skip for normal articles view (unless it's pinned category)
+      if (viewMode === 'articles' && category !== 'pinned') return;
 
       setMyLoading(true);
       setMyError(null);
@@ -63,8 +64,13 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         let data: BlogArticle[];
         if (viewMode === 'drafts') {
           data = await blogApi.getMyDrafts();
-        } else {
+        } else if (viewMode === 'my-published') {
           data = await blogApi.getMyPublished();
+        } else if (category === 'pinned') {
+          // Handle pinned articles
+          data = await blogApi.getPinnedArticles();
+        } else {
+          return; // Should not reach here
         }
         setMyArticles(data);
       } catch (err) {
@@ -75,7 +81,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     };
 
     fetchMyArticles();
-  }, [viewMode]);
+  }, [viewMode, category]);
 
   // Handle article deletion
   const handleDelete = (articleId: string) => {
@@ -106,10 +112,10 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     }
   };
 
-  // Determine which data to display based on view mode
-  const displayArticles = viewMode === 'articles' ? articles : myArticles;
-  const displayLoading = viewMode === 'articles' ? loading : myLoading;
-  const displayError = viewMode === 'articles' ? error : myError;
+  // Determine which data to display based on view mode and category
+  const displayArticles = (viewMode === 'articles' && category !== 'pinned') ? articles : myArticles;
+  const displayLoading = (viewMode === 'articles' && category !== 'pinned') ? loading : myLoading;
+  const displayError = (viewMode === 'articles' && category !== 'pinned') ? error : myError;
 
   return (
     <div
@@ -154,8 +160,8 @@ const ContentArea: React.FC<ContentAreaProps> = ({
             ))}
           </div>
 
-          {/* Pagination Controls - Only for 'articles' view */}
-          {viewMode === 'articles' && pagination.total_pages > 1 && (
+          {/* Pagination Controls - Only for 'articles' view and not pinned */}
+          {viewMode === 'articles' && category !== 'pinned' && pagination.total_pages > 1 && (
             <Pagination pagination={pagination} onPageChange={onPageChange} />
           )}
         </>
