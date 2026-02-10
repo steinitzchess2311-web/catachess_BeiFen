@@ -549,19 +549,18 @@ async def create_article(
     db.commit()
     db.refresh(new_article)
 
-    # Link images to article (disabled until migration runs)
-    # TODO: Enable after running add_article_images_table.py migration
-    # try:
-    #     sync_result = sync_article_images(
-    #         article_id=new_article.id,
-    #         content=article.content,
-    #         cover_url=article.cover_image_url,
-    #         db=db,
-    #         verbose=False
-    #     )
-    #     print(f"✅ Linked {sync_result['linked']} images to new article")
-    # except Exception as e:
-    #     print(f"⚠️  Failed to link images: {e}")
+    # Link images to article (auto-enabled after migration)
+    try:
+        sync_result = sync_article_images(
+            article_id=new_article.id,
+            content=article.content,
+            cover_url=article.cover_image_url,
+            db=db,
+            verbose=False
+        )
+        print(f"✅ Linked {sync_result['linked']} images to new article")
+    except Exception as e:
+        print(f"⚠️  Failed to link images: {e}")
 
     # Invalidate caches
     await cache.invalidate_article_list(article.category)
@@ -622,20 +621,19 @@ async def update_article(
     db.commit()
     db.refresh(article)
 
-    # Re-sync images if content or cover changed (disabled until migration runs)
-    # TODO: Enable after running add_article_images_table.py migration
-    # if updates.content is not None or updates.cover_image_url is not None:
-    #     try:
-    #         sync_result = sync_article_images(
-    #             article_id=article.id,
-    #             content=article.content,
-    #             cover_url=article.cover_image_url,
-    #             db=db,
-    #             verbose=False
-    #         )
-    #         print(f"✅ Synced images: linked={sync_result['linked']}, unlinked={sync_result['unlinked']}")
-    #     except Exception as e:
-    #         print(f"⚠️  Failed to sync images: {e}")
+    # Re-sync images if content or cover changed (auto-enabled after migration)
+    if updates.content is not None or updates.cover_image_url is not None:
+        try:
+            sync_result = sync_article_images(
+                article_id=article.id,
+                content=article.content,
+                cover_url=article.cover_image_url,
+                db=db,
+                verbose=False
+            )
+            print(f"✅ Synced images: linked={sync_result['linked']}, unlinked={sync_result['unlinked']}")
+        except Exception as e:
+            print(f"⚠️  Failed to sync images: {e}")
 
     # Invalidate caches
     await cache.invalidate_article(str(article_id))
