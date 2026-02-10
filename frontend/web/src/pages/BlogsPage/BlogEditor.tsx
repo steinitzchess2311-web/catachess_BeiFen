@@ -39,7 +39,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [content, setContent] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [authorName, setAuthorName] = useState('');
-  const [authorType, setAuthorType] = useState<'official' | 'user'>('official');  // Editor/Admin发布的是官方文章
+  const [authorType, setAuthorType] = useState<'official' | 'user'>('official');  // official: 官方文章 | user: 用户投稿
   // Default category: admin can choose, others default to 'user'
   const [category, setCategory] = useState(isAdmin ? 'allblogs' : 'user');
   const [tags, setTags] = useState('');
@@ -67,7 +67,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setContent('');
       setCoverImageUrl('');
       setAuthorName('');
-      setAuthorType('official');  // Editor/Admin发布的是官方文章
+      setAuthorType('official');  // official: 官方文章
       // Default category based on role
       setCategory(isAdmin ? 'allblogs' : 'user');
       setTags('');
@@ -354,7 +354,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                 <Label.Root style={{ fontSize: '0.95rem', fontWeight: 600, color: '#2c2c2c', marginBottom: '8px', display: 'block' }}>
                   Author Type
                 </Label.Root>
-                <Select.Root value={authorType} onValueChange={(val) => setAuthorType(val as 'human' | 'ai')}>
+                <Select.Root value={authorType} onValueChange={(val) => setAuthorType(val as 'official' | 'user')}>
                   <Select.Trigger
                     style={{
                       width: '100%',
@@ -385,8 +385,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                       }}
                     >
                       <Select.Viewport>
-                        <SelectItem value="human">Human</SelectItem>
-                        <SelectItem value="ai">AI Generated</SelectItem>
+                        <SelectItem value="official">📖 Official (ChessorTag)</SelectItem>
+                        <SelectItem value="user">✍️ User Contribution</SelectItem>
                       </Select.Viewport>
                     </Select.Content>
                   </Select.Portal>
