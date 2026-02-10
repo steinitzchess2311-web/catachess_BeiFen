@@ -317,11 +317,11 @@ function Layout() {
   // Calculate cat initial position based on current route
   const catInitialPosition = useMemo(() => {
     if (location.pathname === '/') {
-      // Landing page - position cat above "Start your journey" button
-      // Button is in the right section, aligned to the right
+      // Landing page - position cat below "Join" text
+      // "Join" is at the beginning of the right-aligned title
       return {
-        x: typeof window !== 'undefined' ? window.innerWidth * 0.70 : 800,
-        y: typeof window !== 'undefined' ? window.innerHeight * 0.45 : 350,
+        x: typeof window !== 'undefined' ? window.innerWidth * 0.44 : 800,
+        y: typeof window !== 'undefined' ? window.innerHeight * 0.33 : 350,
       };
     }
     // Default position for all other pages (bottom left)
