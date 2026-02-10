@@ -9,9 +9,9 @@ const Promises = () => {
       icon: "🎁",
     },
     {
-      title: "We promise to NEVER force anyone read Ads",
+      title: "No forced premium plans:",
       description:
-        "Ads only appears in footer and blog section. Scroll it away anytime you want.",
+        "our core basic model remains free and accessible to all. However, donars and premium members can choose an application/desktop pet to accompany your learning.",
       icon: "🚫",
     },
     {
