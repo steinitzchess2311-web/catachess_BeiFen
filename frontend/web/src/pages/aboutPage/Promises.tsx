@@ -65,7 +65,7 @@ const Promises = () => {
             style={{
               background: "rgba(255, 255, 255, 0.95)",
               borderRadius: "16px",
-              padding: "32px 28px",
+              padding: "20px 24px",
               boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
               transition: "transform 0.3s ease, box-shadow 0.3s ease",
               border: "1px solid rgba(139, 115, 85, 0.1)",
@@ -82,17 +82,6 @@ const Promises = () => {
               e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)";
             }}
           >
-            {/* Icon */}
-            <div
-              style={{
-                fontSize: "2.5rem",
-                textAlign: "center",
-                marginBottom: "8px",
-              }}
-            >
-              {promise.icon}
-            </div>
-
             {/* Title */}
             <h3
               style={{
