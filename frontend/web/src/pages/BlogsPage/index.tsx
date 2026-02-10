@@ -83,9 +83,12 @@ const BlogsPage = () => {
    * Handle category filter change
    * Resets to page 1 when category changes
    * Clears articleId to return to list view
+   * IMPORTANT: Even if clicking the same category while viewing an article,
+   * this will exit detail view and return to the list
    */
   const handleCategoryChange = (newCategory: string | undefined) => {
-    // Navigate to /blogs with new category (clears articleId from URL)
+    // If in detail view, always navigate to list view (clear articleId)
+    // Even if the clicked category is the same as current category
     const params = new URLSearchParams();
 
     if (newCategory) {
@@ -99,7 +102,8 @@ const BlogsPage = () => {
     params.set('page', '1');  // Reset to first page
 
     // Navigate to /blogs (without articleId in path)
-    navigate(`/blogs?${params.toString()}`);
+    // This clears the articleId and returns to list view
+    navigate(`/blogs?${params.toString()}`, { replace: isDetailView });
   };
 
   /**
