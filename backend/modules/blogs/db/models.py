@@ -217,3 +217,59 @@ class BlogCategory(Base):
 
     def __repr__(self) -> str:
         return f"<BlogCategory(id={self.id}, name='{self.name}')>"
+
+
+class BlogArticleImage(Base):
+    """Blog article-image association table (many-to-many)."""
+
+    __tablename__ = "blog_article_images"
+
+    # Primary key
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+
+    # Foreign keys
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+        index=True,
+    )
+
+    image_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+        index=True,
+    )
+
+    # Metadata
+    position: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    usage_context: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="content",
+    )
+
+    # Timestamp
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    # Constraints
+    __table_args__ = (
+        CheckConstraint(
+            "usage_context IN ('content', 'cover')",
+            name="blog_article_images_usage_check"
+        ),
+    )
+
+    def __repr__(self) -> str:
+        return f"<BlogArticleImage(article={self.article_id}, image={self.image_id})>"

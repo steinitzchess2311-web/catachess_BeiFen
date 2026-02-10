@@ -4,7 +4,7 @@ Blog Images Database Models
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
-from sqlalchemy import String, Integer, DateTime, Text, ForeignKey
+from sqlalchemy import String, Integer, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -40,8 +40,13 @@ class BlogImage(Base):
         nullable=True
     )
 
+    # Orphan tracking
+    is_orphan: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    marked_for_deletion_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    last_referenced_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     def __repr__(self):
         return f"<BlogImage {self.filename} ({self.resize_mode})>"

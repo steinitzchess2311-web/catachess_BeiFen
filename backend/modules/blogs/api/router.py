@@ -37,6 +37,7 @@ from modules.blogs.schemas import (
 from modules.blogs.services.cache_service import get_blog_cache, BlogCacheService
 from modules.blogs.services.image_service import get_image_service
 from modules.blogs.auth import require_editor, require_admin
+from modules.blogs.utils.image_linker import sync_article_images
 
 router = APIRouter(prefix="/api/blogs", tags=["Blogs"])
 
@@ -548,6 +549,19 @@ async def create_article(
     db.commit()
     db.refresh(new_article)
 
+    # Link images to article
+    try:
+        sync_result = sync_article_images(
+            article_id=new_article.id,
+            content=article.content,
+            cover_url=article.cover_image_url,
+            db=db,
+            verbose=False
+        )
+        print(f"✅ Linked {sync_result['linked']} images to new article")
+    except Exception as e:
+        print(f"⚠️  Failed to link images: {e}")
+
     # Invalidate caches
     await cache.invalidate_article_list(article.category)
     await cache.invalidate_article_list("all")
@@ -606,6 +620,20 @@ async def update_article(
 
     db.commit()
     db.refresh(article)
+
+    # Re-sync images if content or cover changed
+    if updates.content is not None or updates.cover_image_url is not None:
+        try:
+            sync_result = sync_article_images(
+                article_id=article.id,
+                content=article.content,
+                cover_url=article.cover_image_url,
+                db=db,
+                verbose=False
+            )
+            print(f"✅ Synced images: linked={sync_result['linked']}, unlinked={sync_result['unlinked']}")
+        except Exception as e:
+            print(f"⚠️  Failed to sync images: {e}")
 
     # Invalidate caches
     await cache.invalidate_article(str(article_id))

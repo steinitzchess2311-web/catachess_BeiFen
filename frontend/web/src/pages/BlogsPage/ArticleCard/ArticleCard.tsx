@@ -17,7 +17,6 @@ import { blogApi } from "../../../utils/blogApi";
 import ArticleImage from "./ArticleImage";
 import ArticleContent from "./ArticleContent";
 import ArticleMeta from "./ArticleMeta";
-import ActionIconButtons from "./ActionIconButtons";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -138,15 +137,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             e.currentTarget.style.boxShadow = "0 2px 12px rgba(0, 0, 0, 0.08)";
           }}
         >
-          {/* Action Icon Buttons - Top Right Corner */}
-          <ActionIconButtons
-            canDelete={canDelete}
-            canPin={canPin}
-            isPinned={article.is_pinned}
-            onDeleteClick={handleDeleteClick}
-            onPinToggle={handlePinToggle}
-          />
-
           {/* Delete Confirmation Dialog */}
           <DeleteConfirmDialog
             show={showDeleteConfirm && canDelete}
@@ -154,12 +144,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             onConfirm={confirmDelete}
             onCancel={cancelDelete}
           />
-          {/* Cover Image Section */}
+          {/* Cover Image Section with Action Buttons */}
           <ArticleImage
             imageUrl={article.cover_image_url}
             title={article.title}
             category={article.category}
             isPinned={article.is_pinned}
+            canDelete={canDelete}
+            canPin={canPin}
+            onDeleteClick={handleDeleteClick}
+            onPinToggle={handlePinToggle}
           />
 
           {/* Content Section */}
