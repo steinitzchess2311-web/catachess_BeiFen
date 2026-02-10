@@ -117,6 +117,10 @@ async def get_articles(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=50, description="Items per page"),
     search: Optional[str] = Query(None, description="Search in title/content"),
+    year: Optional[int] = Query(None, ge=2020, le=2100, description="Filter by year (e.g., 2024)"),
+    month: Optional[int] = Query(None, ge=1, le=12, description="Filter by month (1-12, requires year)"),
+    start_date: Optional[str] = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Filter to date (YYYY-MM-DD)"),
     cache: BlogCacheService = Depends(get_blog_cache),
     db: Session = Depends(get_blog_db)
 ):
@@ -128,24 +132,89 @@ async def get_articles(
     **Filters:**
     - category: Filter by category name
     - search: Full-text search in title and content
+    - year: Filter by publication year (e.g., 2024)
+    - month: Filter by publication month (1-12, must specify year)
+    - start_date: Filter from date (YYYY-MM-DD format)
+    - end_date: Filter to date (YYYY-MM-DD format)
+
+    **Time filtering examples:**
+    - `/articles?year=2024` - All articles in 2024
+    - `/articles?year=2024&month=3` - All articles in March 2024
+    - `/articles?start_date=2024-01-01&end_date=2024-12-31` - Custom date range
 
     **Returns:**
     - Pinned articles appear first
     - Then sorted by published_at DESC
+    - Hidden articles are excluded
     """
+    # Build cache key with time filters
+    cache_key_parts = [category or "all"]
+    if year:
+        cache_key_parts.append(f"y{year}")
+    if month:
+        cache_key_parts.append(f"m{month}")
+    if start_date:
+        cache_key_parts.append(f"s{start_date}")
+    if end_date:
+        cache_key_parts.append(f"e{end_date}")
+    cache_key = "_".join(cache_key_parts)
+
     # Try cache first (only for non-search queries)
-    cache_key = category or "all"
     if not search:
         cached = await cache.get_article_list(cache_key, page)
         if cached:
             return ArticleListResponse(**cached)
 
-    # Build query
-    stmt = select(BlogArticle).where(BlogArticle.status == "published")
+    # Build query - exclude hidden articles
+    stmt = select(BlogArticle).where(
+        and_(
+            BlogArticle.status == "published",
+            BlogArticle.is_hidden == False
+        )
+    )
 
     # Filter by category
     if category and category != "allblogs":
         stmt = stmt.where(BlogArticle.category == category)
+
+    # Time filtering by year/month
+    if year:
+        if month:
+            # Specific month in year
+            import calendar
+            from datetime import datetime
+            _, last_day = calendar.monthrange(year, month)
+            month_start = datetime(year, month, 1)
+            month_end = datetime(year, month, last_day, 23, 59, 59)
+            stmt = stmt.where(
+                and_(
+                    BlogArticle.published_at >= month_start,
+                    BlogArticle.published_at <= month_end
+                )
+            )
+        else:
+            # Entire year
+            from datetime import datetime
+            year_start = datetime(year, 1, 1)
+            year_end = datetime(year, 12, 31, 23, 59, 59)
+            stmt = stmt.where(
+                and_(
+                    BlogArticle.published_at >= year_start,
+                    BlogArticle.published_at <= year_end
+                )
+            )
+
+    # Time filtering by custom date range
+    if start_date:
+        from datetime import datetime
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        stmt = stmt.where(BlogArticle.published_at >= start_dt)
+    if end_date:
+        from datetime import datetime
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        # Include the entire end date (23:59:59)
+        end_dt = end_dt.replace(hour=23, minute=59, second=59)
+        stmt = stmt.where(BlogArticle.published_at <= end_dt)
 
     # Search
     if search:
@@ -231,12 +300,13 @@ async def get_pinned_articles(
     if cached:
         return [ArticleListItem(**item) for item in cached]
 
-    # Query database
+    # Query database - exclude hidden articles
     stmt = (
         select(BlogArticle)
         .where(and_(
             BlogArticle.status == "published",
-            BlogArticle.is_pinned == True
+            BlogArticle.is_pinned == True,
+            BlogArticle.is_hidden == False
         ))
         .order_by(BlogArticle.pin_order.desc(), BlogArticle.published_at.desc())
     )
@@ -397,6 +467,9 @@ async def get_article(
 
     if article.status != "published":
         raise HTTPException(status_code=404, detail="Article not published")
+
+    if article.is_hidden:
+        raise HTTPException(status_code=404, detail="Article not found")
 
     # Convert to dict
     result = {
@@ -740,4 +813,59 @@ async def toggle_pin_article(
         "message": message,
         "is_pinned": article.is_pinned,
         "pin_order": article.pin_order
+    }
+
+
+@router.post("/articles/{article_id}/hide")
+async def toggle_hide_article(
+    article_id: UUID,
+    hide: bool = True,
+    current_user = Depends(require_admin),
+    cache: BlogCacheService = Depends(get_blog_cache),
+    db: Session = Depends(get_blog_db)
+):
+    """
+    Hide or unhide article (Admin only)
+
+    **Requires:** admin role
+
+    **Parameters:**
+    - hide: true to hide, false to unhide (default: true)
+
+    **Description:**
+    Hidden articles are not deleted from the database but are invisible
+    to regular users. They won't appear in:
+    - Article lists (/articles)
+    - Category views
+    - Search results
+    - Pinned articles
+
+    Only admins can access hidden articles through the admin dashboard.
+    """
+
+    # Find article
+    stmt = select(BlogArticle).where(BlogArticle.id == article_id)
+    article = db.execute(stmt).scalar_one_or_none()
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    # Update hidden status
+    article.is_hidden = hide
+    article.updated_at = datetime.utcnow()
+    db.commit()
+
+    message = "Article hidden" if hide else "Article visible"
+
+    # Invalidate caches
+    await cache.invalidate_article(str(article_id))
+    await cache.invalidate_article_list(article.category)
+    await cache.invalidate_article_list("all")
+    if article.is_pinned:
+        await cache.invalidate_pinned_articles()
+
+    return {
+        "success": True,
+        "message": message,
+        "is_hidden": article.is_hidden
     }

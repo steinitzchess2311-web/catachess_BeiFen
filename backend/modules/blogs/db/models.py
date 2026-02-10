@@ -105,6 +105,13 @@ class BlogArticle(Base):
         default=0,
     )
 
+    is_hidden: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+    )
+
     # Statistics
     view_count: Mapped[int] = mapped_column(
         Integer,

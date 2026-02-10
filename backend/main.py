@@ -185,6 +185,15 @@ async def _init_blog_db() -> None:
             logger.info("🚀 Running blog database migration...")
 
             with engine.begin() as conn:
+                # Step 0: Add is_hidden to blog_articles
+                logger.info("  Adding is_hidden column to blog_articles...")
+                conn.execute(text("""
+                    ALTER TABLE blog_articles
+                    ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN DEFAULT false;
+
+                    CREATE INDEX IF NOT EXISTS ix_blog_articles_is_hidden ON blog_articles(is_hidden);
+                """))
+
                 # Step 1: Add new columns to blog_images
                 logger.info("  Adding columns to blog_images...")
                 conn.execute(text("""

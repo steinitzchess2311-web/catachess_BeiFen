@@ -7,7 +7,7 @@
 | 方法 | 端点 | 功能 | 缓存 | 状态 |
 |------|------|------|------|------|
 | GET | `/api/blogs/categories` | 获取分类列表 | 1小时 | ✅ 已实现 |
-| GET | `/api/blogs/articles` | 获取文章列表（分页+搜索+筛选） | 5分钟 | ✅ 已实现 |
+| GET | `/api/blogs/articles` | 获取文章列表（分页+搜索+分类+时间筛选） | 5分钟 | ✅ 已实现 |
 | GET | `/api/blogs/articles/pinned` | 获取置顶文章 | 5分钟 | ✅ 已实现 |
 | GET | `/api/blogs/articles/{id}` | 获取文章详情 | 10分钟 | ✅ 已实现 |
 | GET | `/api/blogs/cache/stats` | 查看缓存统计 | - | ✅ 已实现 |
@@ -22,6 +22,7 @@
 | PUT | `/api/blogs/articles/{id}` | 更新文章 | 作者/Admin | ✅ 已实现 |
 | DELETE | `/api/blogs/articles/{id}` | 删除文章 | 作者/Admin | ✅ 已实现 |
 | POST | `/api/blogs/articles/{id}/pin` | 置顶/取消置顶 | Admin | ✅ 已实现 |
+| POST | `/api/blogs/articles/{id}/hide` | 隐藏/显示文章（软删除） | Admin | ✅ 已实现 |
 
 ---
 
@@ -61,18 +62,39 @@ GET /api/blogs/categories
 GET /api/blogs/articles
 ```
 
-**功能：** 分页获取已发布文章，支持分类筛选和全文搜索
+**功能：** 分页获取已发布文章，支持分类筛选、时间筛选和全文搜索
 
 **查询参数：**
 - `category` (可选): 分类筛选 (about/function/allblogs/user)
 - `search` (可选): 全文搜索关键词（搜索标题+内容）
 - `page` (默认1): 页码，从1开始
 - `page_size` (默认10): 每页数量，最大50
+- **`year` (可选):** 按年份筛选 (如: 2024)
+- **`month` (可选):** 按月份筛选 (1-12, 需配合year使用)
+- **`start_date` (可选):** 起始日期 (YYYY-MM-DD格式)
+- **`end_date` (可选):** 结束日期 (YYYY-MM-DD格式)
+
+**时间筛选示例：**
+```bash
+# 获取2024年的所有文章
+GET /api/blogs/articles?year=2024
+
+# 获取2024年3月的文章
+GET /api/blogs/articles?year=2024&month=3
+
+# 自定义日期范围
+GET /api/blogs/articles?start_date=2024-01-01&end_date=2024-12-31
+
+# 结合分类和时间筛选
+GET /api/blogs/articles?category=function&year=2024&month=3
+```
 
 **排序规则：**
 1. 置顶文章优先（is_pinned=true）
 2. 按pin_order倒序（置顶文章之间）
 3. 按published_at倒序（发布时间）
+
+**注意：** 隐藏的文章（is_hidden=true）不会出现在结果中
 
 **返回示例：**
 ```json
@@ -444,6 +466,72 @@ POST /api/blogs/articles/{id}/pin?pin_order=0
 - 404: 文章不存在
 
 **缓存失效：** 自动清除文章详情、相关分类、总列表和置顶列表缓存
+
+---
+
+### 12. 隐藏/显示文章
+```
+POST /api/blogs/articles/{id}/hide
+```
+
+**功能：** 隐藏或显示文章（软删除，不删除数据库记录）
+
+**认证：** 需要Admin角色（仅管理员可操作）
+
+**路径参数：**
+- `id`: 文章UUID
+
+**查询参数：**
+- `hide` (默认true): 是否隐藏
+  - true: 隐藏文章
+  - false: 显示文章
+
+**隐藏效果：**
+隐藏的文章不会出现在：
+- 文章列表（GET /articles）
+- 分类筛选结果
+- 搜索结果
+- 置顶文章列表
+- 单篇文章访问（返回404）
+
+但文章数据仍保留在数据库中，管理员可以通过后台查看和恢复。
+
+**使用场景：**
+- 临时下架文章（如内容需要修改）
+- 季节性内容（如活动结束后隐藏）
+- 违规内容处理（隐藏但保留证据）
+- A/B测试（临时隐藏某些文章）
+
+**示例：**
+```bash
+# 隐藏文章
+POST /api/blogs/articles/{id}/hide?hide=true
+
+# 显示文章
+POST /api/blogs/articles/{id}/hide?hide=false
+```
+
+**返回示例：**
+```json
+{
+  "success": true,
+  "message": "Article hidden",
+  "is_hidden": true
+}
+```
+
+**错误响应：**
+- 403: 权限不足（需要Admin角色）
+- 404: 文章不存在
+
+**缓存失效：** 自动清除文章详情、相关分类、总列表和置顶列表缓存
+
+**与删除的区别：**
+
+| 操作 | 数据库记录 | 可恢复 | 使用场景 |
+|------|-----------|--------|---------|
+| 隐藏 (hide) | ✅ 保留 | ✅ 可恢复 | 临时下架、内容审核 |
+| 删除 (delete) | ❌ 删除 | ❌ 不可恢复 | 永久移除内容 |
 
 ---
 
