@@ -48,6 +48,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Initialize form from existing article
   useEffect(() => {
@@ -150,6 +151,23 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
     }
   };
 
+  // Handle close button click - show confirmation dialog
+  const handleCloseClick = () => {
+    setShowExitConfirm(true);
+  };
+
+  // Handle save and exit from confirmation
+  const handleSaveAndExit = async () => {
+    setShowExitConfirm(false);
+    await handleSave('draft');
+  };
+
+  // Handle discard and exit
+  const handleDiscard = () => {
+    setShowExitConfirm(false);
+    onOpenChange(false);
+  };
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -182,28 +200,132 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', position: 'relative' }}>
             <Dialog.Title style={{ fontSize: '1.8rem', fontWeight: 700, color: '#2c2c2c' }}>
               {isEditMode ? 'Edit Article' : 'Create New Article'}
             </Dialog.Title>
-            <Dialog.Close asChild>
-              <button
+            <button
+              onClick={handleCloseClick}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <Cross2Icon width={20} height={20} />
+            </button>
+
+            {/* Exit Confirmation Dialog */}
+            {showExitConfirm && (
+              <div
                 style={{
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  position: 'absolute',
+                  top: '50px',
+                  right: '0',
+                  background: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+                  padding: '20px',
+                  zIndex: 10001,
+                  minWidth: '280px',
+                  border: '1px solid #e0e0e0'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
-                <Cross2Icon width={20} height={20} />
-              </button>
-            </Dialog.Close>
+                <div style={{ marginBottom: '16px', fontSize: '0.95rem', color: '#2c2c2c', fontWeight: 600 }}>
+                  Do you want to save your changes?
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button
+                    onClick={handleSaveAndExit}
+                    disabled={saving}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      color: 'white',
+                      backgroundColor: '#8b7355',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      opacity: saving ? 0.5 : 1,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!saving) e.currentTarget.style.backgroundColor = '#6f5a42';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!saving) e.currentTarget.style.backgroundColor = '#8b7355';
+                    }}
+                  >
+                    {saving ? 'Saving...' : 'Save and Exit'}
+                  </button>
+                  <button
+                    onClick={handleDiscard}
+                    disabled={saving}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      color: '#dc3545',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #dc3545',
+                      borderRadius: '6px',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      opacity: saving ? 0.5 : 1,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!saving) {
+                        e.currentTarget.style.backgroundColor = '#dc3545';
+                        e.currentTarget.style.color = 'white';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!saving) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = '#dc3545';
+                      }
+                    }}
+                  >
+                    Discard
+                  </button>
+                  <button
+                    onClick={() => setShowExitConfirm(false)}
+                    disabled={saving}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      color: '#5a5a5a',
+                      backgroundColor: 'transparent',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      cursor: saving ? 'not-allowed' : 'pointer',
+                      opacity: saving ? 0.5 : 1,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!saving) e.currentTarget.style.backgroundColor = '#f0f0f0';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!saving) e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Error Message */}

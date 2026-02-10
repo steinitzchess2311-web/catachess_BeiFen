@@ -165,7 +165,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
 
         {isOpen && (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "48px" }}>
               {/* Pinned Articles */}
               <button
                 onClick={() => {
