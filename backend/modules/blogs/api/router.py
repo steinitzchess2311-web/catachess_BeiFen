@@ -534,18 +534,23 @@ async def upload_image(
     - Image metadata with CDN URL
     """
     try:
-        # Read file data
+        # Step 1: Read file data
+        print(f"📤 [Upload] Starting upload for file: {file.filename}, size: {file.size if hasattr(file, 'size') else 'unknown'}")
         file_data = await file.read()
+        print(f"📤 [Upload] File read successfully, data size: {len(file_data)} bytes")
 
-        # Process and upload
+        # Step 2: Process and upload to R2
+        print(f"📤 [Upload] Processing image with resize_mode: {resize_mode}")
         image_service = get_image_service()
         result = image_service.process_and_upload(
             file_data,
             file.filename,
             resize_mode
         )
+        print(f"📤 [Upload] Image uploaded to R2: {result['url']}")
 
-        # Save metadata to database
+        # Step 3: Save metadata to database
+        print(f"📤 [Upload] Saving metadata to database")
         blog_image = BlogImage(
             id=uuid4(),
             filename=result["filename"],
@@ -562,6 +567,7 @@ async def upload_image(
         )
         db.add(blog_image)
         db.commit()
+        print(f"✅ [Upload] Image saved successfully: {blog_image.id}")
 
         return {
             "id": str(blog_image.id),
@@ -575,9 +581,27 @@ async def upload_image(
         }
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        error_detail = f"Validation error: {str(e)}"
+        print(f"❌ [Upload] {error_detail}")
+        print(f"❌ [Upload] Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=error_detail)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        import traceback
+        error_detail = f"Upload failed: {type(e).__name__}: {str(e)}"
+        traceback_str = traceback.format_exc()
+        print(f"❌ [Upload] {error_detail}")
+        print(f"❌ [Upload] Full traceback:\n{traceback_str}")
+        # Return detailed error to frontend for debugging
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": error_detail,
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback_str.split('\n')[-10:]  # Last 10 lines
+            }
+        )
 
 
 # ==================== Article Management (Editor/Admin) ====================
@@ -869,3 +893,46 @@ async def toggle_hide_article(
         "message": message,
         "is_hidden": article.is_hidden
     }
+
+
+@router.get("/debug/r2-config")
+async def debug_r2_config(
+    current_user = Depends(require_admin)
+):
+    """
+    Debug endpoint to check R2 configuration (Admin only)
+
+    Returns R2 configuration status and environment variables (redacted)
+    """
+    import os
+    from modules.blogs.services.image_service import get_image_service
+
+    try:
+        # Check environment variables
+        config = {
+            "R2_ACCOUNT_ID": "✓ Set" if os.getenv("R2_ACCOUNT_ID") else "✗ Missing",
+            "R2_ACCESS_KEY_ID": "✓ Set" if os.getenv("R2_ACCESS_KEY_ID") else "✗ Missing",
+            "R2_SECRET_ACCESS_KEY": "✓ Set" if os.getenv("R2_SECRET_ACCESS_KEY") else "✗ Missing",
+            "R2_BUCKET_NAME": os.getenv("R2_BUCKET_NAME", "✗ Missing"),
+            "R2_PUBLIC_URL": os.getenv("R2_PUBLIC_URL", "✗ Missing"),
+        }
+
+        # Try to initialize image service
+        try:
+            service = get_image_service()
+            config["image_service"] = "✓ Initialized"
+        except Exception as e:
+            config["image_service"] = f"✗ Failed: {str(e)}"
+
+        return {
+            "status": "success",
+            "config": config,
+            "note": "Check that all required environment variables are set in Railway"
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
