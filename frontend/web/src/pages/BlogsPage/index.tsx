@@ -3,12 +3,13 @@
  * Manages URL-based state for category filtering, search, and pagination
  */
 
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import PageTransition from "../../components/animation/PageTransition";
 import CategorySidebar from "./CategorySidebar";
 import ContentArea from "./ContentArea";
 import BlogHeader from "../../components/BlogHeader";
+import ArticleDetailPage from "./ArticleDetailPage";
 import { api } from '@ui/assets/api';
 
 /**
@@ -19,10 +20,24 @@ type ViewMode = 'articles' | 'drafts' | 'my-published';
 
 const BlogsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { articleId } = useParams<{ articleId: string }>();
+  const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('articles');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+
+  // Check if we're in detail view
+  const isDetailView = Boolean(articleId);
+
+  // Auto-collapse sidebar when entering detail view
+  useEffect(() => {
+    if (isDetailView) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [isDetailView]);
 
   // Extract current state from URL params
   const category = searchParams.get('category') || undefined;
@@ -145,22 +160,30 @@ const BlogsPage = () => {
               onOpenChange={setSidebarOpen}
             />
 
-            {/* Content Column: Header + Articles */}
+            {/* Content Column: Header + Content */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <BlogHeader
                 activeCategory={category}
                 searchQuery={search}
                 onSearchChange={handleSearchChange}
                 viewMode={viewMode}
+                isDetailView={isDetailView}
+                onBackClick={() => navigate('/blogs')}
               />
-              <ContentArea
-                category={category}
-                search={search}
-                page={page}
-                onPageChange={handlePageChange}
-                userRole={userRole}
-                viewMode={viewMode}
-              />
+
+              {/* Conditional rendering: Article Detail or Article List */}
+              {isDetailView ? (
+                <ArticleDetailPage />
+              ) : (
+                <ContentArea
+                  category={category}
+                  search={search}
+                  page={page}
+                  onPageChange={handlePageChange}
+                  userRole={userRole}
+                  viewMode={viewMode}
+                />
+              )}
             </div>
           </div>
         </div>
