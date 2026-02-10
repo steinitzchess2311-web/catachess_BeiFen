@@ -11,13 +11,13 @@ const Promises = () => {
     {
       title: "No forced premium plans:",
       description:
-        "our core basic model remains free and accessible to all. However, donars and premium members can choose an application/desktop pet to accompany your learning.",
+        "Our core basic model remains free and accessible to all. However, donars and premium members can choose an application/desktop pet to accompany your learning.",
       icon: "🚫",
     },
     {
-      title: "We promise ALL your suggestions will be considered seriously.",
+      title: "No neglected voices:",
       description:
-        "For every email you write for suggestions, we will reply to you within 2 weeks for detailed reasons whether we use it or not.",
+        "Beta testers are more than welcome to send user feedback to info@steinitzchess.org. We will carefully go over each suggestion.",
       icon: "💡",
     },
   ];
