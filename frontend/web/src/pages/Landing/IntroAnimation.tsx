@@ -14,10 +14,10 @@ const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
       setOpacity(0);
     }, 1500);
 
-    // Complete animation after fade out (1.5s delay + 1s fade)
+    // Complete animation after fade out (1.5s delay + 0.7s fade)
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 2500);
+    }, 2200);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -39,7 +39,7 @@ const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
         alignItems: "center",
         zIndex: 9999,
         opacity: opacity,
-        transition: "opacity 1s ease-out",
+        transition: "opacity 0.7s ease-out",
         pointerEvents: opacity === 0 ? "none" : "auto",
       }}
     >
@@ -47,12 +47,12 @@ const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
         src={logo}
         alt="ChessorTag Logo"
         style={{
-          width: "200px",
-          height: "200px",
+          width: "600px",
+          height: "600px",
           objectFit: "contain",
           filter: "invert(1)", // Invert colors: black background, white logo
           opacity: opacity > 0 ? 1 : 0,
-          transition: "opacity 0.8s ease-out",
+          transition: "opacity 0.7s ease-out",
         }}
       />
     </div>
