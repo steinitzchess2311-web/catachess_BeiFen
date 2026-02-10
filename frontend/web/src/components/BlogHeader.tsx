@@ -5,6 +5,7 @@
 
 import React from "react";
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
+import RecentArticlesHistory from "./RecentArticlesHistory";
 
 type ViewMode = 'articles' | 'drafts' | 'my-published';
 
@@ -124,36 +125,37 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
         </span>
       </div>
 
-      {/* Right: Search Bar or Back Button */}
-      {isDetailView ? (
-        <button
-          onClick={onBackClick}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 20px",
-            border: "1px solid rgba(139, 115, 85, 0.3)",
-            borderRadius: "8px",
-            fontSize: "0.95rem",
-            color: "#2c2c2c",
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#8b7355";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 115, 85, 0.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <ArrowLeftIcon width={16} height={16} />
-          <span>Back to Blogs</span>
-        </button>
-      ) : (
+      {/* Right: Search Bar or Back Button + History Icon */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {isDetailView ? (
+          <button
+            onClick={onBackClick}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 20px",
+              border: "1px solid rgba(139, 115, 85, 0.3)",
+              borderRadius: "8px",
+              fontSize: "0.95rem",
+              color: "#2c2c2c",
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#8b7355";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 115, 85, 0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(139, 115, 85, 0.3)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            <ArrowLeftIcon width={16} height={16} />
+            <span>Back to Blogs</span>
+          </button>
+        ) : (
         <div
           style={{
             position: "relative",
@@ -219,7 +221,11 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
             </button>
           )}
         </div>
-      )}
+        )}
+
+        {/* Recent Articles History Icon */}
+        <RecentArticlesHistory />
+      </div>
     </div>
   );
 };
