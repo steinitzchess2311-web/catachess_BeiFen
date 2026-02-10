@@ -158,10 +158,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <div
               style={{
                 position: "absolute",
-                top: "210px",
-                right: "12px",
+                top: "13rem",
+                right: "0.75rem",
                 display: "flex",
-                gap: "8px",
+                gap: "0.5rem",
                 zIndex: 10,
               }}
             >
