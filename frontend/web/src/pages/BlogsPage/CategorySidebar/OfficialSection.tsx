@@ -4,7 +4,6 @@
 
 import React from "react";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import pureLogo from "../../../assets/chessortag_pure_logo.png";
 import { OfficialSectionProps } from "./types";
 
@@ -15,9 +14,9 @@ const OfficialSection: React.FC<OfficialSectionProps> = ({
   onCategoryClick,
 }) => {
   const officialSubItems = [
-    { id: "about", label: "Our Stories" },
-    { id: "function", label: "Function Intro" },
     { id: "allblogs", label: "All Blogs" },
+    { id: "about", label: "Our Stories" },
+    { id: "function", label: "Functions Intro" },
   ];
 
   return (
@@ -61,11 +60,6 @@ const OfficialSection: React.FC<OfficialSectionProps> = ({
             }}
           />
           <span style={{ flex: 1 }}>Chessortag Official</span>
-          {isOfficialOpen ? (
-            <ChevronDownIcon style={{ width: "18px", height: "18px" }} />
-          ) : (
-            <ChevronRightIcon style={{ width: "18px", height: "18px" }} />
-          )}
         </button>
       </Collapsible.Trigger>
 
