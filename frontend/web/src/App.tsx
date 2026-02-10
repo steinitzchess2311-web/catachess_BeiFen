@@ -404,7 +404,7 @@ function Layout() {
       </main>
       <Footer />
       <TerminalLauncher customCommands={[catamazeCommand]} />
-      {authed && ENABLE_CAT_PET && <CatPet />}
+      {ENABLE_CAT_PET && <CatPet />}
     </>
   );
 }
