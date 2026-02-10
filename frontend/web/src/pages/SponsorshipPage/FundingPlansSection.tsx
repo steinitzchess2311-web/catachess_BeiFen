@@ -89,7 +89,7 @@ const FundingPlansSection = () => {
           >
             3
           </span>
-          Hold high quality tournaments (see steinitzchess.org) to boost inclusivity and attract strong players
+          Hold high quality tournaments (see steinitzchess.org) to boost inclusivity among all chess lovers
         </li>
         <li style={{ marginBottom: "18px" }}>
           <span
