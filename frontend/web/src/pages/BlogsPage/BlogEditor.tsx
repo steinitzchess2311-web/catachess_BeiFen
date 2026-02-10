@@ -17,6 +17,7 @@ interface BlogEditorProps {
   onOpenChange: (open: boolean) => void;
   onSaved?: (article: BlogArticle) => void;
   userRole?: string | null;  // User's role to determine category options
+  userName?: string | null;  // Current user's name for author field
 }
 
 /**
@@ -28,7 +29,8 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   open,
   onOpenChange,
   onSaved,
-  userRole
+  userRole,
+  userName
 }) => {
   const isEditMode = Boolean(article);
   const isAdmin = userRole === 'admin';
@@ -38,7 +40,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [subtitle, setSubtitle] = useState('');
   const [content, setContent] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
-  const [authorName, setAuthorName] = useState('');
   const [authorType, setAuthorType] = useState<'official' | 'user'>('official');  // official: 官方文章 | user: 用户投稿
   // Default category: admin can choose, others default to 'user'
   const [category, setCategory] = useState(isAdmin ? 'allblogs' : 'user');
@@ -55,7 +56,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setSubtitle(article.subtitle || '');
       setContent(article.content || '');
       setCoverImageUrl(article.cover_image_url || '');
-      setAuthorName(article.author_name);
       setAuthorType(article.author_type);
       setCategory(article.category);
       setTags(article.tags?.join(', ') || '');
@@ -66,7 +66,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setSubtitle('');
       setContent('');
       setCoverImageUrl('');
-      setAuthorName('');
       setAuthorType('official');  // official: 官方文章
       // Default category based on role
       setCategory(isAdmin ? 'allblogs' : 'user');
@@ -126,7 +125,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
         subtitle: subtitle.trim() || undefined,
         content: content.trim(),
         cover_image_url: coverImageUrl || undefined,
-        author_name: authorName.trim() || undefined,
+        author_name: userName || undefined,  // Use current user's username
         author_type: authorType,
         category,
         tags: tags
@@ -393,31 +392,6 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
                   </Select.Portal>
                 </Select.Root>
               </div>
-            </div>
-
-            {/* Author Name */}
-            <div>
-              <Label.Root htmlFor="authorName" style={{ fontSize: '0.95rem', fontWeight: 600, color: '#2c2c2c', marginBottom: '8px', display: 'block' }}>
-                Author Name
-              </Label.Root>
-              <input
-                id="authorName"
-                type="text"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="Enter author name (optional)..."
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '1rem',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#8b7355'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
-              />
             </div>
 
             {/* Cover Image */}

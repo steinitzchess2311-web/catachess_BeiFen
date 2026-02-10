@@ -19,6 +19,7 @@ interface CategorySidebarProps {
   viewMode: ViewMode;  // Current view mode
   onViewModeChange: (mode: ViewMode) => void;  // Callback when view mode changes
   userRole: string | null;  // User role for permission checks
+  userName: string | null;  // User name for author field
 }
 
 /**
@@ -32,6 +33,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   viewMode,
   onViewModeChange,
   userRole,
+  userName,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>(externalSearchQuery);
   const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
@@ -499,6 +501,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
           window.location.reload();
         }}
         userRole={userRole}
+        userName={userName}
       />
 
       <style>

@@ -19,6 +19,7 @@ type ViewMode = 'articles' | 'drafts' | 'my-published';
 const BlogsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('articles');
 
   // Extract current state from URL params
@@ -26,13 +27,14 @@ const BlogsPage = () => {
   const search = searchParams.get('search') || undefined;
   const page = parseInt(searchParams.get('page') || '1', 10);
 
-  // Check user role on mount
+  // Check user info on mount
   useEffect(() => {
-    const checkUserRole = async () => {
+    const checkUserInfo = async () => {
       try {
         const token = localStorage.getItem('catachess_token') || sessionStorage.getItem('catachess_token');
         if (!token) {
           setUserRole(null);
+          setUserName(null);
           return;
         }
 
@@ -43,13 +45,15 @@ const BlogsPage = () => {
         });
 
         setUserRole(response.role || null);
+        setUserName(response.username || null);
       } catch (error) {
-        console.error("Failed to fetch user role:", error);
+        console.error("Failed to fetch user info:", error);
         setUserRole(null);
+        setUserName(null);
       }
     };
 
-    checkUserRole();
+    checkUserInfo();
   }, []);
 
   /**
@@ -134,6 +138,7 @@ const BlogsPage = () => {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               userRole={userRole}
+              userName={userName}
             />
             <ContentArea
               category={category}
