@@ -251,16 +251,16 @@ const ArticleDetailPage: React.FC = () => {
                   <span
                     style={{
                       padding: "4px 8px",
-                      backgroundColor: article.author_type === 'ai'
-                        ? "rgba(139, 115, 85, 0.1)"
-                        : "rgba(76, 175, 80, 0.1)",
+                      backgroundColor: article.author_type === 'official'
+                        ? "rgba(76, 175, 80, 0.1)"  // 绿色 - 官方文章
+                        : "rgba(139, 115, 85, 0.1)",  // 棕色 - 用户投稿
                       borderRadius: "4px",
                       fontSize: "0.75rem",
                       fontWeight: 600,
                       textTransform: "uppercase",
                     }}
                   >
-                    {article.author_type}
+                    {article.author_type === 'official' ? 'Official' : 'User'}
                   </span>
                 </div>
                 <span style={{ color: "#d0d0d0" }}>•</span>

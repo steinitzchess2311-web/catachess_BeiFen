@@ -87,7 +87,7 @@ export const blogApi = {
     content: string;
     cover_image_url?: string;
     author_name?: string;
-    author_type?: 'human' | 'ai';
+    author_type?: 'official' | 'user';  // official: 官方文章 | user: 用户投稿
     category: string;
     sub_category?: string;
     tags?: string[];
@@ -112,7 +112,7 @@ export const blogApi = {
     content: string;
     cover_image_url: string;
     author_name: string;
-    author_type: 'human' | 'ai';
+    author_type: 'official' | 'user';  // official: 官方文章 | user: 用户投稿
     category: string;
     sub_category: string;
     tags: string[];

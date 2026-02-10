@@ -13,7 +13,7 @@ export interface BlogArticle {
   content?: string;  // Only included in detail view
   cover_image_url: string;
   author_name: string;
-  author_type: 'human' | 'ai';
+  author_type: 'official' | 'user';  // official: 官方文章 | user: 用户投稿
   category: 'about' | 'function' | 'allblogs' | 'user';
   tags: string[];
   status: 'draft' | 'published' | 'archived';

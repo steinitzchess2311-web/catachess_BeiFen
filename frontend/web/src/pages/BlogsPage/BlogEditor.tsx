@@ -39,7 +39,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
   const [content, setContent] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [authorName, setAuthorName] = useState('');
-  const [authorType, setAuthorType] = useState<'human' | 'ai'>('human');
+  const [authorType, setAuthorType] = useState<'official' | 'user'>('official');  // Editor/Admin发布的是官方文章
   // Default category: admin can choose, others default to 'user'
   const [category, setCategory] = useState(isAdmin ? 'allblogs' : 'user');
   const [tags, setTags] = useState('');
@@ -67,7 +67,7 @@ const BlogEditor: React.FC<BlogEditorProps> = ({
       setContent('');
       setCoverImageUrl('');
       setAuthorName('');
-      setAuthorType('human');
+      setAuthorType('official');  // Editor/Admin发布的是官方文章
       // Default category based on role
       setCategory(isAdmin ? 'allblogs' : 'user');
       setTags('');
