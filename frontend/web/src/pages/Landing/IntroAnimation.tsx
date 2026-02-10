@@ -6,18 +6,18 @@ import logo from "../../assets/chessortag_pure_logo.png";
  * Shows a black screen with inverted logo, then fades out to reveal the landing page
  */
 const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-  const [opacity, setOpacity] = useState(1);
+  const [opacity, setOpacity] = useState(0.7);
 
   useEffect(() => {
-    // Start fading out after 1.5 seconds
+    // Start fading out after 0.4 seconds
     const fadeTimer = setTimeout(() => {
       setOpacity(0);
-    }, 1500);
+    }, 400);
 
-    // Complete animation after fade out (1.5s delay + 0.7s fade)
+    // Complete animation after fade out (0.4s delay + 0.7s fade)
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 2200);
+    }, 1100);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -47,8 +47,8 @@ const IntroAnimation: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
         src={logo}
         alt="ChessorTag Logo"
         style={{
-          width: "600px",
-          height: "600px",
+          width: "480px",
+          height: "480px",
           objectFit: "contain",
           filter: "invert(1)", // Invert colors: black background, white logo
           opacity: opacity > 0 ? 1 : 0,
