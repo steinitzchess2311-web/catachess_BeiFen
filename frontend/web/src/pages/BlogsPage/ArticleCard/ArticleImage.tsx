@@ -73,7 +73,7 @@ const ArticleImage: React.FC<ArticleImageWithActionsProps> = ({
       </div>
 
       {/* Action Buttons - Top Right */}
-      {(canDelete || canPin) && (
+      {true && (  {/* Temporarily force show buttons for debugging */}
         <div
           style={{
             position: "absolute",
@@ -85,7 +85,7 @@ const ArticleImage: React.FC<ArticleImageWithActionsProps> = ({
           }}
         >
           {/* Delete Button */}
-          {canDelete && (
+          {true && (  {/* Force show for debugging */}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -126,7 +126,7 @@ const ArticleImage: React.FC<ArticleImageWithActionsProps> = ({
           )}
 
           {/* Pin Button */}
-          {canPin && (
+          {true && (  {/* Force show for debugging */}
             <button
               onClick={(e) => {
                 e.preventDefault();
