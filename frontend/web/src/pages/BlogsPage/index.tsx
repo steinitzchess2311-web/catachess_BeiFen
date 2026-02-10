@@ -151,6 +151,7 @@ const BlogsPage = () => {
                 activeCategory={category}
                 searchQuery={search}
                 onSearchChange={handleSearchChange}
+                viewMode={viewMode}
               />
               <ContentArea
                 category={category}

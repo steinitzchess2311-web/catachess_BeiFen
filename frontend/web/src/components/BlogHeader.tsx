@@ -5,24 +5,33 @@
 
 import React from "react";
 
+type ViewMode = 'articles' | 'drafts' | 'my-published';
+
 interface BlogHeaderProps {
   activeCategory?: string;
   searchQuery?: string;
   onSearchChange: (search: string) => void;
+  viewMode?: ViewMode;
 }
 
 const CATEGORY_LABELS: { [key: string]: string } = {
   'pinned': 'Pinned Articles',
   'about': 'Our Stories',
   'function': 'Functions Intro',
-  'allblogs': 'All Blogs',
   'user': 'Community',
+};
+
+const VIEW_MODE_LABELS: { [key in ViewMode]: string } = {
+  'articles': '',
+  'drafts': 'Draft Box',
+  'my-published': 'My Published Blogs',
 };
 
 const BlogHeader: React.FC<BlogHeaderProps> = ({
   activeCategory,
   searchQuery = "",
   onSearchChange,
+  viewMode = 'articles',
 }) => {
   const [localSearchQuery, setLocalSearchQuery] = React.useState(searchQuery);
 
@@ -44,9 +53,19 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({
     setLocalSearchQuery("");
   };
 
-  const categoryLabel = activeCategory
-    ? CATEGORY_LABELS[activeCategory] || activeCategory
-    : 'All Articles';
+  // Determine label based on viewMode first, then category
+  const getLabel = () => {
+    if (viewMode !== 'articles' && VIEW_MODE_LABELS[viewMode]) {
+      return VIEW_MODE_LABELS[viewMode];
+    }
+    if (activeCategory) {
+      return CATEGORY_LABELS[activeCategory] || activeCategory;
+    }
+    // When no category selected, show Chessortag Official (all official blogs)
+    return 'Chessortag Official';
+  };
+
+  const categoryLabel = getLabel();
 
   return (
     <div
