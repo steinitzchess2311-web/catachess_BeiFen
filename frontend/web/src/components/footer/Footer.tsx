@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
       <div className="footer-bottom">
         <div className="footer-divider"></div>
         <p className="footer-copyright">
-          © {new Date().getFullYear()} HaJiMiBo South North Green Bean.
+          Developed by Quanhao (CataDragon) and Jorlanda (Chestnut).
         </p>
       </div>
     </footer>
