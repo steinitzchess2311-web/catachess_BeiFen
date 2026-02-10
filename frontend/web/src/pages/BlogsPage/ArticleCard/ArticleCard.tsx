@@ -155,6 +155,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               flex: 1,
               display: "flex",
               flexDirection: "column",
+              position: "relative",  // Required for DeleteConfirmDialog positioning
             }}
           >
             <ArticleContent
