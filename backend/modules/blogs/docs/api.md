@@ -84,7 +84,7 @@ GET /api/blogs/articles
       "subtitle": "副标题",
       "cover_image_url": "https://cdn.example.com/image.jpg",
       "author_name": "作者名",
-      "author_type": "human",
+      "author_type": "official",
       "category": "function",
       "tags": ["教程", "新手"],
       "is_pinned": false,
@@ -165,7 +165,7 @@ GET /api/blogs/articles/{id}
   "cover_image_url": "https://cdn.example.com/cover.jpg",
   "author_id": "uuid",
   "author_name": "作者名",
-  "author_type": "human",
+  "author_type": "official",
   "category": "function",
   "sub_category": "tutorial",
   "tags": ["教程", "新手"],
@@ -294,7 +294,7 @@ POST /api/blogs/articles
   "content": "# Markdown内容\n\n文章正文...",
   "cover_image_url": "https://cdn.example.com/cover.jpg",
   "author_name": "作者名",
-  "author_type": "human",
+  "author_type": "official",
   "category": "function",
   "sub_category": "tutorial",
   "tags": ["教程", "新手"],
@@ -312,7 +312,7 @@ POST /api/blogs/articles
   - `draft`: 草稿（不公开）
   - `published`: 发布（公开）
   - `archived`: 归档（不公开）
-- `author_type`: human（人类）或 ai（AI生成）
+- `author_type: official（官方）或 user（用户投稿）
 - 其他字段可选
 
 **自动处理：**
@@ -593,8 +593,8 @@ DELETE /api/blogs/articles/{article-uuid}
 
 | 值 | 说明 |
 |----|------|
-| `human` | 人类作者 |
-| `ai` | AI生成内容 |
+| `official` | 官方文章（管理员/编辑发布） |
+| `user` | 用户投稿 |
 
 ---
 

@@ -35,7 +35,7 @@ Retrieve all draft articles created by the current user.
     "subtitle": "Optional subtitle",
     "cover_image_url": "https://cdn.example.com/image.jpg",
     "author_name": "John Doe",
-    "author_type": "human",
+    "author_type": "official",
     "category": "function",
     "tags": ["tag1", "tag2"],
     "is_pinned": false,
@@ -70,7 +70,7 @@ Create a new article with `status: "draft"`.
   "content": "# Markdown content here\n\nThis is a draft.",
   "cover_image_url": "https://cdn.example.com/cover.jpg",
   "author_name": "John Doe",
-  "author_type": "human",
+  "author_type": "official",
   "category": "function",
   "sub_category": "tutorial",
   "tags": ["draft", "work-in-progress"],
@@ -344,7 +344,7 @@ curl -X POST "https://api.example.com/api/blogs/articles" \
     "status": "draft",
     "category": "function",
     "author_name": "John",
-    "author_type": "human"
+    "author_type": "official"
   }'
 
 # Response: { "id": "draft-uuid", ... }
