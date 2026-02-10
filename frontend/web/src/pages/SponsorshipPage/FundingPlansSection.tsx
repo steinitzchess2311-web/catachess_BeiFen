@@ -49,7 +49,7 @@ const FundingPlansSection = () => {
           >
             1
           </span>
-          Improve ChessorTag imitator's logic, so it better imitates players' styles
+          Better imitation of our tagged coaches.
         </li>
         <li style={{ marginBottom: "18px" }}>
           <span
@@ -69,8 +69,7 @@ const FundingPlansSection = () => {
           >
             2
           </span>
-          Hold <strong>HIGH FUNDS TOURNAMENTS</strong> (see steinitzchess.org). Encourage
-          up-and-coming players to improve
+          Advertising: asking professional players and even our tagged coaches themselves to provide feedback. We will also make sure our product reaches a wider audience.
         </li>
         <li style={{ marginBottom: "18px" }}>
           <span
@@ -90,8 +89,7 @@ const FundingPlansSection = () => {
           >
             3
           </span>
-          <strong>Advertising!</strong> Ask PRO players to use and comment on our product, so
-          more people can know this
+          Hold high quality tournaments (see steinitzchess.org) to boost inclusivity and attract strong players
         </li>
         <li style={{ marginBottom: "18px" }}>
           <span
