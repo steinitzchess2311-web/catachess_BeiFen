@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import PageTransition from "../../components/animation/PageTransition";
 import CategorySidebar from "./CategorySidebar";
 import ContentArea from "./ContentArea";
+import BlogHeader from "../../components/BlogHeader";
 import { api } from '@ui/assets/api';
 
 /**
@@ -143,14 +144,23 @@ const BlogsPage = () => {
               isOpen={sidebarOpen}
               onOpenChange={setSidebarOpen}
             />
-            <ContentArea
-              category={category}
-              search={search}
-              page={page}
-              onPageChange={handlePageChange}
-              userRole={userRole}
-              viewMode={viewMode}
-            />
+
+            {/* Content Column: Header + Articles */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <BlogHeader
+                activeCategory={category}
+                searchQuery={search}
+                onSearchChange={handleSearchChange}
+              />
+              <ContentArea
+                category={category}
+                search={search}
+                page={page}
+                onPageChange={handlePageChange}
+                userRole={userRole}
+                viewMode={viewMode}
+              />
+            </div>
           </div>
         </div>
       </div>

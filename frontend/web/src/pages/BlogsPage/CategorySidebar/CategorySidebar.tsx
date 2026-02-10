@@ -9,7 +9,6 @@ import ToggleButton from "./ToggleButton";
 import PinnedButton from "./PinnedButton";
 import OfficialSection from "./OfficialSection";
 import CommunityButton from "./CommunityButton";
-import SearchSection from "./SearchSection";
 import UserActionsSection from "./UserActionsSection";
 import CollapsedView from "./CollapsedView";
 import { CategorySidebarProps } from "./types";
@@ -29,28 +28,9 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
   isOpen,
   onOpenChange,
 }) => {
-  const [searchQuery, setSearchQuery] = useState<string>(externalSearchQuery);
   const [isOfficialOpen, setIsOfficialOpen] = useState<boolean>(false);
   const [showComingSoon, setShowComingSoon] = useState<boolean>(false);
   const [editorOpen, setEditorOpen] = useState<boolean>(false);
-
-  // Sync internal search state with external prop
-  useEffect(() => {
-    setSearchQuery(externalSearchQuery);
-  }, [externalSearchQuery]);
-
-  // Debounced search handler
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      onSearchChange(searchQuery);
-    }, 500);  // 500ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, onSearchChange]);
-
-  const handleSearchClear = () => {
-    setSearchQuery("");
-  };
 
   const handleUserBlogsClick = () => {
     // Community is now enabled - navigate to user category
@@ -138,13 +118,6 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
                 onUserBlogsClick={handleUserBlogsClick}
               />
             </div>
-
-            {/* Search Section */}
-            <SearchSection
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              handleSearchClear={handleSearchClear}
-            />
 
             {/* User Actions Section - Only show for Editor/Admin */}
             <UserActionsSection
