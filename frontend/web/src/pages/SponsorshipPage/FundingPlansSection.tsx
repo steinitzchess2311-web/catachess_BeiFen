@@ -20,7 +20,7 @@ const FundingPlansSection = () => {
           textAlign: "center",
         }}
       >
-        With your funds, we will:
+        Your funds help us:
       </h2>
       <ul
         style={{
@@ -69,7 +69,7 @@ const FundingPlansSection = () => {
           >
             2
           </span>
-          Advertising: asking professional players and even our tagged coaches themselves to provide feedback. We will also make sure our product reaches a wider audience.
+          A wider audience: we will reach out to more communities and even our tagged coaches for future support.
         </li>
         <li style={{ marginBottom: "18px" }}>
           <span

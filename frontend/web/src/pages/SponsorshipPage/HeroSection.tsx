@@ -27,7 +27,7 @@ const HeroSection = () => {
           marginBottom: "0",
         }}
       >
-        AKA Your Help Matters!!!
+        Your help makes chess training more accessible to all!
       </p>
     </div>
   );
