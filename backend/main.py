@@ -87,12 +87,13 @@ async def _init_blog_db() -> None:
         engine = create_engine(blog_db_url)
         inspector = inspect(engine)
 
-        # Check if migration is needed
+        # Check what tables exist
         tables = inspector.get_table_names()
+        needs_base_tables = 'blog_articles' not in tables or 'blog_images' not in tables
         needs_migration = False
 
         # Check if blog_article_images table exists
-        if 'blog_article_images' not in tables:
+        if 'blog_images' in tables and 'blog_article_images' not in tables:
             logger.info("blog_article_images table not found - migration needed")
             needs_migration = True
 
@@ -103,6 +104,82 @@ async def _init_blog_db() -> None:
             if 'is_orphan' not in col_names:
                 logger.info("blog_images missing new fields - migration needed")
                 needs_migration = True
+
+        # Step 0: Create base tables if needed
+        if needs_base_tables:
+            logger.info("🔨 Creating blog base tables...")
+            with engine.begin() as conn:
+                # Create blog_articles table
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS blog_articles (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        title VARCHAR(200) NOT NULL,
+                        subtitle TEXT,
+                        content TEXT NOT NULL,
+                        cover_image_url TEXT,
+
+                        author_id UUID,
+                        author_name VARCHAR(100) NOT NULL DEFAULT 'Chessortag Team',
+                        author_type VARCHAR(20) NOT NULL DEFAULT 'official',
+
+                        category VARCHAR(50) NOT NULL,
+                        sub_category VARCHAR(50),
+                        tags TEXT[],
+
+                        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+                        is_pinned BOOLEAN NOT NULL DEFAULT false,
+                        pin_order INTEGER NOT NULL DEFAULT 0,
+
+                        view_count INTEGER NOT NULL DEFAULT 0,
+                        like_count INTEGER NOT NULL DEFAULT 0,
+                        comment_count INTEGER NOT NULL DEFAULT 0,
+
+                        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                        published_at TIMESTAMP,
+
+                        CONSTRAINT blog_articles_status_check CHECK (status IN ('draft', 'published', 'archived')),
+                        CONSTRAINT blog_articles_author_type_check CHECK (author_type IN ('official', 'user'))
+                    );
+
+                    CREATE INDEX IF NOT EXISTS ix_blog_articles_category ON blog_articles(category);
+                    CREATE INDEX IF NOT EXISTS ix_blog_articles_status ON blog_articles(status);
+                    CREATE INDEX IF NOT EXISTS ix_blog_articles_published_at ON blog_articles(published_at);
+                """))
+
+                # Create blog_images table
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS blog_images (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        filename VARCHAR(255) NOT NULL,
+                        storage_path VARCHAR(500) NOT NULL,
+                        url TEXT NOT NULL,
+                        content_type VARCHAR(50) NOT NULL,
+
+                        size_bytes INTEGER NOT NULL,
+                        width INTEGER NOT NULL,
+                        height INTEGER NOT NULL,
+
+                        resize_mode VARCHAR(20) NOT NULL,
+                        image_type VARCHAR(20) NOT NULL,
+
+                        uploaded_by UUID,
+                        article_id UUID,
+
+                        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+                        CONSTRAINT blog_images_resize_mode_check CHECK (resize_mode IN ('original', 'adaptive_width')),
+                        CONSTRAINT blog_images_image_type_check CHECK (image_type IN ('cover', 'content'))
+                    );
+
+                    CREATE INDEX IF NOT EXISTS ix_blog_images_article_id ON blog_images(article_id);
+                    CREATE INDEX IF NOT EXISTS ix_blog_images_created_at ON blog_images(created_at);
+                """))
+            logger.info("✅ Blog base tables created")
+            # Refresh table list
+            tables = inspector.get_table_names()
+            # Now we definitely need migration
+            needs_migration = True
 
         if needs_migration:
             logger.info("🚀 Running blog database migration...")
