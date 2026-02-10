@@ -300,6 +300,7 @@ function WorkspacePage() {
 }
 
 function Layout() {
+  const location = useLocation();
   const [username, setUsername] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const authed = isAuthed();
@@ -312,6 +313,20 @@ function Layout() {
     () => createCataMazeCommand(catamazeStateRef),
     []
   );
+
+  // Calculate cat initial position based on current route
+  const catInitialPosition = useMemo(() => {
+    if (location.pathname === '/') {
+      // Landing page - position cat above "Start your journey" button
+      // Button is in the right section, aligned to the right
+      return {
+        x: typeof window !== 'undefined' ? window.innerWidth * 0.70 : 800,
+        y: typeof window !== 'undefined' ? window.innerHeight * 0.45 : 350,
+      };
+    }
+    // Default position for all other pages (bottom left)
+    return undefined; // Let CatPet use its default
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -404,7 +419,7 @@ function Layout() {
       </main>
       <Footer />
       <TerminalLauncher customCommands={[catamazeCommand]} />
-      {ENABLE_CAT_PET && <CatPet />}
+      {ENABLE_CAT_PET && <CatPet initialPosition={catInitialPosition} />}
     </>
   );
 }
