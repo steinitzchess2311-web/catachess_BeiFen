@@ -17,7 +17,8 @@ import { blogApi } from "../../../utils/blogApi";
 import ArticleImage from "./ArticleImage";
 import ArticleContent from "./ArticleContent";
 import ArticleMeta from "./ArticleMeta";
-import ActionButtons from "./ActionButtons";
+import ActionIconButtons from "./ActionIconButtons";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
   article,
@@ -33,7 +34,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   // Refs for dialog positioning and click-outside detection
   const dialogRef = useRef<HTMLDivElement>(null);
-  const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
   // Permission checks
   const canDelete =
@@ -48,9 +48,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dialogRef.current &&
-        !dialogRef.current.contains(event.target as Node) &&
-        deleteButtonRef.current &&
-        !deleteButtonRef.current.contains(event.target as Node)
+        !dialogRef.current.contains(event.target as Node)
       ) {
         setShowDeleteConfirm(false);
       }
@@ -129,6 +127,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             height: "100%",
             display: "flex",
             flexDirection: "column",
+            position: "relative",  // For action buttons positioning
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-4px)";
@@ -139,6 +138,22 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             e.currentTarget.style.boxShadow = "0 2px 12px rgba(0, 0, 0, 0.08)";
           }}
         >
+          {/* Action Icon Buttons - Top Right Corner */}
+          <ActionIconButtons
+            canDelete={canDelete}
+            canPin={canPin}
+            isPinned={article.is_pinned}
+            onDeleteClick={handleDeleteClick}
+            onPinToggle={handlePinToggle}
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <DeleteConfirmDialog
+            show={showDeleteConfirm && canDelete}
+            dialogRef={dialogRef}
+            onConfirm={confirmDelete}
+            onCancel={cancelDelete}
+          />
           {/* Cover Image Section */}
           <ArticleImage
             imageUrl={article.cover_image_url}
@@ -165,21 +180,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
               authorName={article.author_name}
               publishedAt={article.published_at}
               viewCount={article.view_count}
-            />
-
-            <ActionButtons
-              canDelete={canDelete}
-              canPin={canPin}
-              isDeleting={isDeleting}
-              isPinning={isPinning}
-              isPinned={article.is_pinned}
-              onDeleteClick={handleDeleteClick}
-              onPinToggle={handlePinToggle}
-              deleteButtonRef={deleteButtonRef}
-              showDeleteConfirm={showDeleteConfirm}
-              dialogRef={dialogRef}
-              onConfirmDelete={confirmDelete}
-              onCancelDelete={cancelDelete}
             />
           </div>
         </article>
