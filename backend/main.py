@@ -97,6 +97,14 @@ async def _init_blog_db() -> None:
             logger.info("blog_article_images table not found - migration needed")
             needs_migration = True
 
+        # Check if blog_articles has is_hidden field
+        if 'blog_articles' in tables and not needs_migration:
+            columns = inspector.get_columns('blog_articles')
+            col_names = [col['name'] for col in columns]
+            if 'is_hidden' not in col_names:
+                logger.info("blog_articles missing is_hidden field - migration needed")
+                needs_migration = True
+
         # Check if blog_images has new fields
         if 'blog_images' in tables and not needs_migration:
             columns = inspector.get_columns('blog_images')
@@ -129,6 +137,7 @@ async def _init_blog_db() -> None:
                         status VARCHAR(20) NOT NULL DEFAULT 'draft',
                         is_pinned BOOLEAN NOT NULL DEFAULT false,
                         pin_order INTEGER NOT NULL DEFAULT 0,
+                        is_hidden BOOLEAN NOT NULL DEFAULT false,
 
                         view_count INTEGER NOT NULL DEFAULT 0,
                         like_count INTEGER NOT NULL DEFAULT 0,
@@ -145,6 +154,7 @@ async def _init_blog_db() -> None:
                     CREATE INDEX IF NOT EXISTS ix_blog_articles_category ON blog_articles(category);
                     CREATE INDEX IF NOT EXISTS ix_blog_articles_status ON blog_articles(status);
                     CREATE INDEX IF NOT EXISTS ix_blog_articles_published_at ON blog_articles(published_at);
+                    CREATE INDEX IF NOT EXISTS ix_blog_articles_is_hidden ON blog_articles(is_hidden);
                 """))
 
                 # Create blog_images table
