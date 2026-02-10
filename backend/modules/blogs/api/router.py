@@ -42,22 +42,23 @@ router = APIRouter(prefix="/api/blogs", tags=["Blogs"])
 
 # ==================== Database Dependency ====================
 
-# Import main app's database session
-import sys
-from pathlib import Path
-backend_dir = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(backend_dir))
-
-from core.db.deps import get_db
-
 def get_blog_db():
     """
-    Get blog database session (uses main app's database)
+    Get blog database session (BLOG_DATABASE_URL - 独立数据库)
 
-    Blog data is stored in the same database as user data.
-    This ensures JWT authentication works correctly.
+    Blog articles, categories, and images use a separate database.
+    User authentication queries the main database via auth.py::get_current_user.
     """
-    return get_db()
+    db_url = os.getenv("BLOG_DATABASE_URL")
+    if not db_url:
+        raise HTTPException(status_code=500, detail="BLOG_DATABASE_URL not configured")
+
+    engine = create_engine(db_url)
+    session = Session(engine)
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 # ==================== Categories ====================
