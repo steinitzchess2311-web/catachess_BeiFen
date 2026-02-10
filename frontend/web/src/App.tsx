@@ -303,6 +303,7 @@ function Layout() {
   const location = useLocation();
   const [username, setUsername] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [showCat, setShowCat] = useState(false);
   const authed = isAuthed();
   const catamazeStateRef = useRef({
     gameId: null as string | null,
@@ -313,6 +314,28 @@ function Layout() {
     () => createCataMazeCommand(catamazeStateRef),
     []
   );
+
+  // Check if landing intro animation has completed
+  useEffect(() => {
+    if (location.pathname === '/') {
+      // On landing page, check if intro has been shown
+      const introShown = sessionStorage.getItem("landingIntroShown");
+      if (introShown === "true") {
+        // Intro already shown, show cat immediately
+        setShowCat(true);
+      } else {
+        // Wait for intro to complete (1200ms animation duration)
+        setShowCat(false);
+        const timer = setTimeout(() => {
+          setShowCat(true);
+        }, 1300);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      // On other pages, show cat immediately
+      setShowCat(true);
+    }
+  }, [location.pathname]);
 
   // Calculate cat initial position based on current route
   const catInitialPosition = useMemo(() => {
@@ -419,7 +442,7 @@ function Layout() {
       </main>
       <Footer />
       <TerminalLauncher customCommands={[catamazeCommand]} />
-      {ENABLE_CAT_PET && <CatPet initialPosition={catInitialPosition} />}
+      {ENABLE_CAT_PET && showCat && <CatPet initialPosition={catInitialPosition} />}
     </>
   );
 }
