@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useStudy } from '../studyContext';
 import { getMoveSan } from '../chessJS/replay';
@@ -9,12 +9,22 @@ export interface StudyBoardProps {
   boardWidth?: number;
 }
 
+type BoardArrows = NonNullable<React.ComponentProps<typeof Chessboard>['customArrows']>;
+
 export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
   const { state, addMove, setError, selectNode } = useStudy();
   const [orientation, setOrientation] = useState<'white' | 'black'>('white');
+  const [boardArrows, setBoardArrows] = useState<BoardArrows>([]);
+  const [boardResetToken, setBoardResetToken] = useState(0);
+  const boardWrapperRef = useRef<HTMLDivElement | null>(null);
+  const rightMouseDownOnBoardRef = useRef(false);
   const isFlipped = orientation === 'black';
   const toggleFlip = useCallback(() => {
     setOrientation((prev) => (prev === 'white' ? 'black' : 'white'));
+  }, []);
+
+  const resetBoardInstance = useCallback(() => {
+    setBoardResetToken((prev) => prev + 1);
   }, []);
 
   const moveToStart = useCallback(() => {
@@ -80,6 +90,59 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [moveToEnd, moveToNext, moveToPrev, moveToStart, toggleFlip]);
 
+  // Keep committed arrows controlled by the wrapper so we can safely remount the
+  // underlying chessboard when react-chessboard leaves a transient arrow stuck.
+  useEffect(() => {
+    setBoardArrows([]);
+  }, [state.currentFen]);
+
+  useEffect(() => {
+    const handleDocumentMouseUp = (event: MouseEvent) => {
+      if (event.button !== 2) {
+        return;
+      }
+
+      if (!rightMouseDownOnBoardRef.current) {
+        return;
+      }
+
+      rightMouseDownOnBoardRef.current = false;
+
+      const boardElement = boardWrapperRef.current;
+      const releasedInsideBoard =
+        !!boardElement &&
+        event.target instanceof Node &&
+        boardElement.contains(event.target);
+
+      if (!releasedInsideBoard) {
+        resetBoardInstance();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (!rightMouseDownOnBoardRef.current) {
+        return;
+      }
+
+      rightMouseDownOnBoardRef.current = false;
+      resetBoardInstance();
+    };
+
+    document.addEventListener('mouseup', handleDocumentMouseUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('mouseup', handleDocumentMouseUp);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [resetBoardInstance]);
+
+  const handleBoardMouseDownCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button === 2) {
+      rightMouseDownOnBoardRef.current = true;
+    }
+  }, []);
+
   const onPieceDrop = useCallback(
     (sourceSquare: string, targetSquare: string, piece: string) => {
       // 1. Convert to SAN and validate using current FEN
@@ -113,11 +176,19 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
       className={`study-board-container ${className || ''}`}
       style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: boardWidth }}
     >
-      <div className="study-board-wrapper" style={{ width: boardWidth, height: boardWidth }}>
+      <div
+        ref={boardWrapperRef}
+        className="study-board-wrapper"
+        style={{ width: boardWidth, height: boardWidth }}
+        onMouseDownCapture={handleBoardMouseDownCapture}
+      >
         <Chessboard
+          key={boardResetToken}
           id="study-board"
           position={state.currentFen}
           onPieceDrop={onPieceDrop}
+          customArrows={boardArrows}
+          onArrowsChange={setBoardArrows}
           boardWidth={boardWidth}
           boardOrientation={orientation}
           customDarkSquareStyle={{ backgroundColor: '#779954' }}
