@@ -888,7 +888,8 @@
 
 .study-board-nav {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   align-self: stretch;
 }
@@ -896,6 +897,14 @@
 .study-board-nav-group {
   display: flex;
   gap: 10px;
+}
+
+.study-board-nav-group-left {
+  justify-content: flex-start;
+}
+
+.study-board-nav-group-right {
+  justify-content: flex-end;
 }
 
 .study-board-nav-button {

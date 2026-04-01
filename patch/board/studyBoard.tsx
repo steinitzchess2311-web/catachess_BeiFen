@@ -27,6 +27,13 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
     setBoardResetToken((prev) => prev + 1);
   }, []);
 
+  const clearBoardArrows = useCallback(() => {
+    rightMouseDownOnBoardRef.current = false;
+    setBoardArrows([]);
+    // Remount to guarantee react-chessboard drops any transient in-progress arrow.
+    resetBoardInstance();
+  }, [resetBoardInstance]);
+
   const moveToStart = useCallback(() => {
     selectNode(state.tree.rootId);
   }, [selectNode, state.tree.rootId]);
@@ -197,7 +204,18 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
         />
       </div>
       <div className="study-board-nav">
-        <div className="study-board-nav-group">
+        <div className="study-board-nav-group study-board-nav-group-left">
+          <button
+            type="button"
+            className="study-board-nav-button"
+            onClick={clearBoardArrows}
+            title="Clear all arrows for the current position"
+            aria-label="Clear all arrows for the current position"
+          >
+            Clear
+          </button>
+        </div>
+        <div className="study-board-nav-group study-board-nav-group-right">
           <button type="button" className="study-board-nav-button" onClick={moveToStart}>|&lt;</button>
           <button type="button" className="study-board-nav-button" onClick={moveToPrev}>&lt;</button>
           <button type="button" className="study-board-nav-button" onClick={moveToNext}>&gt;</button>
