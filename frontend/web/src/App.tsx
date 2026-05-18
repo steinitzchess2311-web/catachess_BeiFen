@@ -356,16 +356,12 @@ function Layout() {
       if (authed) {
         try {
           const token = readStored(TOKEN_KEY);
-          const derivedName = decodeUserIdFromToken(token) || readStored(USER_ID_KEY);
-          if (derivedName) {
-            setUsername(derivedName);
-          }
           const response = await api.request("/user/profile", {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          setUsername(response.username);
+          setUsername(response.username || null);
           setUserRole(response.role || null);
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
