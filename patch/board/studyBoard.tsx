@@ -16,6 +16,8 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
   const [orientation, setOrientation] = useState<'white' | 'black'>('white');
   const [boardArrows, setBoardArrows] = useState<BoardArrows>([]);
   const [boardResetToken, setBoardResetToken] = useState(0);
+  const [resolvedBoardWidth, setResolvedBoardWidth] = useState(boardWidth);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const rightMouseDownOnBoardRef = useRef(false);
   const isFlipped = orientation === 'black';
@@ -33,6 +35,27 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
     // Remount to guarantee react-chessboard drops any transient in-progress arrow.
     resetBoardInstance();
   }, [resetBoardInstance]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeBoard = () => {
+      const availableWidth = container.clientWidth;
+      const viewportGuard = Math.max(240, window.innerHeight - 260);
+      const nextWidth = Math.max(240, Math.min(boardWidth, availableWidth, viewportGuard));
+      setResolvedBoardWidth(Math.floor(nextWidth));
+    };
+
+    resizeBoard();
+    const observer = new ResizeObserver(resizeBoard);
+    observer.observe(container);
+    window.addEventListener('resize', resizeBoard);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', resizeBoard);
+    };
+  }, [boardWidth]);
 
   const moveToStart = useCallback(() => {
     selectNode(state.tree.rootId);
@@ -180,13 +203,14 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
 
   return (
     <div
+      ref={containerRef}
       className={`study-board-container ${className || ''}`}
-      style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: boardWidth }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}
     >
       <div
         ref={boardWrapperRef}
         className="study-board-wrapper"
-        style={{ width: boardWidth, height: boardWidth }}
+        style={{ width: resolvedBoardWidth, height: resolvedBoardWidth }}
         onMouseDownCapture={handleBoardMouseDownCapture}
       >
         <Chessboard
@@ -196,7 +220,7 @@ export function StudyBoard({ className, boardWidth = 500 }: StudyBoardProps) {
           onPieceDrop={onPieceDrop}
           customArrows={boardArrows}
           onArrowsChange={setBoardArrows}
-          boardWidth={boardWidth}
+          boardWidth={resolvedBoardWidth}
           boardOrientation={orientation}
           customDarkSquareStyle={{ backgroundColor: '#779954' }}
           customLightSquareStyle={{ backgroundColor: '#e9edcc' }}

@@ -12,6 +12,7 @@ main {
 .app-footer {
   position: relative;
   width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(135deg, #231a4a 0%, #2d1f5c 50%, #1a0f3a 100%);
   color: #ffffff;
   padding: 2rem 3rem 1.5rem;
@@ -289,6 +290,10 @@ main {
 }
 
 @media (max-width: 480px) {
+  .app-footer {
+    padding: 1.25rem 1rem 1rem;
+  }
+
   .appreciation-grid {
     grid-template-columns: 1fr;
   }
